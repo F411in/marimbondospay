@@ -15,11 +15,23 @@
         :root {
             --primary: #f59e0b;
             --bg: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --bg-card: #ffffff;
+            --bg-header: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        html.dark {
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --bg-card: #1e293b;
+            --bg-header: #0f172a;
+            --border-color: #334155;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
-            color: #1e293b;
+            color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior: none;
         }
@@ -32,7 +44,9 @@
         }
         .font-outfit { font-family: 'Outfit', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        html.dark .glass { background: rgba(30, 41, 59, 0.95); }
         .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        html.dark .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2); }
         .btn-bounce:active { transform: scale(0.96); }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -121,22 +135,60 @@
             button { min-height: 48px; }
         }
 
-        /* Tema Claro */
+        /* Tema Claro - Modo Light */
         .dark-light { 
             --bg: #ffffff;
-            color: #0f172a;
-            background-color: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --bg-card: #f8fafc;
+            --bg-header: #e2e8f0;
+            --border-color: #cbd5e1;
+            color: var(--text-primary);
+            background-color: var(--bg);
         }
         .dark-light header,
-        .dark-light main,
+        .dark-light main { background-color: var(--bg-header); }
         .dark-light .bg-slate-900,
-        .dark-light .bg-slate-800 { background-color: #e2e8f0; }
-        .dark-light .bg-white { background-color: #f8fafc; }
-        .dark-light .text-slate-800 { color: #1e293b; }
-        .dark-light .text-slate-600 { color: #475569; }
-        .dark-light .text-slate-500 { color: #64748b; }
-        .dark-light .text-slate-700 { color: #334155; }
+        .dark-light .bg-slate-800 { background-color: #cbd5e1 !important; color: #0f172a !important; }
+        .dark-light .bg-white,
+        .dark-light .bg-slate-50 { background-color: var(--bg-card) !important; }
+        .dark-light .text-slate-800 { color: #0f172a !important; }
+        .dark-light .text-slate-600 { color: #334155 !important; }
+        .dark-light .text-slate-500 { color: #64748b !important; }
+        .dark-light .text-slate-700 { color: #0f172a !important; }
+        .dark-light .text-slate-400 { color: #94a3b8 !important; }
+        .dark-light .border-slate-200,
+        .dark-light .border-slate-100 { border-color: #cbd5e1 !important; }
         .dark-light #login-form { background-color: #ffffff; }
+        .dark-light .glass { background-color: rgba(248, 250, 252, 0.98) !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+        
+        /* Tema Escuro - Modo Dark */
+        html.dark {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+        html.dark body, html.dark main, html.dark header {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+        html.dark .bg-slate-900 { background-color: #1e293b !important; }
+        html.dark .bg-slate-800 { background-color: #334155 !important; }
+        html.dark .bg-white,
+        html.dark .bg-slate-50 { background-color: #1e293b !important; }
+        html.dark input, html.dark textarea, html.dark select { 
+            background-color: #1e293b !important; 
+            color: #f1f5f9 !important; 
+            border-color: #334155 !important;
+        }
+        html.dark .glass { background-color: rgba(30, 41, 59, 0.98) !important; border-color: #334155 !important; color: #f1f5f9 !important; }
+        html.dark .text-slate-800 { color: #f1f5f9 !important; }
+        html.dark .text-slate-600 { color: #cbd5e1 !important; }
+        html.dark .text-slate-500 { color: #94a3b8 !important; }
+        html.dark .text-slate-700 { color: #e2e8f0 !important; }
+        html.dark .text-slate-400 { color: #64748b !important; }
+        html.dark .border-slate-200,
+        html.dark .border-slate-100,
+        html.dark .border-slate-300 { border-color: #334155 !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -172,7 +224,7 @@
                     <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 Dígitos)</label>
                     <input type="password" id="login-pin" maxlength="4" inputmode="numeric" class="w-full p-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition text-center text-2xl tracking-[0.5em] font-bold text-slate-800" placeholder="****">
                 </div>
-                <button onclick="handleLogin()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl btn-bounce flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors mt-2">
+                <button id="login-btn" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl btn-bounce flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors mt-2">
                     Entrar <i data-lucide="log-in" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -230,36 +282,155 @@
         class DataPersistence {
             constructor() {
                 this.storageKey = 'marimbondos_db';
+                this.dbName = 'MarimbondosDB';
+                this.storeName = 'appData';
+                this.db = null;
+                this.initIndexedDB();
+            }
+
+            initIndexedDB() {
+                if (!('indexedDB' in window)) {
+                    console.warn('IndexedDB não disponível, usando localStorage');
+                    return;
+                }
+                
+                const request = indexedDB.open(this.dbName, 1);
+                
+                request.onerror = () => {
+                    console.error('Erro ao abrir IndexedDB');
+                };
+                
+                request.onsuccess = (e) => {
+                    this.db = e.target.result;
+                    console.log('✓ IndexedDB inicializado');
+                };
+                
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(this.storeName)) {
+                        db.createObjectStore(this.storeName);
+                    }
+                };
             }
 
             save(data) {
+                // Tentar salvar em IndexedDB primeiro
+                if (this.db) {
+                    try {
+                        const transaction = this.db.transaction([this.storeName], 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        store.put(data, this.storageKey);
+                        console.log('✓ Dados salvos em IndexedDB');
+                    } catch(err) {
+                        console.warn('Erro ao salvar em IndexedDB:', err);
+                        // Fallback para localStorage
+                        this.saveToLocalStorage(data);
+                    }
+                } else {
+                    // Usar localStorage como fallback
+                    this.saveToLocalStorage(data);
+                }
+            }
+
+            saveToLocalStorage(data) {
                 try {
                     localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    console.log('✓ Dados salvos em localStorage');
                 } catch(err) {
-                    console.error('Erro ao salvar dados:', err);
+                    console.error('Erro ao salvar em localStorage:', err);
                 }
             }
 
             load() {
+                // Tentar carregar de IndexedDB primeiro
+                if (this.db) {
+                    return new Promise((resolve) => {
+                        try {
+                            const transaction = this.db.transaction([this.storeName], 'readonly');
+                            const store = transaction.objectStore(this.storeName);
+                            const request = store.get(this.storageKey);
+                            
+                            request.onsuccess = () => {
+                                if (request.result) {
+                                    console.log('✓ Dados carregados de IndexedDB');
+                                    resolve(request.result);
+                                } else {
+                                    // Fallback para localStorage
+                                    resolve(this.loadFromLocalStorage());
+                                }
+                            };
+                            
+                            request.onerror = () => {
+                                console.warn('Erro ao carregar de IndexedDB');
+                                resolve(this.loadFromLocalStorage());
+                            };
+                        } catch(err) {
+                            console.warn('Erro ao acessar IndexedDB:', err);
+                            resolve(this.loadFromLocalStorage());
+                        }
+                    });
+                } else {
+                    // Usar localStorage diretamente
+                    return Promise.resolve(this.loadFromLocalStorage());
+                }
+            }
+
+            loadFromLocalStorage() {
                 try {
                     const data = localStorage.getItem(this.storageKey);
-                    return data ? JSON.parse(data) : null;
+                    if (data) {
+                        console.log('✓ Dados carregados de localStorage');
+                        return JSON.parse(data);
+                    }
+                    return null;
                 } catch(err) {
-                    console.error('Erro ao carregar dados:', err);
+                    console.error('Erro ao carregar de localStorage:', err);
                     return null;
                 }
             }
 
             clear() {
+                // Limpar IndexedDB
+                if (this.db) {
+                    try {
+                        const transaction = this.db.transaction([this.storeName], 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        store.delete(this.storageKey);
+                    } catch(err) {
+                        console.warn('Erro ao limpar IndexedDB:', err);
+                    }
+                }
+                
+                // Limpar localStorage
                 try {
                     localStorage.removeItem(this.storageKey);
                 } catch(err) {
-                    console.error('Erro ao limpar dados:', err);
+                    console.error('Erro ao limpar localStorage:', err);
                 }
             }
         }
 
         const persistence = new DataPersistence();
+
+        // --- VERIFICADOR DE BIBLIOTECAS ---
+        function checkLibraries() {
+            setTimeout(() => {
+                if (typeof XLSX === 'undefined') {
+                    console.warn('XLSX library não foi carregado. Tentando carregar de fonte alternativa...');
+                    // Carregar XLSX de alternativa
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                    script.onload = () => console.log('XLSX carregado com sucesso da fonte alternativa');
+                    script.onerror = () => console.error('Falha ao carregar XLSX de fonte alternativa');
+                    document.head.appendChild(script);
+                } else {
+                    console.log('✓ XLSX carregado corretamente');
+                }
+            }, 500);
+        }
+
+        // Executar verificação quando página carrega
+        window.addEventListener('load', checkLibraries);
 
         // --- SISTEMA DE TEMA (Dark/Light/Auto) ---
         const THEME_SETTINGS = {
@@ -278,12 +449,29 @@
                 ? window.matchMedia('(prefers-color-scheme: dark)').matches 
                 : theme === 'dark';
             
+            const root = document.documentElement;
+            const body = document.body;
+            
             if (isDark) {
-                document.documentElement.classList.add('dark');
-                document.body.classList.remove('dark-light');
+                root.classList.add('dark');
+                body.classList.remove('dark-light');
+                // Tema escuro - cores aprimoradas
+                root.style.setProperty('--text-primary', '#f1f5f9');
+                root.style.setProperty('--text-secondary', '#cbd5e1');
+                root.style.setProperty('--bg', '#0f172a');
+                root.style.setProperty('--bg-card', '#1e293b');
+                root.style.setProperty('--bg-header', '#0f172a');
+                root.style.setProperty('--border-color', '#334155');
             } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.add('dark-light');
+                root.classList.remove('dark');
+                body.classList.add('dark-light');
+                // Tema claro - cores aprimoradas
+                root.style.setProperty('--text-primary', '#0f172a');
+                root.style.setProperty('--text-secondary', '#475569');
+                root.style.setProperty('--bg', '#ffffff');
+                root.style.setProperty('--bg-card', '#f8fafc');
+                root.style.setProperty('--bg-header', '#e2e8f0');
+                root.style.setProperty('--border-color', '#cbd5e1');
             }
             
             localStorage.setItem('marimbondos_theme', THEME_SETTINGS.current);
@@ -295,7 +483,7 @@
         }
 
         // --- DADOS E PERMISSÕES GLOBAIS ---
-        const MOCK_USER = {
+        let MOCK_USER = {
             email: "v.oliveira10@live.com",
             pin: "1104",
             name: "Prof. Victor Oliveira",
@@ -306,6 +494,7 @@
         let MOCK_SETTINGS = {
             maxWeeklyCreditPerTeacher: 50,
             aeeWeeklyBonus: 30,
+            baseCreditPerStudent: 100,
             feiraDate: "",
             creditsFrozen: false
         };
@@ -343,24 +532,33 @@
         }
 
         function loadAllData() {
-            const saved = persistence.load();
-            if (saved) {
-                MOCK_SETTINGS = saved.settings || MOCK_SETTINGS;
-                MOCK_STUDENTS = saved.students || [];
-                MOCK_TEACHERS = saved.teachers || [{ email: "v.oliveira10@live.com", name: "Prof. Victor Oliveira", role: "Desenvolvedor" }];
-                MOCK_HISTORY = saved.history || [];
-                MOCK_NOTICES = saved.notices || [];
-                if (saved.counters) {
-                    historyCounter = saved.counters.history || 1;
-                    noticesCounter = saved.counters.notices || 1;
+            return persistence.load().then(saved => {
+                if (saved) {
+                    MOCK_SETTINGS = saved.settings || MOCK_SETTINGS;
+                    MOCK_STUDENTS = saved.students || [];
+                    MOCK_TEACHERS = saved.teachers || [{ email: "v.oliveira10@live.com", name: "Prof. Victor Oliveira", role: "Desenvolvedor" }];
+                    MOCK_HISTORY = saved.history || [];
+                    MOCK_NOTICES = saved.notices || [];
+                    if (saved.counters) {
+                        historyCounter = saved.counters.history || 1;
+                        noticesCounter = saved.counters.notices || 1;
+                    }
+                    console.log('✓ Dados carregados com sucesso');
+                } else {
+                    // Inicialização padrão - apenas DEV
+                    if (!MOCK_TEACHERS.some(t => t.email === MOCK_USER.email)) {
+                        MOCK_TEACHERS = [{ email: MOCK_USER.email, name: MOCK_USER.name, role: MOCK_USER.role }];
+                    }
+                    saveAllData();
+                    console.log('✓ Sistema inicializado (primeiro acesso)');
                 }
-            } else {
-                // Inicialização padrão - apenas DEV
+            }).catch(err => {
+                console.error('Erro ao carregar dados:', err);
+                // Inicialização padrão em caso de erro
                 if (!MOCK_TEACHERS.some(t => t.email === MOCK_USER.email)) {
                     MOCK_TEACHERS = [{ email: MOCK_USER.email, name: MOCK_USER.name, role: MOCK_USER.role }];
                 }
-                saveAllData();
-            }
+            });
         }
 
         let currentClassView = null;
@@ -380,11 +578,16 @@
         ];
 
         // --- INICIALIZAÇÃO ---
-        window.onload = () => {
+        window.onload = async () => {
+            console.log('🚀 Início do window.onload');
             initTheme();
-            loadAllData();
+            console.log('✓ Tema inicializado');
+            await loadAllData();
+            console.log('✓ Dados carregados');
             initIcons();
+            console.log('✓ Ícones inicializados');
             setupLoginEnterKey();
+            console.log('✓ Listeners de login configurados');
         };
 
         function initIcons() {
@@ -392,27 +595,86 @@
         }
 
         function setupLoginEnterKey() {
+            console.log('🔧 Configurando listeners de login...');
             const pressEnter = (e) => { if(e.key === 'Enter') handleLogin(); };
             document.getElementById('login-email').addEventListener('keypress', pressEnter);
             document.getElementById('login-pin').addEventListener('keypress', pressEnter);
+            // Event listener para o botão de login
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                console.log('✓ Botão de login encontrado, adicionando click listener');
+                loginBtn.addEventListener('click', handleLogin);
+            } else {
+                console.error('❌ Botão de login (#login-btn) NÃO encontrado!');
+            }
         }
 
         function handleLogin() {
+            console.log('🔵 handleLogin() foi chamado!');
             const email = document.getElementById('login-email').value.trim();
-            const pin = document.getElementById('login-pin').value;
+            const pin = document.getElementById('login-pin').value.trim();
             
+            console.log('📋 Tentativa de login:');
+            console.log('  Email:', JSON.stringify(email), '| MOCK_USER.email:', JSON.stringify(MOCK_USER.email));
+            console.log('  PIN:', JSON.stringify(pin), '| MOCK_USER.pin:', JSON.stringify(MOCK_USER.pin));
+            console.log('  Email match:', email === MOCK_USER.email);
+            console.log('  PIN match:', pin === MOCK_USER.pin);
+            
+            // Verificar se é o usuário DEV (desenvolvedor)
             if (email === MOCK_USER.email && pin === MOCK_USER.pin) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('user-display-name').textContent = MOCK_USER.name;
-                document.getElementById('user-display-role').textContent = MOCK_USER.role;
-                buildNavigation();
-                switchTab('transactions');
-                // Mostrar avisos ativados ao login
-                setTimeout(showActiveNotices, 600);
-            } else {
-                showToast("E-mail ou senha incorretos.", "error");
+                console.log('✓ Login DEV bem-sucedido');
+                setCurrentUser(MOCK_USER);
+                showLoginSuccessScreen();
+                return;
             }
+            
+            console.log('ℹ DEV login falhou, verificando professores...');
+            console.log('  Total de professores:', MOCK_TEACHERS.length);
+            console.log('  Professores:', MOCK_TEACHERS.map(t => ({ email: t.email, temSenha: !!t.password })));
+            
+            // Verificar se é um professor registrado
+            const teacher = MOCK_TEACHERS.find(t => t.email === email);
+            if (teacher) {
+                console.log('  Professor encontrado:', teacher.email);
+                if (teacher.password) {
+                    console.log('  Comparando PIN:', JSON.stringify(pin), 'com senha:', JSON.stringify(teacher.password));
+                    if (teacher.password === pin) {
+                        console.log('✓ Login de professor bem-sucedido');
+                        setCurrentUser({
+                            email: teacher.email,
+                            name: teacher.name,
+                            pin: teacher.password,
+                            role: teacher.role,
+                            roleType: 'teacher'
+                        });
+                        showLoginSuccessScreen();
+                        return;
+                    } else {
+                        console.log('✗ Senha incorreta para professor');
+                    }
+                } else {
+                    console.log('✗ Professor não tem senha configurada');
+                }
+            } else {
+                console.log('  Professor com email', JSON.stringify(email), 'não encontrado');
+            }
+            
+            console.log('❌ Login falhou');
+            showToast("E-mail ou senha incorretos.", "error");
+        }
+        
+        function setCurrentUser(user) {
+            MOCK_USER = user;
+        }
+        
+        function showLoginSuccessScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('user-display-name').textContent = MOCK_USER.name;
+            document.getElementById('user-display-role').textContent = MOCK_USER.role;
+            buildNavigation();
+            switchTab('transactions');
+            setTimeout(showActiveNotices, 600);
         }
 
         function logout() {
@@ -495,11 +757,11 @@
                         }
                         student.balance += val; student.weekCredits += val;
                         successCount++; affectedIds.push(student.id);
-                        addHistory("Crédito", `Recebeu M$ ${val}. Motivo: ${reason}`, 'credit', student.id);
+                        addHistory("Crédito", `${student.name} recebeu M$ ${val}. Motivo: ${reason}`, 'credit', student.id);
                     } else { 
                         student.balance -= val;
                         successCount++; affectedIds.push(student.id);
-                        addHistory("Débito", `Retirada de M$ ${val}. Motivo: ${reason}`, 'debit', student.id);
+                        addHistory("Débito", `${student.name} teve retirada de M$ ${val}. Motivo: ${reason}`, 'debit', student.id);
                     }
                 }
             });
@@ -785,6 +1047,10 @@
                         <input type="email" id="edit-teacher-email" value="${teacher.email}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 dígitos)</label>
+                        <input type="password" id="edit-teacher-password" maxlength="4" inputmode="numeric" value="${teacher.password || ''}" placeholder="Deixe em branco para manter" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 text-center tracking-[0.2em]">
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Cargo / Função</label>
                         <select id="edit-teacher-role" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
                             <option value="Professor" ${teacher.role === 'Professor' ? 'selected' : ''}>Professor</option>
@@ -806,11 +1072,18 @@
 
             const newName = document.getElementById('edit-teacher-name').value.trim();
             const newEmail = document.getElementById('edit-teacher-email').value.trim();
+            const newPassword = document.getElementById('edit-teacher-password').value.trim();
             const newRole = document.getElementById('edit-teacher-role').value;
 
             if (!newName) { showToast("O nome não pode estar vazio.", "error"); return; }
             if (!newEmail) { showToast("O e-mail não pode estar vazio.", "error"); return; }
             if (!newEmail.includes('@')) { showToast("E-mail inválido.", "error"); return; }
+            
+            // Validar senha se fornecida
+            if (newPassword && (newPassword.length !== 4 || isNaN(newPassword))) { 
+                showToast("Senha deve conter exatamente 4 dígitos.", "error"); 
+                return; 
+            }
 
             // Verifica se o novo e-mail já existe (e é diferente do atual)
             if (newEmail !== oldEmail && MOCK_TEACHERS.find(t => t.email === newEmail)) {
@@ -824,6 +1097,11 @@
             teacher.name = newName;
             teacher.email = newEmail;
             teacher.role = newRole;
+            
+            // Atualizar senha apenas se uma nova foi fornecida
+            if (newPassword) {
+                teacher.password = newPassword;
+            }
 
             addHistory("Professor Editado", `${oldName} foi atualizado para ${newName} (${newRole}).`, 'edit');
             showToast("Dados do professor salvos com sucesso!");
@@ -1061,6 +1339,10 @@
                         <input type="email" id="new-teacher-email" placeholder="Ex: professor@escola.com" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 dígitos)</label>
+                        <input type="password" id="new-teacher-password" maxlength="4" inputmode="numeric" placeholder="Ex: 1234" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 text-center tracking-[0.2em]">
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Cargo / Função</label>
                         <select id="new-teacher-role" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
                             <option value="Professor">Professor</option>
@@ -1079,11 +1361,14 @@
         function saveNewTeacher() {
             const name = document.getElementById('new-teacher-name').value.trim();
             const email = document.getElementById('new-teacher-email').value.trim();
+            const password = document.getElementById('new-teacher-password').value.trim();
             const role = document.getElementById('new-teacher-role').value;
 
             if (!name) { showToast("Informe o nome do professor.", "error"); return; }
             if (!email) { showToast("Informe o e-mail.", "error"); return; }
             if (!email.includes('@')) { showToast("E-mail inválido.", "error"); return; }
+            if (!password) { showToast("Informe a senha (4 dígitos).", "error"); return; }
+            if (password.length !== 4 || isNaN(password)) { showToast("Senha deve conter exatamente 4 dígitos.", "error"); return; }
 
             // Verificar se e-mail já existe
             if (MOCK_TEACHERS.find(t => t.email === email)) {
@@ -1094,6 +1379,7 @@
             const newTeacher = {
                 email: email,
                 name: name,
+                password: password,
                 role: role
             };
 
@@ -1169,6 +1455,19 @@
                     addHistory("Restauração", `Aluno ${histItem.studentData.name} foi restaurado.`, 'creation', histItem.studentData.id, 'student');
                 }
                 
+                saveAllData();
+                switchTab('history');
+            }
+        }
+
+        function deleteHistoryEntry(historyId) {
+            if (MOCK_USER.roleType !== 'dev') return;
+            
+            const histIndex = MOCK_HISTORY.findIndex(h => h.id === historyId);
+            if (histIndex > -1) {
+                const entry = MOCK_HISTORY[histIndex];
+                MOCK_HISTORY.splice(histIndex, 1);
+                showToast("Registro removido do histórico.", "success");
                 saveAllData();
                 switchTab('history');
             }
@@ -1387,56 +1686,104 @@
         }
 
         function exportExcel() {
-            // Preparar dados para as abas
-            const studentsData = MOCK_STUDENTS.map(s => ({
-                'ID': s.id,
-                'Nome': s.name,
-                'Turma': s.class,
-                'Saldo (M$)': s.balance,
-                'AEE': s.aee,
-                'Créditos/Semana': s.weekCredits,
-                'Banido': s.banned ? 'Sim' : 'Não'
-            }));
+            try {
+                // Verificar se XLSX está carregado
+                if (typeof XLSX === 'undefined') {
+                    showToast("Biblioteca Excel não carregada. Por favor, recarregue a página.", "error");
+                    console.error('XLSX library not loaded');
+                    return;
+                }
+                
+                console.log('Iniciando exportação Excel...');
+                console.log('Estudantes:', MOCK_STUDENTS.length);
+                console.log('Professores:', MOCK_TEACHERS.length);
+                console.log('Avisos:', MOCK_NOTICES.length);
+                console.log('Histórico:', MOCK_HISTORY.length);
+                
+                // Preparar dados para as abas
+                const studentsData = MOCK_STUDENTS.map(s => ({
+                    'ID': s.id,
+                    'Nome': s.name,
+                    'Turma': s.class,
+                    'Saldo (M$)': s.balance,
+                    'AEE': s.aee,
+                    'Créditos/Semana': s.weekCredits,
+                    'Banido': s.banned ? 'Sim' : 'Não'
+                }));
 
-            const teachersData = MOCK_TEACHERS.map(t => ({
-                'Email': t.email,
-                'Nome': t.name,
-                'Cargo': t.role
-            }));
+                const teachersData = MOCK_TEACHERS.map(t => ({
+                    'Email': t.email,
+                    'Nome': t.name,
+                    'Cargo': t.role
+                }));
 
-            const noticesData = MOCK_NOTICES.map(n => ({
-                'ID': n.id,
-                'Título': n.title,
-                'Mensagem': n.message,
-                'Autor': n.authorName,
-                'Ativo': n.active ? 'Sim' : 'Não',
-                'Data': n.createdAt
-            }));
+                const noticesData = MOCK_NOTICES.map(n => ({
+                    'ID': n.id,
+                    'Título': n.title,
+                    'Mensagem': n.message,
+                    'Autor': n.authorName,
+                    'Ativo': n.active ? 'Sim' : 'Não',
+                    'Data': n.createdAt
+                }));
 
-            const settingsData = [{
-                'Chave': 'maxWeeklyCreditPerTeacher',
-                'Valor': MOCK_SETTINGS.maxWeeklyCreditPerTeacher
-            }, {
-                'Chave': 'aeeWeeklyBonus',
-                'Valor': MOCK_SETTINGS.aeeWeeklyBonus
-            }, {
-                'Chave': 'baseCreditPerStudent',
-                'Valor': MOCK_SETTINGS.baseCreditPerStudent
-            }];
+                const settingsData = [{
+                    'Chave': 'maxWeeklyCreditPerTeacher',
+                    'Valor': MOCK_SETTINGS.maxWeeklyCreditPerTeacher
+                }, {
+                    'Chave': 'aeeWeeklyBonus',
+                    'Valor': MOCK_SETTINGS.aeeWeeklyBonus
+                }, {
+                    'Chave': 'baseCreditPerStudent',
+                    'Valor': MOCK_SETTINGS.baseCreditPerStudent
+                }, {
+                    'Chave': 'feiraDate',
+                    'Valor': MOCK_SETTINGS.feiraDate
+                }, {
+                    'Chave': 'creditsFrozen',
+                    'Valor': MOCK_SETTINGS.creditsFrozen ? 'Sim' : 'Não'
+                }];
 
-            // Criar novo workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Adicionar sheets
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(studentsData), "Alunos");
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(teachersData), "Professores");
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(noticesData), "Avisos");
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(settingsData), "Configurações");
+                const historyData = MOCK_HISTORY.map(h => ({
+                    'ID': h.id || '',
+                    'Título': h.title || '',
+                    'Descrição': h.desc || '',
+                    'Tipo': h.type || '',
+                    'Autor': h.author || 'Sistema',
+                    'Data': h.date || new Date().toLocaleDateString('pt-BR'),
+                    'ID Aluno': h.studentId || '-'
+                }));
 
-            // Gerar arquivo
-            XLSX.writeFile(wb, `database_marimbondos_${new Date().getTime()}.xlsx`);
-            showToast("Base de dados exportada para Excel com sucesso!", "success");
-            addHistory("Exportação Excel", "Database foi exportada em formato de planilha Excel.", 'creation');
+                console.log('Dados preparados com sucesso');
+
+                // Criar novo workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Adicionar sheets
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(studentsData), "Alunos");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(teachersData), "Professores");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(noticesData), "Avisos");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(historyData), "Histórico");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(settingsData), "Configurações");
+
+                console.log('Workbook criado com sucesso');
+
+                // Gerar arquivo
+                const fileName = `database_marimbondos_${new Date().getTime()}.xlsx`;
+                console.log('Iniciando download do arquivo:', fileName);
+                XLSX.writeFile(wb, fileName);
+                
+                console.log('Arquivo enviado para download com sucesso');
+                showToast("Base de dados exportada para Excel com sucesso!", "success");
+                addHistory("Exportação Excel", "Database foi exportada em formato de planilha Excel.", 'creation');
+            } catch(err) {
+                console.error('Erro ao exportar Excel:', err);
+                console.error('Stack:', err.stack);
+                if (typeof XLSX === 'undefined') {
+                    showToast("Biblioteca Excel não disponível. Recarregue a página e tente novamente.", "error");
+                } else {
+                    showToast("Erro ao exportar arquivo Excel: " + err.message, "error");
+                }
+            }
         }
 
         function importExcel() {
@@ -1504,6 +1851,8 @@
                             if (s['Chave'] === 'maxWeeklyCreditPerTeacher') MOCK_SETTINGS.maxWeeklyCreditPerTeacher = Number(s['Valor']);
                             if (s['Chave'] === 'aeeWeeklyBonus') MOCK_SETTINGS.aeeWeeklyBonus = Number(s['Valor']);
                             if (s['Chave'] === 'baseCreditPerStudent') MOCK_SETTINGS.baseCreditPerStudent = Number(s['Valor']);
+                            if (s['Chave'] === 'feiraDate') MOCK_SETTINGS.feiraDate = s['Valor'];
+                            if (s['Chave'] === 'creditsFrozen') MOCK_SETTINGS.creditsFrozen = s['Valor'] === 'Sim';
                         });
                     }
 
@@ -1864,12 +2213,19 @@
                                         <i data-lucide="user" class="w-2.5 h-2.5"></i> Executado por: ${h.author}
                                     </p>
                                 </div>
-                                ${(isDev && h.type === 'deletion' && h.studentData) ? `
-                                    <button onclick="undoDelete(${h.id})" class="ml-4 p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition btn-bounce flex items-center gap-1 border border-blue-100">
-                                        <i data-lucide="undo-2" class="w-4 h-4"></i>
-                                        <span class="text-[10px] font-bold uppercase">Reverter</span>
-                                    </button>
-                                ` : ''}
+                                <div class="flex items-center gap-1 ml-4">
+                                    ${(isDev && h.type === 'deletion' && h.studentData) ? `
+                                        <button onclick="undoDelete(${h.id})" class="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition btn-bounce flex items-center gap-1 border border-blue-100">
+                                            <i data-lucide="undo-2" class="w-4 h-4"></i>
+                                            <span class="text-[10px] font-bold uppercase">Reverter</span>
+                                        </button>
+                                    ` : ''}
+                                    ${isDev ? `
+                                        <button onclick="deleteHistoryEntry(${h.id})" class="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition btn-bounce flex items-center gap-1 border border-red-100" title="Deletar este registro">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         `;
                     }).join('');
