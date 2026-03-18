@@ -314,8 +314,7 @@
             box-shadow: 0 0 20px rgba(255, 184, 0, 0.5), inset 0 1px 0 rgba(255, 184, 0, 0.3);
             animation: glow 2s ease-in-out infinite;
         }
-    </style>
-        
+
         * { 
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
@@ -830,24 +829,71 @@
         let firebaseUser = null;
         let db = null;
 
+        // Aguardar Firebase estar disponível
+        function waitForFirebase(callback, maxAttempts = 20) {
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (typeof firebase !== 'undefined') {
+                    clearInterval(checkInterval);
+                    console.log('✓ Firebase SDK carregado com sucesso');
+                    callback();
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    console.error('❌ Firebase SDK não carregou após múltiplas tentativas');
+                    console.warn('⚠️ Firebase não disponível. Usando localStorage apenas.');
+                    firebaseInitialized = false;
+                    callback(); // Chamar callback mesmo assim para continuar o app
+                } else {
+                    console.log(`⏳ Aguardando Firebase SDK (tentativa ${attempts}/${maxAttempts})...`);
+                }
+            }, 500);
+        }
+
         // Inicializar Firebase
         function initFirebase() {
             try {
-                if (firebaseConfig.apiKey === "AIzaSyAef3eDWhfs7KhLGFjn5rEsPktyPNckOrI") {
+                // Verificar se firebase está definido
+                if (typeof firebase === 'undefined') {
+                    console.error('❌ Firebase SDK ainda não foi carregado');
+                    throw new Error('Firebase não está disponível. Tentando novamente...');
+                }
+
+                // Verificar se está usando placeholder (não configurado)
+                if (firebaseConfig.apiKey.includes("COLE_SEU") || 
+                    firebaseConfig.projectId.includes("COLE_SEU") ||
+                    firebaseConfig.apiKey === "") {
                     console.warn('⚠️ Firebase não configurado. Usando localStorage apenas.');
+                    firebaseInitialized = false;
                     return false;
                 }
                 
+                console.log('🔧 Inicializando Firebase...');
+                console.log('Config:', {
+                    apiKey: firebaseConfig.apiKey.substring(0, 10) + '...',
+                    authDomain: firebaseConfig.authDomain,
+                    projectId: firebaseConfig.projectId
+                });
+
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
+                    console.log('✓ Firebase App inicializado');
                 }
                 
                 db = firebase.database();
-                console.log('✓ Firebase inicializado com sucesso');
+                console.log('✓ Firebase Realtime Database conectado');
+                console.log('✓ Project ID:', firebaseConfig.projectId);
                 firebaseInitialized = true;
+                
+                // Sincronizar dados existentes com Firebase ao iniciar
+                console.log('📤 Sincronizando dados com Firebase...');
+                syncAllDataToFirebase();
+                
                 return true;
             } catch (err) {
-                console.error('Erro ao inicializar Firebase:', err);
+                console.error('❌ Erro ao inicializar Firebase:', err.message);
+                console.error('Stack:', err.stack);
+                firebaseInitialized = false;
                 return false;
             }
         }
@@ -883,6 +929,41 @@
             } catch (err) {
                 console.error('Erro ao carregar dados do Firebase:', err);
                 return null;
+            }
+        }
+
+        // Carregar dados do Firebase ao inicializar
+        async function loadFromFirebaseOnStartup() {
+            if (!firebaseInitialized || !db) {
+                console.log('⚠️ Firebase não inicializado, pulando carregamento');
+                return;
+            }
+            
+            try {
+                console.log('📥 Carregando todos os dados do Firebase...');
+                const allData = await loadFromFirebase('all_data');
+                
+                if (allData) {
+                    MOCK_SETTINGS = allData.settings || MOCK_SETTINGS;
+                    MOCK_STUDENTS = allData.students || MOCK_STUDENTS;
+                    MOCK_TEACHERS = allData.teachers || MOCK_TEACHERS;
+                    MOCK_HISTORY = allData.history || MOCK_HISTORY;
+                    MOCK_NOTICES = allData.notices || MOCK_NOTICES;
+                    if (allData.counters) {
+                        historyCounter = allData.counters.history || historyCounter;
+                        noticesCounter = allData.counters.notices || noticesCounter;
+                    }
+                    console.log('✅ Dados sincronizados do Firebase com sucesso!');
+                    console.log('Dados:', { 
+                        alunos: allData.students?.length || 0, 
+                        professores: allData.teachers?.length || 0,
+                        registros: allData.history?.length || 0 
+                    });
+                } else {
+                    console.log('ℹ️ Nenhum dado encontrado no Firebase (primeira sincronização)');
+                }
+            } catch (err) {
+                console.error('❌ Erro ao carregar dados do Firebase:', err);
             }
         }
 
@@ -1060,6 +1141,12 @@
                         noticesCounter = saved.counters.notices || 1;
                     }
                     console.log('✓ Dados carregados com sucesso');
+                    
+                    // Tentar carregar do Firebase se disponível
+                    if (firebaseInitialized) {
+                        console.log('📥 Tentando sincronizar com Firebase...');
+                        loadFromFirebaseOnStartup();
+                    }
                 } else {
                     // Inicialização padrão - apenas DEV
                     if (!MOCK_TEACHERS.some(t => t.email === MOCK_USER.email)) {
