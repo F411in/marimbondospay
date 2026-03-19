@@ -960,6 +960,7 @@
                 
                 if (allData) {
                     MOCK_SETTINGS = allData.settings || MOCK_SETTINGS;
+                    sanitizeSettings();
                     MOCK_STUDENTS = allData.students || MOCK_STUDENTS;
                     MOCK_TEACHERS = allData.teachers || MOCK_TEACHERS;
                     MOCK_HISTORY = allData.history || MOCK_HISTORY;
@@ -1125,7 +1126,40 @@
         ];
 
         // --- FUNÇÕES DE PERSISTÊNCIA ---
+        function sanitizeSettings() {
+            if (!MOCK_SETTINGS || typeof MOCK_SETTINGS !== 'object') {
+                MOCK_SETTINGS = {
+                    maxWeeklyCreditPerTeacher: 50,
+                    aeeWeeklyBonus: 30,
+                    baseCreditPerStudent: 100,
+                    feiraDate: "",
+                    creditsFrozen: false
+                };
+                return;
+            }
+
+            MOCK_SETTINGS.maxWeeklyCreditPerTeacher = Number(MOCK_SETTINGS.maxWeeklyCreditPerTeacher);
+            if (isNaN(MOCK_SETTINGS.maxWeeklyCreditPerTeacher) || MOCK_SETTINGS.maxWeeklyCreditPerTeacher < 0) {
+                MOCK_SETTINGS.maxWeeklyCreditPerTeacher = 50;
+            }
+
+            MOCK_SETTINGS.aeeWeeklyBonus = Number(MOCK_SETTINGS.aeeWeeklyBonus);
+            if (isNaN(MOCK_SETTINGS.aeeWeeklyBonus) || MOCK_SETTINGS.aeeWeeklyBonus < 0) {
+                MOCK_SETTINGS.aeeWeeklyBonus = 30;
+            }
+
+            MOCK_SETTINGS.baseCreditPerStudent = Number(MOCK_SETTINGS.baseCreditPerStudent);
+            if (isNaN(MOCK_SETTINGS.baseCreditPerStudent) || MOCK_SETTINGS.baseCreditPerStudent < 0) {
+                MOCK_SETTINGS.baseCreditPerStudent = 100;
+            }
+
+            MOCK_SETTINGS.feiraDate = String(MOCK_SETTINGS.feiraDate || "");
+            MOCK_SETTINGS.creditsFrozen = Boolean(MOCK_SETTINGS.creditsFrozen);
+        }
+
         function saveAllData() {
+            sanitizeSettings();
+
             const data = {
                 settings: MOCK_SETTINGS,
                 students: MOCK_STUDENTS,
