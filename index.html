@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <!-- Firebase (Compat para manter firebase.database() estilo legado) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -820,7 +820,7 @@
             apiKey: "AIzaSyAef3eDWhfs7KhLGFjn5rEsPktyPNckOrI",
             authDomain: "banco-dos-marimbondos.firebaseapp.com",
             projectId: "banco-dos-marimbondos",
-            storageBucket: "banco-dos-marimbondos.firebasestorage.app",
+            storageBucket: "banco-dos-marimbondos.appspot.com",
             messagingSenderId: "450318154980",
             appId: "1:450318154980:web:249c6899ffc310703f00f1"
         };
@@ -828,6 +828,21 @@
         let firebaseInitialized = false;
         let firebaseUser = null;
         let db = null;
+
+        function normalizeFirebasePathSegment(segment) {
+            if (!segment || typeof segment !== 'string') return 'local';
+            return segment
+                .trim()
+                .replace(/\./g, '_')
+                .replace(/\#/g, '_')
+                .replace(/\$/g, '_')
+                .replace(/\[/g, '_')
+                .replace(/\]/g, '_')
+                .replace(/\//g, '_')
+                .replace(/@/g, '_at_')
+                .replace(/\s+/g, '_')
+                .replace(/[^a-zA-Z0-9_\-]/g, '_') || 'local';
+        }
 
         // Aguardar Firebase estar disponível
         function waitForFirebase(callback, maxAttempts = 20) {
@@ -885,10 +900,6 @@
                 console.log('✓ Project ID:', firebaseConfig.projectId);
                 firebaseInitialized = true;
                 
-                // Sincronizar dados existentes com Firebase ao iniciar
-                console.log('📤 Sincronizando dados com Firebase...');
-                syncAllDataToFirebase();
-                
                 return true;
             } catch (err) {
                 console.error('❌ Erro ao inicializar Firebase:', err.message);
@@ -901,14 +912,16 @@
         // Salvar dados no Firebase
         async function saveToFirebase(dataKey, data) {
             if (!firebaseInitialized || !db) return;
-            
+
             try {
-                const path = `marimbondos/${firebaseUser || 'local'}/${dataKey}`;
+                const userPath = normalizeFirebasePathSegment(firebaseUser || 'local');
+                const safeDataKey = normalizeFirebasePathSegment(dataKey);
+                const path = `marimbondos/${userPath}/${safeDataKey}`;
                 await db.ref(path).set({
                     data: data,
                     timestamp: new Date().toISOString()
                 });
-                console.log(`✓ Dados salvos em Firebase: ${dataKey}`);
+                console.log(`✓ Dados salvos em Firebase: ${dataKey} (path: ${path})`);
             } catch (err) {
                 console.error('Erro ao salvar dados em Firebase:', err);
             }
@@ -919,10 +932,12 @@
             if (!firebaseInitialized || !db) return null;
             
             try {
-                const path = `marimbondos/${firebaseUser || 'local'}/${dataKey}`;
+                const userPath = normalizeFirebasePathSegment(firebaseUser || 'local');
+                const safeDataKey = normalizeFirebasePathSegment(dataKey);
+                const path = `marimbondos/${userPath}/${safeDataKey}`;
                 const snapshot = await db.ref(path).once('value');
                 if (snapshot.exists()) {
-                    console.log(`✓ Dados carregados do Firebase: ${dataKey}`);
+                    console.log(`✓ Dados carregados do Firebase: ${dataKey} (path: ${path})`);
                     return snapshot.val().data;
                 }
                 return null;
@@ -959,6 +974,8 @@
                         professores: allData.teachers?.length || 0,
                         registros: allData.history?.length || 0 
                     });
+                    // Persistir localmente e garantir que o Firebase esteja sincronizado com o mesmo estado
+                    saveAllData();
                 } else {
                     console.log('ℹ️ Nenhum dado encontrado no Firebase (primeira sincronização)');
                 }
@@ -1185,11 +1202,16 @@
             console.log('🚀 Início do window.onload');
             initTheme();
             console.log('✓ Tema inicializado');
-            
-            // Inicializar Firebase
-            initFirebase();
+
+            // Inicializar Firebase com waitForFirebase para garantir SDK carregado
+            await new Promise(resolve => {
+                waitForFirebase(() => {
+                    initFirebase();
+                    resolve();
+                }, 20);
+            });
             console.log('Firebase verificado');
-            
+
             await loadAllData();
             console.log('✓ Dados carregados');
             initIcons();
@@ -1273,6 +1295,13 @@
         
         function setCurrentUser(user) {
             MOCK_USER = user;
+            let rawUserKey = 'local';
+            if (user && typeof user === 'object') {
+                rawUserKey = user.email || user.uid || 'local';
+            } else {
+                rawUserKey = user || 'local';
+            }
+            firebaseUser = normalizeFirebasePathSegment(rawUserKey);
         }
         
         function showLoginSuccessScreen() {
