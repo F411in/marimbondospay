@@ -926,14 +926,13 @@
             }
         }
 
-        // Salvar dados no Firebase
+        // Salvar dados no Firebase (escopo compartilhado entre contas)
         async function saveToFirebase(dataKey, data) {
             if (!firebaseInitialized || !db) return;
 
             try {
-                const userPath = normalizeFirebasePathSegment(firebaseUser || 'local');
                 const safeDataKey = normalizeFirebasePathSegment(dataKey);
-                const path = `marimbondos/${userPath}/${safeDataKey}`;
+                const path = `marimbondos/shared/${safeDataKey}`;
 
                 // Timeout de 5 segundos para evitar travamentos
                 const timeoutPromise = new Promise((_, reject) =>
@@ -956,9 +955,8 @@
             if (!firebaseInitialized || !db) return null;
 
             try {
-                const userPath = normalizeFirebasePathSegment(firebaseUser || 'local');
                 const safeDataKey = normalizeFirebasePathSegment(dataKey);
-                const path = `marimbondos/${userPath}/${safeDataKey}`;
+                const path = `marimbondos/shared/${safeDataKey}`;
 
                 // Timeout de 5 segundos para evitar travamentos
                 const timeoutPromise = new Promise((_, reject) =>
@@ -1011,8 +1009,13 @@
                 } else {
                     console.log('ℹ️ Nenhum dado encontrado no Firebase (primeira sincronização)');
                 }
+
+                // Configurar a sincronização em tempo real para escopo global
+                setupRealtimeSync();
             } catch (err) {
                 console.error('❌ Erro ao carregar dados do Firebase:', err);
+                // Mesmo em caso de erro, garantimos listener para quando vier conexão
+                setupRealtimeSync();
             }
         }
         function syncAllDataToFirebase() {
@@ -1044,18 +1047,18 @@
             if (!firebaseInitialized || !db) return;
 
             try {
-                const userPath = normalizeFirebasePathSegment(firebaseUser || 'local');
-                const path = `marimbondos/${userPath}/all_data`;
+                const listenerKey = 'shared';
+                const path = `marimbondos/shared/all_data`;
 
                 // Limpar listener anterior se existir
-                if (firebaseListeners[userPath]) {
-                    firebaseListeners[userPath].off();
-                    delete firebaseListeners[userPath];
+                if (firebaseListeners[listenerKey]) {
+                    firebaseListeners[listenerKey].off();
+                    delete firebaseListeners[listenerKey];
                 }
 
                 // Configurar novo listener
-                firebaseListeners[userPath] = db.ref(path);
-                firebaseListeners[userPath].on('value', (snapshot) => {
+                firebaseListeners[listenerKey] = db.ref(path);
+                firebaseListeners[listenerKey].on('value', (snapshot) => {
                     try {
                         if (snapshot.exists()) {
                             const remoteData = snapshot.val();
@@ -1304,6 +1307,13 @@
         ];
 
         // --- FUNÇÕES DE PERSISTÊNCIA ---
+        function refreshUI() {
+            if (currentTabView) {
+                switchTab(currentTabView);
+                console.log('🔄 UI atualizada para aba:', currentTabView);
+            }
+        }
+
         function saveAllData() {
             const data = {
                 settings: MOCK_SETTINGS,
@@ -1321,7 +1331,11 @@
             // Sincronizar com Firebase se disponível
             if (firebaseInitialized) {
                 syncAllDataToFirebase();
+                setupRealtimeSync();
             }
+            
+            // Atualizar UI para refletir mudanças imediatas
+            refreshUI();
         }
 
         function loadAllData() {
@@ -1500,6 +1514,10 @@
                 rawUserKey = user || 'local';
             }
             firebaseUser = normalizeFirebasePathSegment(rawUserKey);
+
+            // Atualizar listeners e dados do Firebase assim que o usuário fizer login
+            setupRealtimeSync();
+            loadFromFirebaseOnStartup().catch(err => console.warn('Falha ao recarregar Firebase após login:', err));
         }
         
         function showLoginSuccessScreen() {
