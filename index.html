@@ -5,8 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Banco dos Marimbondos - Sistema de Gestão (Alpha 1.1)</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23FFB800'/><circle cx='35' cy='35' r='8' fill='%2310B981'/><circle cx='65' cy='35' r='8' fill='%2310B981'/><circle cx='50' cy='65' r='12' fill='%23DC2626'/></svg>">
+    
     <!-- Frameworks e Fontes -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configurar Tailwind para produção
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'outfit': ['Outfit', 'sans-serif'],
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
@@ -1111,20 +1128,73 @@
             firebaseListeners = {};
             console.log('✓ Listeners do Firebase limpos');
         }
+        function checkStorageAvailability() {
+            try {
+                const test = '__storage_test__';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) {
+                console.warn('⚠️ localStorage não disponível (possivelmente bloqueado por Tracking Prevention):', e.message);
+                return false;
+            }
+        }
+
+        function checkIndexedDBAvailability() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) {
+                    console.warn('⚠️ IndexedDB não suportado pelo navegador');
+                    resolve(false);
+                    return;
+                }
+                
+                const request = indexedDB.open('test', 1);
+                request.onerror = () => {
+                    console.warn('⚠️ IndexedDB bloqueado ou não disponível');
+                    resolve(false);
+                };
+                request.onsuccess = () => {
+                    request.result.close();
+                    resolve(true);
+                };
+            });
+        }
+
         function checkLibraries() {
             setTimeout(() => {
                 if (typeof XLSX === 'undefined') {
                     console.warn('XLSX library não foi carregado. Tentando carregar de fonte alternativa...');
-                    // Carregar XLSX de alternativa
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
-                    script.onload = () => console.log('XLSX carregado com sucesso da fonte alternativa');
-                    script.onerror = () => console.error('Falha ao carregar XLSX de fonte alternativa');
-                    document.head.appendChild(script);
+                    
+                    const loadXLSX = (sources, index = 0) => {
+                        if (index >= sources.length) {
+                            console.error('❌ Todas as fontes do XLSX falharam. Funcionalidade de exportação pode não funcionar.');
+                            return;
+                        }
+                        
+                        const script = document.createElement('script');
+                        script.src = sources[index];
+                        script.onload = () => {
+                            console.log(`✓ XLSX carregado com sucesso da fonte ${index + 1}: ${sources[index]}`);
+                        };
+                        script.onerror = () => {
+                            console.warn(`Fonte ${index + 1} falhou, tentando próxima...`);
+                            loadXLSX(sources, index + 1);
+                        };
+                        document.head.appendChild(script);
+                    };
+                    
+                    // Múltiplas fontes para garantir carregamento
+                    const xlsxSources = [
+                        'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+                        'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+                        'https://cdn.jsdelivr.net/npm/xlsx@0.17.5/dist/xlsx.full.min.js'
+                    ];
+                    
+                    loadXLSX(xlsxSources);
                 } else {
                     console.log('✓ XLSX carregado corretamente');
                 }
-            }, 500);
+            }, 2000); // Aguardar 2 segundos para carregamento inicial
         }
 
         // Executar verificação quando página carrega
@@ -1314,6 +1384,20 @@
         // --- INICIALIZAÇÃO ---
         window.onload = async () => {
             console.log('🚀 Início do window.onload');
+            
+            // Verificar disponibilidade de storage
+            const localStorageAvailable = checkStorageAvailability();
+            const indexedDBAvailable = await checkIndexedDBAvailability();
+            
+            if (!localStorageAvailable && !indexedDBAvailable) {
+                console.error('❌ Nenhum método de armazenamento disponível. O aplicativo pode não funcionar corretamente.');
+                showToast('Armazenamento bloqueado pelo navegador. Algumas funcionalidades podem não funcionar.', 'warning');
+            } else if (!localStorageAvailable) {
+                console.warn('⚠️ localStorage bloqueado, usando apenas IndexedDB');
+            } else if (!indexedDBAvailable) {
+                console.warn('⚠️ IndexedDB não disponível, usando apenas localStorage');
+            }
+            
             initTheme();
             console.log('✓ Tema inicializado');
 
