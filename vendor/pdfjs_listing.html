@@ -1,0 +1,2087 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="description" content="pdfjs-dist CDN by jsDelivr - A free, fast, and reliable Open Source CDN for npm and GitHub">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>pdfjs-dist CDN by jsDelivr - A free, fast, and reliable Open Source CDN</title>
+		<style>
+			body {
+				font: 15px/1.4em Arial, "Helvetica Neue", Helvetica, sans-serif;
+				margin: 0;
+				padding: 20px 20px 30px;
+				background-color: #ffffff;
+			}
+
+			.container {
+				max-width: 960px;
+				margin: 0 auto;
+				padding: 10px 0;
+				background-color: #fff;
+			}
+
+			.header {
+				display: -webkit-box;
+				display: -ms-flexbox;
+				display: flex;
+				-webkit-box-align: center;
+				-ms-flex-align: center;
+				align-items: center;
+				-webkit-box-pack: justify;
+				-ms-flex-pack: justify;
+				justify-content: space-between;
+				flex-wrap: wrap;
+			}
+
+			h1 {
+				font-size: 28px;
+				line-height: 38px;
+				margin: 0 0 15px;
+			}
+
+			h2 {
+				font-size: 18px;
+				font-weight: 400;
+				margin: 0;
+			}
+
+			.versions {
+				max-width: 400px;
+				padding: 2px 12px 2px 6px;
+			}
+
+			.description {
+				margin: 10px 0;
+				font-size: 16px;
+				color: #666;
+			}
+
+			.path {
+				display: -webkit-box;
+				display: -ms-flexbox;
+				display: flex;
+				-webkit-box-align: center;
+				-ms-flex-align: center;
+				align-items: center;
+				-webkit-box-pack: justify;
+				-ms-flex-pack: justify;
+				justify-content: space-between;
+				flex-wrap: wrap;
+				margin: 15px 0 0;
+				padding: 15px 0 30px;
+				border-top: 1px solid #e5e5e5;
+			}
+
+			.path .versions,
+			.path ol {
+				margin: 15px 0 0;
+			}
+
+			.path ol {
+				padding: 0;
+				list-style: none;
+				font-size: 18px;
+				font-weight: 400;
+			}
+
+			.path ol li {
+				display: inline;
+			}
+
+			.listing {
+				border: 1px solid #dfe3e7;
+				border-radius: 6px;
+				-webkit-box-shadow: 0 5px 10px -5px #dfe3e7;
+				box-shadow: 0 5px 10px -5px #dfe3e7;
+			}
+
+			table {
+				width: 100%;
+				border-spacing: 0;
+			}
+
+			th, td {
+				padding: 8px 20px;
+				border-bottom: 1px solid #dfe3e7;
+			}
+
+			tr:last-child td {
+				border-bottom: 0;
+			}
+
+			.name.level-up {
+				border-bottom: 1px solid #dfe3e7;
+			}
+
+			.name.level-up a {
+				padding-left: 0;
+			}
+
+			.name {
+				width: auto;
+				text-align: left;
+				padding-right: 20px;
+			}
+
+			.name a {
+				color: #17233b;
+				padding-left: 5px;
+				position: relative;
+			}
+
+			.name svg {
+				display: inline-block;
+				margin-bottom: -4px;
+			}
+
+			.size {
+				max-width: 80px;
+				text-align: right;
+				color: #444;
+			}
+
+			th.name, th.size {
+				color: #999;
+				text-transform: uppercase;
+				font-size: 12px;
+				letter-spacing: 1px;
+			}
+
+			a {
+				color: #ff5627;
+				text-decoration: none;
+			}
+
+			a:hover, a:focus {
+				color: #ff5627;
+				text-decoration: underline;
+			}
+
+			.landing {
+				margin-top: 30px;
+				text-align: center;
+			}
+
+			.landing p {
+				margin: 0 0 15px;
+			}
+
+			.landing a {
+				display: block;
+				text-overflow: ellipsis;
+				overflow: hidden;
+			}
+
+			footer {
+				max-width: 960px;
+				display: -webkit-box;
+				display: -ms-flexbox;
+				display: flex;
+				-webkit-box-orient: vertical;
+				-webkit-box-direction: normal;
+				-ms-flex-direction: column;
+				flex-direction: column;
+				-webkit-box-pack: justify;
+				-ms-flex-pack: justify;
+				justify-content: space-between;
+				margin: 0 auto;
+				padding: 20px 0 0 0;
+				text-align: center;
+				font-size: 14px;
+				color: #666;
+				border-top: 1px solid #edf0f2;
+			}
+
+			.footer-left, .footer-right {
+				display: -webkit-box;
+				display: -ms-flexbox;
+				display: flex;
+				-webkit-box-orient: vertical;
+				-webkit-box-direction: normal;
+				-ms-flex-direction: column;
+				flex-direction: column;
+				-webkit-box-align: center;
+				-ms-flex-align: center;
+				align-items: center;
+				margin-bottom: 20px;
+			}
+
+			.logo {
+				width: 115px;
+			}
+
+			.copyright {
+				color: #79849a;
+				margin: 0;
+			}
+
+			@media (min-width: 576px) {
+				.footer-left, .footer-right {
+					-ms-flex-pack: distribute;
+					justify-content: space-around;
+					-webkit-box-orient: horizontal;
+					-webkit-box-direction: normal;
+					-ms-flex-direction: row;
+					flex-direction: row;
+				}
+			}
+
+			@media (min-width: 768px) {
+				body {
+					padding-top: 40px;
+				}
+
+				footer {
+					-webkit-box-orient: horizontal;
+					-webkit-box-direction: normal;
+					-ms-flex-direction: row;
+					flex-direction: row;
+					padding-top: 30px;
+				}
+
+				.container {
+					padding-bottom: 20px;
+				}
+
+				.footer-right a:first-child, .logo {
+					margin-right: 20px;
+				}
+
+				.landing {
+					display: -webkit-box;
+					display: -ms-flexbox;
+					display: flex;
+					-webkit-box-align: start;
+					-ms-flex-align: start;
+					align-items: flex-start;
+					-webkit-box-pack: justify;
+					-ms-flex-pack: justify;
+					justify-content: space-between;
+					margin-top: 40px;
+				}
+
+				.landing .right {
+					text-align: right;
+				}
+			}
+
+			.select-css {
+				display: block;
+				padding: 8px 20px 8px 12px;
+				box-sizing: border-box;
+				margin: 0;
+				border: 1px solid #aaa;
+				border-radius: .5em;
+				-moz-appearance: none;
+				-webkit-appearance: none;
+				appearance: none;
+				background-color: #fff;
+				background-image: url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/icons/caret-down-fill.svg');
+				background-repeat: no-repeat, repeat;
+				background-position: right 8px top 50%, 0 0;
+				background-size: 10px auto, 100%;
+				outline: none;
+			}
+
+			.select-css::-ms-expand {
+				display: none;
+			}
+
+			.select-css:hover {
+				border-color: #888;
+			}
+
+			.select-css option {
+				font-weight: normal;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="header">
+				<h1>pdfjs-dist CDN files</h1>
+
+				<a class="badge" href="https://www.jsdelivr.com/package/npm/pdfjs-dist" title="jsDelivr monthly hits">
+					<img alt="jsDelivr monthly hits badge" src="https://data.jsdelivr.com/v1/package/npm/pdfjs-dist/badge">
+				</a>
+			</div>
+
+
+			<div class="path">
+				<ol itemscope itemtype="https://schema.org/BreadcrumbList">
+					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+						<a itemscope itemtype="https://schema.org/WebPage" itemprop="item"
+						   itemid="/npm/pdfjs-dist@4.3.136/"
+						   href="/npm/pdfjs-dist@4.3.136/" rel="nofollow">
+							<span itemprop="name">pdfjs-dist@4.3.136</span></a> /
+						<meta itemprop="position" content="0">
+					</li>
+					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+						<a itemscope itemtype="https://schema.org/WebPage" itemprop="item"
+						   itemid="/npm/pdfjs-dist@4.3.136/legacy/"
+						   href="/npm/pdfjs-dist@4.3.136/legacy/" rel="nofollow">
+							<span itemprop="name">legacy</span></a> /
+						<meta itemprop="position" content="1">
+					</li>
+					<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+						<span itemprop="name">build</span>
+						<meta itemprop="position" content="2">
+					</li>
+				</ol>
+
+				<select class="versions select-css">
+					<option value="pdfjs-dist@5.5.207">pdfjs-dist@5.5.207</option>
+					<option value="pdfjs-dist@5.4.624">pdfjs-dist@5.4.624</option>
+					<option value="pdfjs-dist@5.4.530">pdfjs-dist@5.4.530</option>
+					<option value="pdfjs-dist@5.4.449">pdfjs-dist@5.4.449</option>
+					<option value="pdfjs-dist@5.4.394">pdfjs-dist@5.4.394</option>
+					<option value="pdfjs-dist@5.4.296">pdfjs-dist@5.4.296</option>
+					<option value="pdfjs-dist@5.4.149">pdfjs-dist@5.4.149</option>
+					<option value="pdfjs-dist@5.4.54">pdfjs-dist@5.4.54</option>
+					<option value="pdfjs-dist@5.3.93">pdfjs-dist@5.3.93</option>
+					<option value="pdfjs-dist@5.3.31">pdfjs-dist@5.3.31</option>
+					<option value="pdfjs-dist@5.2.133">pdfjs-dist@5.2.133</option>
+					<option value="pdfjs-dist@5.1.91">pdfjs-dist@5.1.91</option>
+					<option value="pdfjs-dist@5.0.375">pdfjs-dist@5.0.375</option>
+					<option value="pdfjs-dist@4.10.38">pdfjs-dist@4.10.38</option>
+					<option value="pdfjs-dist@4.9.155">pdfjs-dist@4.9.155</option>
+					<option value="pdfjs-dist@4.9.124">pdfjs-dist@4.9.124</option>
+					<option value="pdfjs-dist@4.8.69">pdfjs-dist@4.8.69</option>
+					<option value="pdfjs-dist@4.7.76">pdfjs-dist@4.7.76</option>
+					<option value="pdfjs-dist@4.6.82">pdfjs-dist@4.6.82</option>
+					<option value="pdfjs-dist@4.5.136">pdfjs-dist@4.5.136</option>
+					<option value="pdfjs-dist@4.4.168">pdfjs-dist@4.4.168</option>
+					<option value="pdfjs-dist@4.3.136">pdfjs-dist@4.3.136</option>
+					<option value="pdfjs-dist@4.2.67">pdfjs-dist@4.2.67</option>
+					<option value="pdfjs-dist@4.1.392">pdfjs-dist@4.1.392</option>
+					<option value="pdfjs-dist@4.0.379">pdfjs-dist@4.0.379</option>
+					<option value="pdfjs-dist@4.0.269">pdfjs-dist@4.0.269</option>
+					<option value="pdfjs-dist@4.0.189">pdfjs-dist@4.0.189</option>
+					<option value="pdfjs-dist@3.11.174">pdfjs-dist@3.11.174</option>
+					<option value="pdfjs-dist@3.10.111">pdfjs-dist@3.10.111</option>
+					<option value="pdfjs-dist@3.9.179">pdfjs-dist@3.9.179</option>
+					<option value="pdfjs-dist@3.8.162">pdfjs-dist@3.8.162</option>
+					<option value="pdfjs-dist@3.7.107">pdfjs-dist@3.7.107</option>
+					<option value="pdfjs-dist@3.6.172">pdfjs-dist@3.6.172</option>
+					<option value="pdfjs-dist@3.5.141">pdfjs-dist@3.5.141</option>
+					<option value="pdfjs-dist@3.4.120">pdfjs-dist@3.4.120</option>
+					<option value="pdfjs-dist@3.3.122">pdfjs-dist@3.3.122</option>
+					<option value="pdfjs-dist@3.2.146">pdfjs-dist@3.2.146</option>
+					<option value="pdfjs-dist@3.1.81">pdfjs-dist@3.1.81</option>
+					<option value="pdfjs-dist@3.0.279">pdfjs-dist@3.0.279</option>
+					<option value="pdfjs-dist@2.16.105">pdfjs-dist@2.16.105</option>
+					<option value="pdfjs-dist@2.15.349">pdfjs-dist@2.15.349</option>
+					<option value="pdfjs-dist@2.14.305">pdfjs-dist@2.14.305</option>
+					<option value="pdfjs-dist@2.13.216">pdfjs-dist@2.13.216</option>
+					<option value="pdfjs-dist@2.12.313">pdfjs-dist@2.12.313</option>
+					<option value="pdfjs-dist@2.11.338">pdfjs-dist@2.11.338</option>
+					<option value="pdfjs-dist@2.10.377">pdfjs-dist@2.10.377</option>
+					<option value="pdfjs-dist@2.9.359">pdfjs-dist@2.9.359</option>
+					<option value="pdfjs-dist@2.8.335">pdfjs-dist@2.8.335</option>
+					<option value="pdfjs-dist@2.7.570">pdfjs-dist@2.7.570</option>
+					<option value="pdfjs-dist@2.6.347">pdfjs-dist@2.6.347</option>
+					<option value="pdfjs-dist@2.5.207">pdfjs-dist@2.5.207</option>
+					<option value="pdfjs-dist@2.4.456">pdfjs-dist@2.4.456</option>
+					<option value="pdfjs-dist@2.3.200">pdfjs-dist@2.3.200</option>
+					<option value="pdfjs-dist@2.2.228">pdfjs-dist@2.2.228</option>
+					<option value="pdfjs-dist@2.1.266">pdfjs-dist@2.1.266</option>
+					<option value="pdfjs-dist@2.0.943">pdfjs-dist@2.0.943</option>
+					<option value="pdfjs-dist@2.0.550">pdfjs-dist@2.0.550</option>
+					<option value="pdfjs-dist@2.0.489">pdfjs-dist@2.0.489</option>
+					<option value="pdfjs-dist@2.0.487">pdfjs-dist@2.0.487</option>
+					<option value="pdfjs-dist@2.0.485">pdfjs-dist@2.0.485</option>
+					<option value="pdfjs-dist@2.0.480">pdfjs-dist@2.0.480</option>
+					<option value="pdfjs-dist@2.0.478">pdfjs-dist@2.0.478</option>
+					<option value="pdfjs-dist@2.0.476">pdfjs-dist@2.0.476</option>
+					<option value="pdfjs-dist@2.0.474">pdfjs-dist@2.0.474</option>
+					<option value="pdfjs-dist@2.0.472">pdfjs-dist@2.0.472</option>
+					<option value="pdfjs-dist@2.0.470">pdfjs-dist@2.0.470</option>
+					<option value="pdfjs-dist@2.0.468">pdfjs-dist@2.0.468</option>
+					<option value="pdfjs-dist@2.0.466">pdfjs-dist@2.0.466</option>
+					<option value="pdfjs-dist@2.0.457">pdfjs-dist@2.0.457</option>
+					<option value="pdfjs-dist@2.0.455">pdfjs-dist@2.0.455</option>
+					<option value="pdfjs-dist@2.0.453">pdfjs-dist@2.0.453</option>
+					<option value="pdfjs-dist@2.0.451">pdfjs-dist@2.0.451</option>
+					<option value="pdfjs-dist@2.0.449">pdfjs-dist@2.0.449</option>
+					<option value="pdfjs-dist@2.0.447">pdfjs-dist@2.0.447</option>
+					<option value="pdfjs-dist@2.0.444">pdfjs-dist@2.0.444</option>
+					<option value="pdfjs-dist@2.0.442">pdfjs-dist@2.0.442</option>
+					<option value="pdfjs-dist@2.0.439">pdfjs-dist@2.0.439</option>
+					<option value="pdfjs-dist@2.0.437">pdfjs-dist@2.0.437</option>
+					<option value="pdfjs-dist@2.0.432">pdfjs-dist@2.0.432</option>
+					<option value="pdfjs-dist@2.0.430">pdfjs-dist@2.0.430</option>
+					<option value="pdfjs-dist@2.0.428">pdfjs-dist@2.0.428</option>
+					<option value="pdfjs-dist@2.0.426">pdfjs-dist@2.0.426</option>
+					<option value="pdfjs-dist@2.0.424">pdfjs-dist@2.0.424</option>
+					<option value="pdfjs-dist@2.0.421">pdfjs-dist@2.0.421</option>
+					<option value="pdfjs-dist@2.0.419">pdfjs-dist@2.0.419</option>
+					<option value="pdfjs-dist@2.0.402">pdfjs-dist@2.0.402</option>
+					<option value="pdfjs-dist@2.0.400">pdfjs-dist@2.0.400</option>
+					<option value="pdfjs-dist@2.0.398">pdfjs-dist@2.0.398</option>
+					<option value="pdfjs-dist@2.0.396">pdfjs-dist@2.0.396</option>
+					<option value="pdfjs-dist@2.0.395">pdfjs-dist@2.0.395</option>
+					<option value="pdfjs-dist@2.0.391">pdfjs-dist@2.0.391</option>
+					<option value="pdfjs-dist@2.0.389">pdfjs-dist@2.0.389</option>
+					<option value="pdfjs-dist@2.0.385">pdfjs-dist@2.0.385</option>
+					<option value="pdfjs-dist@2.0.378">pdfjs-dist@2.0.378</option>
+					<option value="pdfjs-dist@2.0.376">pdfjs-dist@2.0.376</option>
+					<option value="pdfjs-dist@2.0.374">pdfjs-dist@2.0.374</option>
+					<option value="pdfjs-dist@2.0.363">pdfjs-dist@2.0.363</option>
+					<option value="pdfjs-dist@2.0.361">pdfjs-dist@2.0.361</option>
+					<option value="pdfjs-dist@2.0.359">pdfjs-dist@2.0.359</option>
+					<option value="pdfjs-dist@2.0.357">pdfjs-dist@2.0.357</option>
+					<option value="pdfjs-dist@2.0.354">pdfjs-dist@2.0.354</option>
+					<option value="pdfjs-dist@2.0.352">pdfjs-dist@2.0.352</option>
+					<option value="pdfjs-dist@2.0.349">pdfjs-dist@2.0.349</option>
+					<option value="pdfjs-dist@2.0.347">pdfjs-dist@2.0.347</option>
+					<option value="pdfjs-dist@2.0.345">pdfjs-dist@2.0.345</option>
+					<option value="pdfjs-dist@2.0.338">pdfjs-dist@2.0.338</option>
+					<option value="pdfjs-dist@2.0.336">pdfjs-dist@2.0.336</option>
+					<option value="pdfjs-dist@2.0.334">pdfjs-dist@2.0.334</option>
+					<option value="pdfjs-dist@2.0.332">pdfjs-dist@2.0.332</option>
+					<option value="pdfjs-dist@2.0.330">pdfjs-dist@2.0.330</option>
+					<option value="pdfjs-dist@2.0.329">pdfjs-dist@2.0.329</option>
+					<option value="pdfjs-dist@2.0.328">pdfjs-dist@2.0.328</option>
+					<option value="pdfjs-dist@2.0.323">pdfjs-dist@2.0.323</option>
+					<option value="pdfjs-dist@2.0.318">pdfjs-dist@2.0.318</option>
+					<option value="pdfjs-dist@2.0.315">pdfjs-dist@2.0.315</option>
+					<option value="pdfjs-dist@2.0.312">pdfjs-dist@2.0.312</option>
+					<option value="pdfjs-dist@2.0.310">pdfjs-dist@2.0.310</option>
+					<option value="pdfjs-dist@2.0.305">pdfjs-dist@2.0.305</option>
+					<option value="pdfjs-dist@2.0.303">pdfjs-dist@2.0.303</option>
+					<option value="pdfjs-dist@2.0.301">pdfjs-dist@2.0.301</option>
+					<option value="pdfjs-dist@2.0.295">pdfjs-dist@2.0.295</option>
+					<option value="pdfjs-dist@2.0.292">pdfjs-dist@2.0.292</option>
+					<option value="pdfjs-dist@2.0.290">pdfjs-dist@2.0.290</option>
+					<option value="pdfjs-dist@2.0.288">pdfjs-dist@2.0.288</option>
+					<option value="pdfjs-dist@2.0.285">pdfjs-dist@2.0.285</option>
+					<option value="pdfjs-dist@2.0.283">pdfjs-dist@2.0.283</option>
+					<option value="pdfjs-dist@2.0.281">pdfjs-dist@2.0.281</option>
+					<option value="pdfjs-dist@2.0.279">pdfjs-dist@2.0.279</option>
+					<option value="pdfjs-dist@2.0.276">pdfjs-dist@2.0.276</option>
+					<option value="pdfjs-dist@2.0.274">pdfjs-dist@2.0.274</option>
+					<option value="pdfjs-dist@2.0.272">pdfjs-dist@2.0.272</option>
+					<option value="pdfjs-dist@2.0.271">pdfjs-dist@2.0.271</option>
+					<option value="pdfjs-dist@2.0.269">pdfjs-dist@2.0.269</option>
+					<option value="pdfjs-dist@2.0.267">pdfjs-dist@2.0.267</option>
+					<option value="pdfjs-dist@2.0.265">pdfjs-dist@2.0.265</option>
+					<option value="pdfjs-dist@2.0.263">pdfjs-dist@2.0.263</option>
+					<option value="pdfjs-dist@2.0.260">pdfjs-dist@2.0.260</option>
+					<option value="pdfjs-dist@2.0.258">pdfjs-dist@2.0.258</option>
+					<option value="pdfjs-dist@2.0.256">pdfjs-dist@2.0.256</option>
+					<option value="pdfjs-dist@2.0.254">pdfjs-dist@2.0.254</option>
+					<option value="pdfjs-dist@2.0.252">pdfjs-dist@2.0.252</option>
+					<option value="pdfjs-dist@2.0.250">pdfjs-dist@2.0.250</option>
+					<option value="pdfjs-dist@2.0.248">pdfjs-dist@2.0.248</option>
+					<option value="pdfjs-dist@2.0.246">pdfjs-dist@2.0.246</option>
+					<option value="pdfjs-dist@2.0.244">pdfjs-dist@2.0.244</option>
+					<option value="pdfjs-dist@2.0.243">pdfjs-dist@2.0.243</option>
+					<option value="pdfjs-dist@2.0.241">pdfjs-dist@2.0.241</option>
+					<option value="pdfjs-dist@2.0.239">pdfjs-dist@2.0.239</option>
+					<option value="pdfjs-dist@2.0.236">pdfjs-dist@2.0.236</option>
+					<option value="pdfjs-dist@2.0.234">pdfjs-dist@2.0.234</option>
+					<option value="pdfjs-dist@2.0.232">pdfjs-dist@2.0.232</option>
+					<option value="pdfjs-dist@2.0.230">pdfjs-dist@2.0.230</option>
+					<option value="pdfjs-dist@2.0.228">pdfjs-dist@2.0.228</option>
+					<option value="pdfjs-dist@2.0.226">pdfjs-dist@2.0.226</option>
+					<option value="pdfjs-dist@2.0.224">pdfjs-dist@2.0.224</option>
+					<option value="pdfjs-dist@2.0.222">pdfjs-dist@2.0.222</option>
+					<option value="pdfjs-dist@2.0.220">pdfjs-dist@2.0.220</option>
+					<option value="pdfjs-dist@2.0.213">pdfjs-dist@2.0.213</option>
+					<option value="pdfjs-dist@2.0.211">pdfjs-dist@2.0.211</option>
+					<option value="pdfjs-dist@2.0.209">pdfjs-dist@2.0.209</option>
+					<option value="pdfjs-dist@2.0.207">pdfjs-dist@2.0.207</option>
+					<option value="pdfjs-dist@2.0.205">pdfjs-dist@2.0.205</option>
+					<option value="pdfjs-dist@2.0.203">pdfjs-dist@2.0.203</option>
+					<option value="pdfjs-dist@2.0.201">pdfjs-dist@2.0.201</option>
+					<option value="pdfjs-dist@2.0.199">pdfjs-dist@2.0.199</option>
+					<option value="pdfjs-dist@2.0.197">pdfjs-dist@2.0.197</option>
+					<option value="pdfjs-dist@2.0.195">pdfjs-dist@2.0.195</option>
+					<option value="pdfjs-dist@2.0.193">pdfjs-dist@2.0.193</option>
+					<option value="pdfjs-dist@2.0.191">pdfjs-dist@2.0.191</option>
+					<option value="pdfjs-dist@2.0.187">pdfjs-dist@2.0.187</option>
+					<option value="pdfjs-dist@2.0.185">pdfjs-dist@2.0.185</option>
+					<option value="pdfjs-dist@2.0.183">pdfjs-dist@2.0.183</option>
+					<option value="pdfjs-dist@2.0.181">pdfjs-dist@2.0.181</option>
+					<option value="pdfjs-dist@2.0.179">pdfjs-dist@2.0.179</option>
+					<option value="pdfjs-dist@2.0.177">pdfjs-dist@2.0.177</option>
+					<option value="pdfjs-dist@2.0.175">pdfjs-dist@2.0.175</option>
+					<option value="pdfjs-dist@2.0.173">pdfjs-dist@2.0.173</option>
+					<option value="pdfjs-dist@2.0.172">pdfjs-dist@2.0.172</option>
+					<option value="pdfjs-dist@2.0.169">pdfjs-dist@2.0.169</option>
+					<option value="pdfjs-dist@2.0.167">pdfjs-dist@2.0.167</option>
+					<option value="pdfjs-dist@2.0.165">pdfjs-dist@2.0.165</option>
+					<option value="pdfjs-dist@2.0.163">pdfjs-dist@2.0.163</option>
+					<option value="pdfjs-dist@2.0.161">pdfjs-dist@2.0.161</option>
+					<option value="pdfjs-dist@2.0.159">pdfjs-dist@2.0.159</option>
+					<option value="pdfjs-dist@2.0.157">pdfjs-dist@2.0.157</option>
+					<option value="pdfjs-dist@2.0.155">pdfjs-dist@2.0.155</option>
+					<option value="pdfjs-dist@2.0.153">pdfjs-dist@2.0.153</option>
+					<option value="pdfjs-dist@2.0.151">pdfjs-dist@2.0.151</option>
+					<option value="pdfjs-dist@2.0.144">pdfjs-dist@2.0.144</option>
+					<option value="pdfjs-dist@2.0.142">pdfjs-dist@2.0.142</option>
+					<option value="pdfjs-dist@2.0.140">pdfjs-dist@2.0.140</option>
+					<option value="pdfjs-dist@2.0.139">pdfjs-dist@2.0.139</option>
+					<option value="pdfjs-dist@2.0.137">pdfjs-dist@2.0.137</option>
+					<option value="pdfjs-dist@2.0.135">pdfjs-dist@2.0.135</option>
+					<option value="pdfjs-dist@2.0.133">pdfjs-dist@2.0.133</option>
+					<option value="pdfjs-dist@2.0.131">pdfjs-dist@2.0.131</option>
+					<option value="pdfjs-dist@2.0.129">pdfjs-dist@2.0.129</option>
+					<option value="pdfjs-dist@2.0.126">pdfjs-dist@2.0.126</option>
+					<option value="pdfjs-dist@2.0.124">pdfjs-dist@2.0.124</option>
+					<option value="pdfjs-dist@2.0.122">pdfjs-dist@2.0.122</option>
+					<option value="pdfjs-dist@2.0.120">pdfjs-dist@2.0.120</option>
+					<option value="pdfjs-dist@2.0.118">pdfjs-dist@2.0.118</option>
+					<option value="pdfjs-dist@2.0.114">pdfjs-dist@2.0.114</option>
+					<option value="pdfjs-dist@2.0.112">pdfjs-dist@2.0.112</option>
+					<option value="pdfjs-dist@2.0.108">pdfjs-dist@2.0.108</option>
+					<option value="pdfjs-dist@2.0.106">pdfjs-dist@2.0.106</option>
+					<option value="pdfjs-dist@2.0.104">pdfjs-dist@2.0.104</option>
+					<option value="pdfjs-dist@2.0.101">pdfjs-dist@2.0.101</option>
+					<option value="pdfjs-dist@2.0.99">pdfjs-dist@2.0.99</option>
+					<option value="pdfjs-dist@2.0.97">pdfjs-dist@2.0.97</option>
+					<option value="pdfjs-dist@2.0.95">pdfjs-dist@2.0.95</option>
+					<option value="pdfjs-dist@2.0.91">pdfjs-dist@2.0.91</option>
+					<option value="pdfjs-dist@2.0.89">pdfjs-dist@2.0.89</option>
+					<option value="pdfjs-dist@2.0.87">pdfjs-dist@2.0.87</option>
+					<option value="pdfjs-dist@1.10.100">pdfjs-dist@1.10.100</option>
+					<option value="pdfjs-dist@1.10.97">pdfjs-dist@1.10.97</option>
+					<option value="pdfjs-dist@1.10.95">pdfjs-dist@1.10.95</option>
+					<option value="pdfjs-dist@1.10.93">pdfjs-dist@1.10.93</option>
+					<option value="pdfjs-dist@1.10.92">pdfjs-dist@1.10.92</option>
+					<option value="pdfjs-dist@1.10.90">pdfjs-dist@1.10.90</option>
+					<option value="pdfjs-dist@1.10.88">pdfjs-dist@1.10.88</option>
+					<option value="pdfjs-dist@1.10.86">pdfjs-dist@1.10.86</option>
+					<option value="pdfjs-dist@1.10.83">pdfjs-dist@1.10.83</option>
+					<option value="pdfjs-dist@1.10.81">pdfjs-dist@1.10.81</option>
+					<option value="pdfjs-dist@1.10.80">pdfjs-dist@1.10.80</option>
+					<option value="pdfjs-dist@1.9.661">pdfjs-dist@1.9.661</option>
+					<option value="pdfjs-dist@1.9.659">pdfjs-dist@1.9.659</option>
+					<option value="pdfjs-dist@1.9.658">pdfjs-dist@1.9.658</option>
+					<option value="pdfjs-dist@1.9.656">pdfjs-dist@1.9.656</option>
+					<option value="pdfjs-dist@1.9.654">pdfjs-dist@1.9.654</option>
+					<option value="pdfjs-dist@1.9.652">pdfjs-dist@1.9.652</option>
+					<option value="pdfjs-dist@1.9.650">pdfjs-dist@1.9.650</option>
+					<option value="pdfjs-dist@1.9.648">pdfjs-dist@1.9.648</option>
+					<option value="pdfjs-dist@1.9.646">pdfjs-dist@1.9.646</option>
+					<option value="pdfjs-dist@1.9.645">pdfjs-dist@1.9.645</option>
+					<option value="pdfjs-dist@1.9.643">pdfjs-dist@1.9.643</option>
+					<option value="pdfjs-dist@1.9.641">pdfjs-dist@1.9.641</option>
+					<option value="pdfjs-dist@1.9.640">pdfjs-dist@1.9.640</option>
+					<option value="pdfjs-dist@1.9.638">pdfjs-dist@1.9.638</option>
+					<option value="pdfjs-dist@1.9.636">pdfjs-dist@1.9.636</option>
+					<option value="pdfjs-dist@1.9.634">pdfjs-dist@1.9.634</option>
+					<option value="pdfjs-dist@1.9.632">pdfjs-dist@1.9.632</option>
+					<option value="pdfjs-dist@1.9.630">pdfjs-dist@1.9.630</option>
+					<option value="pdfjs-dist@1.9.628">pdfjs-dist@1.9.628</option>
+					<option value="pdfjs-dist@1.9.625">pdfjs-dist@1.9.625</option>
+					<option value="pdfjs-dist@1.9.623">pdfjs-dist@1.9.623</option>
+					<option value="pdfjs-dist@1.9.622">pdfjs-dist@1.9.622</option>
+					<option value="pdfjs-dist@1.9.620">pdfjs-dist@1.9.620</option>
+					<option value="pdfjs-dist@1.9.617">pdfjs-dist@1.9.617</option>
+					<option value="pdfjs-dist@1.9.615">pdfjs-dist@1.9.615</option>
+					<option value="pdfjs-dist@1.9.613">pdfjs-dist@1.9.613</option>
+					<option value="pdfjs-dist@1.9.611">pdfjs-dist@1.9.611</option>
+					<option value="pdfjs-dist@1.9.609">pdfjs-dist@1.9.609</option>
+					<option value="pdfjs-dist@1.9.607">pdfjs-dist@1.9.607</option>
+					<option value="pdfjs-dist@1.9.604">pdfjs-dist@1.9.604</option>
+					<option value="pdfjs-dist@1.9.602">pdfjs-dist@1.9.602</option>
+					<option value="pdfjs-dist@1.9.600">pdfjs-dist@1.9.600</option>
+					<option value="pdfjs-dist@1.9.598">pdfjs-dist@1.9.598</option>
+					<option value="pdfjs-dist@1.9.597">pdfjs-dist@1.9.597</option>
+					<option value="pdfjs-dist@1.9.593">pdfjs-dist@1.9.593</option>
+					<option value="pdfjs-dist@1.9.589">pdfjs-dist@1.9.589</option>
+					<option value="pdfjs-dist@1.9.587">pdfjs-dist@1.9.587</option>
+					<option value="pdfjs-dist@1.9.585">pdfjs-dist@1.9.585</option>
+					<option value="pdfjs-dist@1.9.583">pdfjs-dist@1.9.583</option>
+					<option value="pdfjs-dist@1.9.579">pdfjs-dist@1.9.579</option>
+					<option value="pdfjs-dist@1.9.577">pdfjs-dist@1.9.577</option>
+					<option value="pdfjs-dist@1.9.575">pdfjs-dist@1.9.575</option>
+					<option value="pdfjs-dist@1.9.573">pdfjs-dist@1.9.573</option>
+					<option value="pdfjs-dist@1.9.572">pdfjs-dist@1.9.572</option>
+					<option value="pdfjs-dist@1.9.570">pdfjs-dist@1.9.570</option>
+					<option value="pdfjs-dist@1.9.568">pdfjs-dist@1.9.568</option>
+					<option value="pdfjs-dist@1.9.566">pdfjs-dist@1.9.566</option>
+					<option value="pdfjs-dist@1.9.564">pdfjs-dist@1.9.564</option>
+					<option value="pdfjs-dist@1.9.562">pdfjs-dist@1.9.562</option>
+					<option value="pdfjs-dist@1.9.560">pdfjs-dist@1.9.560</option>
+					<option value="pdfjs-dist@1.9.558">pdfjs-dist@1.9.558</option>
+					<option value="pdfjs-dist@1.9.556">pdfjs-dist@1.9.556</option>
+					<option value="pdfjs-dist@1.9.554">pdfjs-dist@1.9.554</option>
+					<option value="pdfjs-dist@1.9.553">pdfjs-dist@1.9.553</option>
+					<option value="pdfjs-dist@1.9.551">pdfjs-dist@1.9.551</option>
+					<option value="pdfjs-dist@1.9.549">pdfjs-dist@1.9.549</option>
+					<option value="pdfjs-dist@1.9.544">pdfjs-dist@1.9.544</option>
+					<option value="pdfjs-dist@1.9.541">pdfjs-dist@1.9.541</option>
+					<option value="pdfjs-dist@1.9.537">pdfjs-dist@1.9.537</option>
+					<option value="pdfjs-dist@1.9.534">pdfjs-dist@1.9.534</option>
+					<option value="pdfjs-dist@1.9.530">pdfjs-dist@1.9.530</option>
+					<option value="pdfjs-dist@1.9.528">pdfjs-dist@1.9.528</option>
+					<option value="pdfjs-dist@1.9.526">pdfjs-dist@1.9.526</option>
+					<option value="pdfjs-dist@1.9.524">pdfjs-dist@1.9.524</option>
+					<option value="pdfjs-dist@1.9.523">pdfjs-dist@1.9.523</option>
+					<option value="pdfjs-dist@1.9.516">pdfjs-dist@1.9.516</option>
+					<option value="pdfjs-dist@1.9.514">pdfjs-dist@1.9.514</option>
+					<option value="pdfjs-dist@1.9.512">pdfjs-dist@1.9.512</option>
+					<option value="pdfjs-dist@1.9.510">pdfjs-dist@1.9.510</option>
+					<option value="pdfjs-dist@1.9.508">pdfjs-dist@1.9.508</option>
+					<option value="pdfjs-dist@1.9.506">pdfjs-dist@1.9.506</option>
+					<option value="pdfjs-dist@1.9.504">pdfjs-dist@1.9.504</option>
+					<option value="pdfjs-dist@1.9.502">pdfjs-dist@1.9.502</option>
+					<option value="pdfjs-dist@1.9.496">pdfjs-dist@1.9.496</option>
+					<option value="pdfjs-dist@1.9.493">pdfjs-dist@1.9.493</option>
+					<option value="pdfjs-dist@1.9.491">pdfjs-dist@1.9.491</option>
+					<option value="pdfjs-dist@1.9.489">pdfjs-dist@1.9.489</option>
+					<option value="pdfjs-dist@1.9.488">pdfjs-dist@1.9.488</option>
+					<option value="pdfjs-dist@1.9.486">pdfjs-dist@1.9.486</option>
+					<option value="pdfjs-dist@1.9.484">pdfjs-dist@1.9.484</option>
+					<option value="pdfjs-dist@1.9.482">pdfjs-dist@1.9.482</option>
+					<option value="pdfjs-dist@1.9.480">pdfjs-dist@1.9.480</option>
+					<option value="pdfjs-dist@1.9.478">pdfjs-dist@1.9.478</option>
+					<option value="pdfjs-dist@1.9.476">pdfjs-dist@1.9.476</option>
+					<option value="pdfjs-dist@1.9.474">pdfjs-dist@1.9.474</option>
+					<option value="pdfjs-dist@1.9.472">pdfjs-dist@1.9.472</option>
+					<option value="pdfjs-dist@1.9.470">pdfjs-dist@1.9.470</option>
+					<option value="pdfjs-dist@1.9.468">pdfjs-dist@1.9.468</option>
+					<option value="pdfjs-dist@1.9.466">pdfjs-dist@1.9.466</option>
+					<option value="pdfjs-dist@1.9.462">pdfjs-dist@1.9.462</option>
+					<option value="pdfjs-dist@1.9.460">pdfjs-dist@1.9.460</option>
+					<option value="pdfjs-dist@1.9.458">pdfjs-dist@1.9.458</option>
+					<option value="pdfjs-dist@1.9.456">pdfjs-dist@1.9.456</option>
+					<option value="pdfjs-dist@1.9.454">pdfjs-dist@1.9.454</option>
+					<option value="pdfjs-dist@1.9.452">pdfjs-dist@1.9.452</option>
+					<option value="pdfjs-dist@1.9.450">pdfjs-dist@1.9.450</option>
+					<option value="pdfjs-dist@1.9.448">pdfjs-dist@1.9.448</option>
+					<option value="pdfjs-dist@1.9.446">pdfjs-dist@1.9.446</option>
+					<option value="pdfjs-dist@1.9.444">pdfjs-dist@1.9.444</option>
+					<option value="pdfjs-dist@1.9.441">pdfjs-dist@1.9.441</option>
+					<option value="pdfjs-dist@1.9.438">pdfjs-dist@1.9.438</option>
+					<option value="pdfjs-dist@1.9.436">pdfjs-dist@1.9.436</option>
+					<option value="pdfjs-dist@1.9.432">pdfjs-dist@1.9.432</option>
+					<option value="pdfjs-dist@1.9.430">pdfjs-dist@1.9.430</option>
+					<option value="pdfjs-dist@1.9.426">pdfjs-dist@1.9.426</option>
+					<option value="pdfjs-dist@1.8.619">pdfjs-dist@1.8.619</option>
+					<option value="pdfjs-dist@1.8.618">pdfjs-dist@1.8.618</option>
+					<option value="pdfjs-dist@1.8.616">pdfjs-dist@1.8.616</option>
+					<option value="pdfjs-dist@1.8.614">pdfjs-dist@1.8.614</option>
+					<option value="pdfjs-dist@1.8.612">pdfjs-dist@1.8.612</option>
+					<option value="pdfjs-dist@1.8.610">pdfjs-dist@1.8.610</option>
+					<option value="pdfjs-dist@1.8.609">pdfjs-dist@1.8.609</option>
+					<option value="pdfjs-dist@1.8.607">pdfjs-dist@1.8.607</option>
+					<option value="pdfjs-dist@1.8.605">pdfjs-dist@1.8.605</option>
+					<option value="pdfjs-dist@1.8.603">pdfjs-dist@1.8.603</option>
+					<option value="pdfjs-dist@1.8.601">pdfjs-dist@1.8.601</option>
+					<option value="pdfjs-dist@1.8.599">pdfjs-dist@1.8.599</option>
+					<option value="pdfjs-dist@1.8.597">pdfjs-dist@1.8.597</option>
+					<option value="pdfjs-dist@1.8.595">pdfjs-dist@1.8.595</option>
+					<option value="pdfjs-dist@1.8.593">pdfjs-dist@1.8.593</option>
+					<option value="pdfjs-dist@1.8.591">pdfjs-dist@1.8.591</option>
+					<option value="pdfjs-dist@1.8.589">pdfjs-dist@1.8.589</option>
+					<option value="pdfjs-dist@1.8.587">pdfjs-dist@1.8.587</option>
+					<option value="pdfjs-dist@1.8.585">pdfjs-dist@1.8.585</option>
+					<option value="pdfjs-dist@1.8.583">pdfjs-dist@1.8.583</option>
+					<option value="pdfjs-dist@1.8.581">pdfjs-dist@1.8.581</option>
+					<option value="pdfjs-dist@1.8.579">pdfjs-dist@1.8.579</option>
+					<option value="pdfjs-dist@1.8.577">pdfjs-dist@1.8.577</option>
+					<option value="pdfjs-dist@1.8.575">pdfjs-dist@1.8.575</option>
+					<option value="pdfjs-dist@1.8.573">pdfjs-dist@1.8.573</option>
+					<option value="pdfjs-dist@1.8.571">pdfjs-dist@1.8.571</option>
+					<option value="pdfjs-dist@1.8.570">pdfjs-dist@1.8.570</option>
+					<option value="pdfjs-dist@1.8.568">pdfjs-dist@1.8.568</option>
+					<option value="pdfjs-dist@1.8.564">pdfjs-dist@1.8.564</option>
+					<option value="pdfjs-dist@1.8.562">pdfjs-dist@1.8.562</option>
+					<option value="pdfjs-dist@1.8.559">pdfjs-dist@1.8.559</option>
+					<option value="pdfjs-dist@1.8.557">pdfjs-dist@1.8.557</option>
+					<option value="pdfjs-dist@1.8.555">pdfjs-dist@1.8.555</option>
+					<option value="pdfjs-dist@1.8.552">pdfjs-dist@1.8.552</option>
+					<option value="pdfjs-dist@1.8.550">pdfjs-dist@1.8.550</option>
+					<option value="pdfjs-dist@1.8.548">pdfjs-dist@1.8.548</option>
+					<option value="pdfjs-dist@1.8.542">pdfjs-dist@1.8.542</option>
+					<option value="pdfjs-dist@1.8.540">pdfjs-dist@1.8.540</option>
+					<option value="pdfjs-dist@1.8.537">pdfjs-dist@1.8.537</option>
+					<option value="pdfjs-dist@1.8.535">pdfjs-dist@1.8.535</option>
+					<option value="pdfjs-dist@1.8.532">pdfjs-dist@1.8.532</option>
+					<option value="pdfjs-dist@1.8.531">pdfjs-dist@1.8.531</option>
+					<option value="pdfjs-dist@1.8.529">pdfjs-dist@1.8.529</option>
+					<option value="pdfjs-dist@1.8.527">pdfjs-dist@1.8.527</option>
+					<option value="pdfjs-dist@1.8.525">pdfjs-dist@1.8.525</option>
+					<option value="pdfjs-dist@1.8.524">pdfjs-dist@1.8.524</option>
+					<option value="pdfjs-dist@1.8.522">pdfjs-dist@1.8.522</option>
+					<option value="pdfjs-dist@1.8.520">pdfjs-dist@1.8.520</option>
+					<option value="pdfjs-dist@1.8.518">pdfjs-dist@1.8.518</option>
+					<option value="pdfjs-dist@1.8.516">pdfjs-dist@1.8.516</option>
+					<option value="pdfjs-dist@1.8.514">pdfjs-dist@1.8.514</option>
+					<option value="pdfjs-dist@1.8.512">pdfjs-dist@1.8.512</option>
+					<option value="pdfjs-dist@1.8.510">pdfjs-dist@1.8.510</option>
+					<option value="pdfjs-dist@1.8.508">pdfjs-dist@1.8.508</option>
+					<option value="pdfjs-dist@1.8.507">pdfjs-dist@1.8.507</option>
+					<option value="pdfjs-dist@1.8.505">pdfjs-dist@1.8.505</option>
+					<option value="pdfjs-dist@1.8.503">pdfjs-dist@1.8.503</option>
+					<option value="pdfjs-dist@1.8.501">pdfjs-dist@1.8.501</option>
+					<option value="pdfjs-dist@1.8.499">pdfjs-dist@1.8.499</option>
+					<option value="pdfjs-dist@1.8.497">pdfjs-dist@1.8.497</option>
+					<option value="pdfjs-dist@1.8.495">pdfjs-dist@1.8.495</option>
+					<option value="pdfjs-dist@1.8.493">pdfjs-dist@1.8.493</option>
+					<option value="pdfjs-dist@1.8.492">pdfjs-dist@1.8.492</option>
+					<option value="pdfjs-dist@1.8.489">pdfjs-dist@1.8.489</option>
+					<option value="pdfjs-dist@1.8.487">pdfjs-dist@1.8.487</option>
+					<option value="pdfjs-dist@1.8.484">pdfjs-dist@1.8.484</option>
+					<option value="pdfjs-dist@1.8.482">pdfjs-dist@1.8.482</option>
+					<option value="pdfjs-dist@1.8.480">pdfjs-dist@1.8.480</option>
+					<option value="pdfjs-dist@1.8.478">pdfjs-dist@1.8.478</option>
+					<option value="pdfjs-dist@1.8.476">pdfjs-dist@1.8.476</option>
+					<option value="pdfjs-dist@1.8.474">pdfjs-dist@1.8.474</option>
+					<option value="pdfjs-dist@1.8.472">pdfjs-dist@1.8.472</option>
+					<option value="pdfjs-dist@1.8.469">pdfjs-dist@1.8.469</option>
+					<option value="pdfjs-dist@1.8.467">pdfjs-dist@1.8.467</option>
+					<option value="pdfjs-dist@1.8.465">pdfjs-dist@1.8.465</option>
+					<option value="pdfjs-dist@1.8.463">pdfjs-dist@1.8.463</option>
+					<option value="pdfjs-dist@1.8.462">pdfjs-dist@1.8.462</option>
+					<option value="pdfjs-dist@1.8.458">pdfjs-dist@1.8.458</option>
+					<option value="pdfjs-dist@1.8.456">pdfjs-dist@1.8.456</option>
+					<option value="pdfjs-dist@1.8.454">pdfjs-dist@1.8.454</option>
+					<option value="pdfjs-dist@1.8.452">pdfjs-dist@1.8.452</option>
+					<option value="pdfjs-dist@1.8.450">pdfjs-dist@1.8.450</option>
+					<option value="pdfjs-dist@1.8.448">pdfjs-dist@1.8.448</option>
+					<option value="pdfjs-dist@1.8.446">pdfjs-dist@1.8.446</option>
+					<option value="pdfjs-dist@1.8.444">pdfjs-dist@1.8.444</option>
+					<option value="pdfjs-dist@1.8.442">pdfjs-dist@1.8.442</option>
+					<option value="pdfjs-dist@1.8.440">pdfjs-dist@1.8.440</option>
+					<option value="pdfjs-dist@1.8.439">pdfjs-dist@1.8.439</option>
+					<option value="pdfjs-dist@1.8.436">pdfjs-dist@1.8.436</option>
+					<option value="pdfjs-dist@1.8.434">pdfjs-dist@1.8.434</option>
+					<option value="pdfjs-dist@1.8.432">pdfjs-dist@1.8.432</option>
+					<option value="pdfjs-dist@1.8.430">pdfjs-dist@1.8.430</option>
+					<option value="pdfjs-dist@1.8.428">pdfjs-dist@1.8.428</option>
+					<option value="pdfjs-dist@1.8.426">pdfjs-dist@1.8.426</option>
+					<option value="pdfjs-dist@1.8.425">pdfjs-dist@1.8.425</option>
+					<option value="pdfjs-dist@1.8.423">pdfjs-dist@1.8.423</option>
+					<option value="pdfjs-dist@1.8.420">pdfjs-dist@1.8.420</option>
+					<option value="pdfjs-dist@1.8.418">pdfjs-dist@1.8.418</option>
+					<option value="pdfjs-dist@1.8.416">pdfjs-dist@1.8.416</option>
+					<option value="pdfjs-dist@1.8.414">pdfjs-dist@1.8.414</option>
+					<option value="pdfjs-dist@1.8.412">pdfjs-dist@1.8.412</option>
+					<option value="pdfjs-dist@1.8.410">pdfjs-dist@1.8.410</option>
+					<option value="pdfjs-dist@1.8.408">pdfjs-dist@1.8.408</option>
+					<option value="pdfjs-dist@1.8.406">pdfjs-dist@1.8.406</option>
+					<option value="pdfjs-dist@1.8.404">pdfjs-dist@1.8.404</option>
+					<option value="pdfjs-dist@1.8.402">pdfjs-dist@1.8.402</option>
+					<option value="pdfjs-dist@1.8.400">pdfjs-dist@1.8.400</option>
+					<option value="pdfjs-dist@1.8.398">pdfjs-dist@1.8.398</option>
+					<option value="pdfjs-dist@1.8.396">pdfjs-dist@1.8.396</option>
+					<option value="pdfjs-dist@1.8.394">pdfjs-dist@1.8.394</option>
+					<option value="pdfjs-dist@1.8.391">pdfjs-dist@1.8.391</option>
+					<option value="pdfjs-dist@1.8.390">pdfjs-dist@1.8.390</option>
+					<option value="pdfjs-dist@1.8.388">pdfjs-dist@1.8.388</option>
+					<option value="pdfjs-dist@1.8.386">pdfjs-dist@1.8.386</option>
+					<option value="pdfjs-dist@1.8.384">pdfjs-dist@1.8.384</option>
+					<option value="pdfjs-dist@1.8.382">pdfjs-dist@1.8.382</option>
+					<option value="pdfjs-dist@1.8.380">pdfjs-dist@1.8.380</option>
+					<option value="pdfjs-dist@1.8.378">pdfjs-dist@1.8.378</option>
+					<option value="pdfjs-dist@1.8.376">pdfjs-dist@1.8.376</option>
+					<option value="pdfjs-dist@1.8.374">pdfjs-dist@1.8.374</option>
+					<option value="pdfjs-dist@1.8.371">pdfjs-dist@1.8.371</option>
+					<option value="pdfjs-dist@1.8.369">pdfjs-dist@1.8.369</option>
+					<option value="pdfjs-dist@1.8.366">pdfjs-dist@1.8.366</option>
+					<option value="pdfjs-dist@1.8.363">pdfjs-dist@1.8.363</option>
+					<option value="pdfjs-dist@1.8.361">pdfjs-dist@1.8.361</option>
+					<option value="pdfjs-dist@1.8.359">pdfjs-dist@1.8.359</option>
+					<option value="pdfjs-dist@1.8.357">pdfjs-dist@1.8.357</option>
+					<option value="pdfjs-dist@1.8.355">pdfjs-dist@1.8.355</option>
+					<option value="pdfjs-dist@1.8.353">pdfjs-dist@1.8.353</option>
+					<option value="pdfjs-dist@1.8.351">pdfjs-dist@1.8.351</option>
+					<option value="pdfjs-dist@1.8.349">pdfjs-dist@1.8.349</option>
+					<option value="pdfjs-dist@1.8.346">pdfjs-dist@1.8.346</option>
+					<option value="pdfjs-dist@1.8.344">pdfjs-dist@1.8.344</option>
+					<option value="pdfjs-dist@1.8.342">pdfjs-dist@1.8.342</option>
+					<option value="pdfjs-dist@1.8.339">pdfjs-dist@1.8.339</option>
+					<option value="pdfjs-dist@1.8.337">pdfjs-dist@1.8.337</option>
+					<option value="pdfjs-dist@1.8.333">pdfjs-dist@1.8.333</option>
+					<option value="pdfjs-dist@1.8.331">pdfjs-dist@1.8.331</option>
+					<option value="pdfjs-dist@1.8.329">pdfjs-dist@1.8.329</option>
+					<option value="pdfjs-dist@1.8.327">pdfjs-dist@1.8.327</option>
+					<option value="pdfjs-dist@1.8.325">pdfjs-dist@1.8.325</option>
+					<option value="pdfjs-dist@1.8.323">pdfjs-dist@1.8.323</option>
+					<option value="pdfjs-dist@1.8.320">pdfjs-dist@1.8.320</option>
+					<option value="pdfjs-dist@1.8.318">pdfjs-dist@1.8.318</option>
+					<option value="pdfjs-dist@1.8.316">pdfjs-dist@1.8.316</option>
+					<option value="pdfjs-dist@1.8.314">pdfjs-dist@1.8.314</option>
+					<option value="pdfjs-dist@1.8.312">pdfjs-dist@1.8.312</option>
+					<option value="pdfjs-dist@1.8.310">pdfjs-dist@1.8.310</option>
+					<option value="pdfjs-dist@1.8.308">pdfjs-dist@1.8.308</option>
+					<option value="pdfjs-dist@1.8.306">pdfjs-dist@1.8.306</option>
+					<option value="pdfjs-dist@1.8.305">pdfjs-dist@1.8.305</option>
+					<option value="pdfjs-dist@1.8.303">pdfjs-dist@1.8.303</option>
+					<option value="pdfjs-dist@1.8.301">pdfjs-dist@1.8.301</option>
+					<option value="pdfjs-dist@1.8.299">pdfjs-dist@1.8.299</option>
+					<option value="pdfjs-dist@1.8.297">pdfjs-dist@1.8.297</option>
+					<option value="pdfjs-dist@1.8.292">pdfjs-dist@1.8.292</option>
+					<option value="pdfjs-dist@1.8.290">pdfjs-dist@1.8.290</option>
+					<option value="pdfjs-dist@1.8.288">pdfjs-dist@1.8.288</option>
+					<option value="pdfjs-dist@1.8.286">pdfjs-dist@1.8.286</option>
+					<option value="pdfjs-dist@1.8.284">pdfjs-dist@1.8.284</option>
+					<option value="pdfjs-dist@1.8.282">pdfjs-dist@1.8.282</option>
+					<option value="pdfjs-dist@1.8.280">pdfjs-dist@1.8.280</option>
+					<option value="pdfjs-dist@1.8.278">pdfjs-dist@1.8.278</option>
+					<option value="pdfjs-dist@1.8.276">pdfjs-dist@1.8.276</option>
+					<option value="pdfjs-dist@1.8.275">pdfjs-dist@1.8.275</option>
+					<option value="pdfjs-dist@1.8.273">pdfjs-dist@1.8.273</option>
+					<option value="pdfjs-dist@1.8.271">pdfjs-dist@1.8.271</option>
+					<option value="pdfjs-dist@1.8.254">pdfjs-dist@1.8.254</option>
+					<option value="pdfjs-dist@1.8.252">pdfjs-dist@1.8.252</option>
+					<option value="pdfjs-dist@1.8.241">pdfjs-dist@1.8.241</option>
+					<option value="pdfjs-dist@1.8.237">pdfjs-dist@1.8.237</option>
+					<option value="pdfjs-dist@1.8.235">pdfjs-dist@1.8.235</option>
+					<option value="pdfjs-dist@1.8.233">pdfjs-dist@1.8.233</option>
+					<option value="pdfjs-dist@1.8.213">pdfjs-dist@1.8.213</option>
+					<option value="pdfjs-dist@1.8.207">pdfjs-dist@1.8.207</option>
+					<option value="pdfjs-dist@1.8.205">pdfjs-dist@1.8.205</option>
+					<option value="pdfjs-dist@1.8.203">pdfjs-dist@1.8.203</option>
+					<option value="pdfjs-dist@1.8.201">pdfjs-dist@1.8.201</option>
+					<option value="pdfjs-dist@1.8.199">pdfjs-dist@1.8.199</option>
+					<option value="pdfjs-dist@1.8.195">pdfjs-dist@1.8.195</option>
+					<option value="pdfjs-dist@1.8.192">pdfjs-dist@1.8.192</option>
+					<option value="pdfjs-dist@1.8.190">pdfjs-dist@1.8.190</option>
+					<option value="pdfjs-dist@1.8.188">pdfjs-dist@1.8.188</option>
+					<option value="pdfjs-dist@1.8.186">pdfjs-dist@1.8.186</option>
+					<option value="pdfjs-dist@1.8.183">pdfjs-dist@1.8.183</option>
+					<option value="pdfjs-dist@1.8.181">pdfjs-dist@1.8.181</option>
+					<option value="pdfjs-dist@1.8.179">pdfjs-dist@1.8.179</option>
+					<option value="pdfjs-dist@1.8.177">pdfjs-dist@1.8.177</option>
+					<option value="pdfjs-dist@1.8.175">pdfjs-dist@1.8.175</option>
+					<option value="pdfjs-dist@1.8.173">pdfjs-dist@1.8.173</option>
+					<option value="pdfjs-dist@1.8.172">pdfjs-dist@1.8.172</option>
+					<option value="pdfjs-dist@1.8.170">pdfjs-dist@1.8.170</option>
+					<option value="pdfjs-dist@1.7.418">pdfjs-dist@1.7.418</option>
+					<option value="pdfjs-dist@1.7.416">pdfjs-dist@1.7.416</option>
+					<option value="pdfjs-dist@1.7.414">pdfjs-dist@1.7.414</option>
+					<option value="pdfjs-dist@1.7.412">pdfjs-dist@1.7.412</option>
+					<option value="pdfjs-dist@1.7.410">pdfjs-dist@1.7.410</option>
+					<option value="pdfjs-dist@1.7.406">pdfjs-dist@1.7.406</option>
+					<option value="pdfjs-dist@1.7.403">pdfjs-dist@1.7.403</option>
+					<option value="pdfjs-dist@1.7.401">pdfjs-dist@1.7.401</option>
+					<option value="pdfjs-dist@1.7.399">pdfjs-dist@1.7.399</option>
+					<option value="pdfjs-dist@1.7.397">pdfjs-dist@1.7.397</option>
+					<option value="pdfjs-dist@1.7.395">pdfjs-dist@1.7.395</option>
+					<option value="pdfjs-dist@1.7.393">pdfjs-dist@1.7.393</option>
+					<option value="pdfjs-dist@1.7.391">pdfjs-dist@1.7.391</option>
+					<option value="pdfjs-dist@1.7.389">pdfjs-dist@1.7.389</option>
+					<option value="pdfjs-dist@1.7.387">pdfjs-dist@1.7.387</option>
+					<option value="pdfjs-dist@1.7.384">pdfjs-dist@1.7.384</option>
+					<option value="pdfjs-dist@1.7.381">pdfjs-dist@1.7.381</option>
+					<option value="pdfjs-dist@1.7.378">pdfjs-dist@1.7.378</option>
+					<option value="pdfjs-dist@1.7.376">pdfjs-dist@1.7.376</option>
+					<option value="pdfjs-dist@1.7.374">pdfjs-dist@1.7.374</option>
+					<option value="pdfjs-dist@1.7.372">pdfjs-dist@1.7.372</option>
+					<option value="pdfjs-dist@1.7.370">pdfjs-dist@1.7.370</option>
+					<option value="pdfjs-dist@1.7.368">pdfjs-dist@1.7.368</option>
+					<option value="pdfjs-dist@1.7.367">pdfjs-dist@1.7.367</option>
+					<option value="pdfjs-dist@1.7.365">pdfjs-dist@1.7.365</option>
+					<option value="pdfjs-dist@1.7.363">pdfjs-dist@1.7.363</option>
+					<option value="pdfjs-dist@1.7.361">pdfjs-dist@1.7.361</option>
+					<option value="pdfjs-dist@1.7.359">pdfjs-dist@1.7.359</option>
+					<option value="pdfjs-dist@1.7.357">pdfjs-dist@1.7.357</option>
+					<option value="pdfjs-dist@1.7.355">pdfjs-dist@1.7.355</option>
+					<option value="pdfjs-dist@1.7.351">pdfjs-dist@1.7.351</option>
+					<option value="pdfjs-dist@1.7.348">pdfjs-dist@1.7.348</option>
+					<option value="pdfjs-dist@1.7.346">pdfjs-dist@1.7.346</option>
+					<option value="pdfjs-dist@1.7.344">pdfjs-dist@1.7.344</option>
+					<option value="pdfjs-dist@1.7.341">pdfjs-dist@1.7.341</option>
+					<option value="pdfjs-dist@1.7.339">pdfjs-dist@1.7.339</option>
+					<option value="pdfjs-dist@1.7.337">pdfjs-dist@1.7.337</option>
+					<option value="pdfjs-dist@1.7.331">pdfjs-dist@1.7.331</option>
+					<option value="pdfjs-dist@1.7.329">pdfjs-dist@1.7.329</option>
+					<option value="pdfjs-dist@1.7.327">pdfjs-dist@1.7.327</option>
+					<option value="pdfjs-dist@1.7.325">pdfjs-dist@1.7.325</option>
+					<option value="pdfjs-dist@1.7.323">pdfjs-dist@1.7.323</option>
+					<option value="pdfjs-dist@1.7.316">pdfjs-dist@1.7.316</option>
+					<option value="pdfjs-dist@1.7.314">pdfjs-dist@1.7.314</option>
+					<option value="pdfjs-dist@1.7.312">pdfjs-dist@1.7.312</option>
+					<option value="pdfjs-dist@1.7.310">pdfjs-dist@1.7.310</option>
+					<option value="pdfjs-dist@1.7.308">pdfjs-dist@1.7.308</option>
+					<option value="pdfjs-dist@1.7.302">pdfjs-dist@1.7.302</option>
+					<option value="pdfjs-dist@1.7.300">pdfjs-dist@1.7.300</option>
+					<option value="pdfjs-dist@1.7.297">pdfjs-dist@1.7.297</option>
+					<option value="pdfjs-dist@1.7.295">pdfjs-dist@1.7.295</option>
+					<option value="pdfjs-dist@1.7.294">pdfjs-dist@1.7.294</option>
+					<option value="pdfjs-dist@1.7.292">pdfjs-dist@1.7.292</option>
+					<option value="pdfjs-dist@1.7.290">pdfjs-dist@1.7.290</option>
+					<option value="pdfjs-dist@1.7.288">pdfjs-dist@1.7.288</option>
+					<option value="pdfjs-dist@1.7.286">pdfjs-dist@1.7.286</option>
+					<option value="pdfjs-dist@1.7.284">pdfjs-dist@1.7.284</option>
+					<option value="pdfjs-dist@1.7.282">pdfjs-dist@1.7.282</option>
+					<option value="pdfjs-dist@1.7.280">pdfjs-dist@1.7.280</option>
+					<option value="pdfjs-dist@1.7.278">pdfjs-dist@1.7.278</option>
+					<option value="pdfjs-dist@1.7.276">pdfjs-dist@1.7.276</option>
+					<option value="pdfjs-dist@1.7.274">pdfjs-dist@1.7.274</option>
+					<option value="pdfjs-dist@1.7.270">pdfjs-dist@1.7.270</option>
+					<option value="pdfjs-dist@1.7.267">pdfjs-dist@1.7.267</option>
+					<option value="pdfjs-dist@1.7.264">pdfjs-dist@1.7.264</option>
+					<option value="pdfjs-dist@1.7.262">pdfjs-dist@1.7.262</option>
+					<option value="pdfjs-dist@1.7.260">pdfjs-dist@1.7.260</option>
+					<option value="pdfjs-dist@1.7.258">pdfjs-dist@1.7.258</option>
+					<option value="pdfjs-dist@1.7.256">pdfjs-dist@1.7.256</option>
+					<option value="pdfjs-dist@1.7.254">pdfjs-dist@1.7.254</option>
+					<option value="pdfjs-dist@1.7.252">pdfjs-dist@1.7.252</option>
+					<option value="pdfjs-dist@1.7.250">pdfjs-dist@1.7.250</option>
+					<option value="pdfjs-dist@1.7.248">pdfjs-dist@1.7.248</option>
+					<option value="pdfjs-dist@1.7.246">pdfjs-dist@1.7.246</option>
+					<option value="pdfjs-dist@1.7.244">pdfjs-dist@1.7.244</option>
+					<option value="pdfjs-dist@1.7.235">pdfjs-dist@1.7.235</option>
+					<option value="pdfjs-dist@1.7.233">pdfjs-dist@1.7.233</option>
+					<option value="pdfjs-dist@1.7.231">pdfjs-dist@1.7.231</option>
+					<option value="pdfjs-dist@1.7.229">pdfjs-dist@1.7.229</option>
+					<option value="pdfjs-dist@1.7.227">pdfjs-dist@1.7.227</option>
+					<option value="pdfjs-dist@1.7.225">pdfjs-dist@1.7.225</option>
+					<option value="pdfjs-dist@1.6.486">pdfjs-dist@1.6.486</option>
+					<option value="pdfjs-dist@1.6.485">pdfjs-dist@1.6.485</option>
+					<option value="pdfjs-dist@1.6.483">pdfjs-dist@1.6.483</option>
+					<option value="pdfjs-dist@1.6.481">pdfjs-dist@1.6.481</option>
+					<option value="pdfjs-dist@1.6.479">pdfjs-dist@1.6.479</option>
+					<option value="pdfjs-dist@1.6.477">pdfjs-dist@1.6.477</option>
+					<option value="pdfjs-dist@1.6.475">pdfjs-dist@1.6.475</option>
+					<option value="pdfjs-dist@1.6.473">pdfjs-dist@1.6.473</option>
+					<option value="pdfjs-dist@1.6.471">pdfjs-dist@1.6.471</option>
+					<option value="pdfjs-dist@1.6.469">pdfjs-dist@1.6.469</option>
+					<option value="pdfjs-dist@1.6.467">pdfjs-dist@1.6.467</option>
+					<option value="pdfjs-dist@1.6.465">pdfjs-dist@1.6.465</option>
+					<option value="pdfjs-dist@1.6.463">pdfjs-dist@1.6.463</option>
+					<option value="pdfjs-dist@1.6.461">pdfjs-dist@1.6.461</option>
+					<option value="pdfjs-dist@1.6.459">pdfjs-dist@1.6.459</option>
+					<option value="pdfjs-dist@1.6.458">pdfjs-dist@1.6.458</option>
+					<option value="pdfjs-dist@1.6.456">pdfjs-dist@1.6.456</option>
+					<option value="pdfjs-dist@1.6.454">pdfjs-dist@1.6.454</option>
+					<option value="pdfjs-dist@1.6.451">pdfjs-dist@1.6.451</option>
+					<option value="pdfjs-dist@1.6.449">pdfjs-dist@1.6.449</option>
+					<option value="pdfjs-dist@1.6.446">pdfjs-dist@1.6.446</option>
+					<option value="pdfjs-dist@1.6.444">pdfjs-dist@1.6.444</option>
+					<option value="pdfjs-dist@1.6.442">pdfjs-dist@1.6.442</option>
+					<option value="pdfjs-dist@1.6.440">pdfjs-dist@1.6.440</option>
+					<option value="pdfjs-dist@1.6.437">pdfjs-dist@1.6.437</option>
+					<option value="pdfjs-dist@1.6.433">pdfjs-dist@1.6.433</option>
+					<option value="pdfjs-dist@1.6.430">pdfjs-dist@1.6.430</option>
+					<option value="pdfjs-dist@1.6.428">pdfjs-dist@1.6.428</option>
+					<option value="pdfjs-dist@1.6.426">pdfjs-dist@1.6.426</option>
+					<option value="pdfjs-dist@1.6.424">pdfjs-dist@1.6.424</option>
+					<option value="pdfjs-dist@1.6.422">pdfjs-dist@1.6.422</option>
+					<option value="pdfjs-dist@1.6.419">pdfjs-dist@1.6.419</option>
+					<option value="pdfjs-dist@1.6.418">pdfjs-dist@1.6.418</option>
+					<option value="pdfjs-dist@1.6.416">pdfjs-dist@1.6.416</option>
+					<option value="pdfjs-dist@1.6.414">pdfjs-dist@1.6.414</option>
+					<option value="pdfjs-dist@1.6.412">pdfjs-dist@1.6.412</option>
+					<option value="pdfjs-dist@1.6.411">pdfjs-dist@1.6.411</option>
+					<option value="pdfjs-dist@1.6.406">pdfjs-dist@1.6.406</option>
+					<option value="pdfjs-dist@1.6.404">pdfjs-dist@1.6.404</option>
+					<option value="pdfjs-dist@1.6.401">pdfjs-dist@1.6.401</option>
+					<option value="pdfjs-dist@1.6.396">pdfjs-dist@1.6.396</option>
+					<option value="pdfjs-dist@1.6.380">pdfjs-dist@1.6.380</option>
+					<option value="pdfjs-dist@1.6.377">pdfjs-dist@1.6.377</option>
+					<option value="pdfjs-dist@1.6.374">pdfjs-dist@1.6.374</option>
+					<option value="pdfjs-dist@1.6.372">pdfjs-dist@1.6.372</option>
+					<option value="pdfjs-dist@1.6.370">pdfjs-dist@1.6.370</option>
+					<option value="pdfjs-dist@1.6.366">pdfjs-dist@1.6.366</option>
+					<option value="pdfjs-dist@1.6.365">pdfjs-dist@1.6.365</option>
+					<option value="pdfjs-dist@1.6.361">pdfjs-dist@1.6.361</option>
+					<option value="pdfjs-dist@1.6.359">pdfjs-dist@1.6.359</option>
+					<option value="pdfjs-dist@1.6.357">pdfjs-dist@1.6.357</option>
+					<option value="pdfjs-dist@1.6.355">pdfjs-dist@1.6.355</option>
+					<option value="pdfjs-dist@1.6.353">pdfjs-dist@1.6.353</option>
+					<option value="pdfjs-dist@1.6.351">pdfjs-dist@1.6.351</option>
+					<option value="pdfjs-dist@1.6.350">pdfjs-dist@1.6.350</option>
+					<option value="pdfjs-dist@1.6.348">pdfjs-dist@1.6.348</option>
+					<option value="pdfjs-dist@1.6.346">pdfjs-dist@1.6.346</option>
+					<option value="pdfjs-dist@1.6.343">pdfjs-dist@1.6.343</option>
+					<option value="pdfjs-dist@1.6.341">pdfjs-dist@1.6.341</option>
+					<option value="pdfjs-dist@1.6.338">pdfjs-dist@1.6.338</option>
+					<option value="pdfjs-dist@1.6.336">pdfjs-dist@1.6.336</option>
+					<option value="pdfjs-dist@1.6.334">pdfjs-dist@1.6.334</option>
+					<option value="pdfjs-dist@1.6.332">pdfjs-dist@1.6.332</option>
+					<option value="pdfjs-dist@1.6.331">pdfjs-dist@1.6.331</option>
+					<option value="pdfjs-dist@1.6.329">pdfjs-dist@1.6.329</option>
+					<option value="pdfjs-dist@1.6.327">pdfjs-dist@1.6.327</option>
+					<option value="pdfjs-dist@1.6.324">pdfjs-dist@1.6.324</option>
+					<option value="pdfjs-dist@1.6.322">pdfjs-dist@1.6.322</option>
+					<option value="pdfjs-dist@1.6.320">pdfjs-dist@1.6.320</option>
+					<option value="pdfjs-dist@1.6.319">pdfjs-dist@1.6.319</option>
+					<option value="pdfjs-dist@1.6.317">pdfjs-dist@1.6.317</option>
+					<option value="pdfjs-dist@1.6.315">pdfjs-dist@1.6.315</option>
+					<option value="pdfjs-dist@1.6.313">pdfjs-dist@1.6.313</option>
+					<option value="pdfjs-dist@1.6.311">pdfjs-dist@1.6.311</option>
+					<option value="pdfjs-dist@1.6.309">pdfjs-dist@1.6.309</option>
+					<option value="pdfjs-dist@1.6.306">pdfjs-dist@1.6.306</option>
+					<option value="pdfjs-dist@1.6.304">pdfjs-dist@1.6.304</option>
+					<option value="pdfjs-dist@1.6.302">pdfjs-dist@1.6.302</option>
+					<option value="pdfjs-dist@1.6.299">pdfjs-dist@1.6.299</option>
+					<option value="pdfjs-dist@1.6.297">pdfjs-dist@1.6.297</option>
+					<option value="pdfjs-dist@1.6.295">pdfjs-dist@1.6.295</option>
+					<option value="pdfjs-dist@1.6.293">pdfjs-dist@1.6.293</option>
+					<option value="pdfjs-dist@1.6.289">pdfjs-dist@1.6.289</option>
+					<option value="pdfjs-dist@1.6.287">pdfjs-dist@1.6.287</option>
+					<option value="pdfjs-dist@1.6.284">pdfjs-dist@1.6.284</option>
+					<option value="pdfjs-dist@1.6.283">pdfjs-dist@1.6.283</option>
+					<option value="pdfjs-dist@1.6.279">pdfjs-dist@1.6.279</option>
+					<option value="pdfjs-dist@1.6.274">pdfjs-dist@1.6.274</option>
+					<option value="pdfjs-dist@1.6.272">pdfjs-dist@1.6.272</option>
+					<option value="pdfjs-dist@1.6.271">pdfjs-dist@1.6.271</option>
+					<option value="pdfjs-dist@1.6.268">pdfjs-dist@1.6.268</option>
+					<option value="pdfjs-dist@1.6.266">pdfjs-dist@1.6.266</option>
+					<option value="pdfjs-dist@1.6.264">pdfjs-dist@1.6.264</option>
+					<option value="pdfjs-dist@1.6.263">pdfjs-dist@1.6.263</option>
+					<option value="pdfjs-dist@1.6.258">pdfjs-dist@1.6.258</option>
+					<option value="pdfjs-dist@1.6.256">pdfjs-dist@1.6.256</option>
+					<option value="pdfjs-dist@1.6.254">pdfjs-dist@1.6.254</option>
+					<option value="pdfjs-dist@1.6.250">pdfjs-dist@1.6.250</option>
+					<option value="pdfjs-dist@1.6.248">pdfjs-dist@1.6.248</option>
+					<option value="pdfjs-dist@1.6.244">pdfjs-dist@1.6.244</option>
+					<option value="pdfjs-dist@1.6.242">pdfjs-dist@1.6.242</option>
+					<option value="pdfjs-dist@1.6.239">pdfjs-dist@1.6.239</option>
+					<option value="pdfjs-dist@1.6.237">pdfjs-dist@1.6.237</option>
+					<option value="pdfjs-dist@1.6.234">pdfjs-dist@1.6.234</option>
+					<option value="pdfjs-dist@1.6.232">pdfjs-dist@1.6.232</option>
+					<option value="pdfjs-dist@1.6.230">pdfjs-dist@1.6.230</option>
+					<option value="pdfjs-dist@1.6.226">pdfjs-dist@1.6.226</option>
+					<option value="pdfjs-dist@1.6.222">pdfjs-dist@1.6.222</option>
+					<option value="pdfjs-dist@1.6.221">pdfjs-dist@1.6.221</option>
+					<option value="pdfjs-dist@1.6.219">pdfjs-dist@1.6.219</option>
+					<option value="pdfjs-dist@1.6.217">pdfjs-dist@1.6.217</option>
+					<option value="pdfjs-dist@1.6.214">pdfjs-dist@1.6.214</option>
+					<option value="pdfjs-dist@1.6.212">pdfjs-dist@1.6.212</option>
+					<option value="pdfjs-dist@1.6.210">pdfjs-dist@1.6.210</option>
+					<option value="pdfjs-dist@1.5.500">pdfjs-dist@1.5.500</option>
+					<option value="pdfjs-dist@1.5.498">pdfjs-dist@1.5.498</option>
+					<option value="pdfjs-dist@1.5.496">pdfjs-dist@1.5.496</option>
+					<option value="pdfjs-dist@1.5.494">pdfjs-dist@1.5.494</option>
+					<option value="pdfjs-dist@1.5.492">pdfjs-dist@1.5.492</option>
+					<option value="pdfjs-dist@1.5.490">pdfjs-dist@1.5.490</option>
+					<option value="pdfjs-dist@1.5.488">pdfjs-dist@1.5.488</option>
+					<option value="pdfjs-dist@1.5.485">pdfjs-dist@1.5.485</option>
+					<option value="pdfjs-dist@1.5.481">pdfjs-dist@1.5.481</option>
+					<option value="pdfjs-dist@1.5.479">pdfjs-dist@1.5.479</option>
+					<option value="pdfjs-dist@1.5.477">pdfjs-dist@1.5.477</option>
+					<option value="pdfjs-dist@1.5.476">pdfjs-dist@1.5.476</option>
+					<option value="pdfjs-dist@1.5.474">pdfjs-dist@1.5.474</option>
+					<option value="pdfjs-dist@1.5.472">pdfjs-dist@1.5.472</option>
+					<option value="pdfjs-dist@1.5.470">pdfjs-dist@1.5.470</option>
+					<option value="pdfjs-dist@1.5.466">pdfjs-dist@1.5.466</option>
+					<option value="pdfjs-dist@1.5.464">pdfjs-dist@1.5.464</option>
+					<option value="pdfjs-dist@1.5.462">pdfjs-dist@1.5.462</option>
+					<option value="pdfjs-dist@1.5.460">pdfjs-dist@1.5.460</option>
+					<option value="pdfjs-dist@1.5.458">pdfjs-dist@1.5.458</option>
+					<option value="pdfjs-dist@1.5.456">pdfjs-dist@1.5.456</option>
+					<option value="pdfjs-dist@1.5.454">pdfjs-dist@1.5.454</option>
+					<option value="pdfjs-dist@1.5.452">pdfjs-dist@1.5.452</option>
+					<option value="pdfjs-dist@1.5.450">pdfjs-dist@1.5.450</option>
+					<option value="pdfjs-dist@1.5.448">pdfjs-dist@1.5.448</option>
+					<option value="pdfjs-dist@1.5.446">pdfjs-dist@1.5.446</option>
+					<option value="pdfjs-dist@1.5.444">pdfjs-dist@1.5.444</option>
+					<option value="pdfjs-dist@1.5.442">pdfjs-dist@1.5.442</option>
+					<option value="pdfjs-dist@1.5.440">pdfjs-dist@1.5.440</option>
+					<option value="pdfjs-dist@1.5.437">pdfjs-dist@1.5.437</option>
+					<option value="pdfjs-dist@1.5.434">pdfjs-dist@1.5.434</option>
+					<option value="pdfjs-dist@1.5.432">pdfjs-dist@1.5.432</option>
+					<option value="pdfjs-dist@1.5.430">pdfjs-dist@1.5.430</option>
+					<option value="pdfjs-dist@1.5.426">pdfjs-dist@1.5.426</option>
+					<option value="pdfjs-dist@1.5.424">pdfjs-dist@1.5.424</option>
+					<option value="pdfjs-dist@1.5.421">pdfjs-dist@1.5.421</option>
+					<option value="pdfjs-dist@1.5.418">pdfjs-dist@1.5.418</option>
+					<option value="pdfjs-dist@1.5.415">pdfjs-dist@1.5.415</option>
+					<option value="pdfjs-dist@1.5.413">pdfjs-dist@1.5.413</option>
+					<option value="pdfjs-dist@1.5.410">pdfjs-dist@1.5.410</option>
+					<option value="pdfjs-dist@1.5.408">pdfjs-dist@1.5.408</option>
+					<option value="pdfjs-dist@1.5.406">pdfjs-dist@1.5.406</option>
+					<option value="pdfjs-dist@1.5.404">pdfjs-dist@1.5.404</option>
+					<option value="pdfjs-dist@1.5.402">pdfjs-dist@1.5.402</option>
+					<option value="pdfjs-dist@1.5.399">pdfjs-dist@1.5.399</option>
+					<option value="pdfjs-dist@1.5.397">pdfjs-dist@1.5.397</option>
+					<option value="pdfjs-dist@1.5.395">pdfjs-dist@1.5.395</option>
+					<option value="pdfjs-dist@1.5.393">pdfjs-dist@1.5.393</option>
+					<option value="pdfjs-dist@1.5.391">pdfjs-dist@1.5.391</option>
+					<option value="pdfjs-dist@1.5.389">pdfjs-dist@1.5.389</option>
+					<option value="pdfjs-dist@1.5.387">pdfjs-dist@1.5.387</option>
+					<option value="pdfjs-dist@1.5.385">pdfjs-dist@1.5.385</option>
+					<option value="pdfjs-dist@1.5.383">pdfjs-dist@1.5.383</option>
+					<option value="pdfjs-dist@1.5.381">pdfjs-dist@1.5.381</option>
+					<option value="pdfjs-dist@1.5.378">pdfjs-dist@1.5.378</option>
+					<option value="pdfjs-dist@1.5.376">pdfjs-dist@1.5.376</option>
+					<option value="pdfjs-dist@1.5.374">pdfjs-dist@1.5.374</option>
+					<option value="pdfjs-dist@1.5.372">pdfjs-dist@1.5.372</option>
+					<option value="pdfjs-dist@1.5.370">pdfjs-dist@1.5.370</option>
+					<option value="pdfjs-dist@1.5.369">pdfjs-dist@1.5.369</option>
+					<option value="pdfjs-dist@1.5.367">pdfjs-dist@1.5.367</option>
+					<option value="pdfjs-dist@1.5.365">pdfjs-dist@1.5.365</option>
+					<option value="pdfjs-dist@1.5.361">pdfjs-dist@1.5.361</option>
+					<option value="pdfjs-dist@1.5.359">pdfjs-dist@1.5.359</option>
+					<option value="pdfjs-dist@1.5.357">pdfjs-dist@1.5.357</option>
+					<option value="pdfjs-dist@1.5.355">pdfjs-dist@1.5.355</option>
+					<option value="pdfjs-dist@1.5.353">pdfjs-dist@1.5.353</option>
+					<option value="pdfjs-dist@1.5.351">pdfjs-dist@1.5.351</option>
+					<option value="pdfjs-dist@1.5.347">pdfjs-dist@1.5.347</option>
+					<option value="pdfjs-dist@1.5.345">pdfjs-dist@1.5.345</option>
+					<option value="pdfjs-dist@1.5.343">pdfjs-dist@1.5.343</option>
+					<option value="pdfjs-dist@1.5.341">pdfjs-dist@1.5.341</option>
+					<option value="pdfjs-dist@1.5.339">pdfjs-dist@1.5.339</option>
+					<option value="pdfjs-dist@1.5.337">pdfjs-dist@1.5.337</option>
+					<option value="pdfjs-dist@1.5.336">pdfjs-dist@1.5.336</option>
+					<option value="pdfjs-dist@1.5.334">pdfjs-dist@1.5.334</option>
+					<option value="pdfjs-dist@1.5.332">pdfjs-dist@1.5.332</option>
+					<option value="pdfjs-dist@1.5.330">pdfjs-dist@1.5.330</option>
+					<option value="pdfjs-dist@1.5.328">pdfjs-dist@1.5.328</option>
+					<option value="pdfjs-dist@1.5.326">pdfjs-dist@1.5.326</option>
+					<option value="pdfjs-dist@1.5.324">pdfjs-dist@1.5.324</option>
+					<option value="pdfjs-dist@1.5.322">pdfjs-dist@1.5.322</option>
+					<option value="pdfjs-dist@1.5.320">pdfjs-dist@1.5.320</option>
+					<option value="pdfjs-dist@1.5.318">pdfjs-dist@1.5.318</option>
+					<option value="pdfjs-dist@1.5.316">pdfjs-dist@1.5.316</option>
+					<option value="pdfjs-dist@1.5.314">pdfjs-dist@1.5.314</option>
+					<option value="pdfjs-dist@1.5.312">pdfjs-dist@1.5.312</option>
+					<option value="pdfjs-dist@1.5.311">pdfjs-dist@1.5.311</option>
+					<option value="pdfjs-dist@1.5.309">pdfjs-dist@1.5.309</option>
+					<option value="pdfjs-dist@1.5.307">pdfjs-dist@1.5.307</option>
+					<option value="pdfjs-dist@1.5.305">pdfjs-dist@1.5.305</option>
+					<option value="pdfjs-dist@1.5.303">pdfjs-dist@1.5.303</option>
+					<option value="pdfjs-dist@1.5.301">pdfjs-dist@1.5.301</option>
+					<option value="pdfjs-dist@1.5.299">pdfjs-dist@1.5.299</option>
+					<option value="pdfjs-dist@1.5.296">pdfjs-dist@1.5.296</option>
+					<option value="pdfjs-dist@1.5.294">pdfjs-dist@1.5.294</option>
+					<option value="pdfjs-dist@1.5.292">pdfjs-dist@1.5.292</option>
+					<option value="pdfjs-dist@1.5.289">pdfjs-dist@1.5.289</option>
+					<option value="pdfjs-dist@1.5.287">pdfjs-dist@1.5.287</option>
+					<option value="pdfjs-dist@1.5.285">pdfjs-dist@1.5.285</option>
+					<option value="pdfjs-dist@1.5.283">pdfjs-dist@1.5.283</option>
+					<option value="pdfjs-dist@1.5.281">pdfjs-dist@1.5.281</option>
+					<option value="pdfjs-dist@1.5.279">pdfjs-dist@1.5.279</option>
+					<option value="pdfjs-dist@1.5.278">pdfjs-dist@1.5.278</option>
+					<option value="pdfjs-dist@1.5.276">pdfjs-dist@1.5.276</option>
+					<option value="pdfjs-dist@1.5.274">pdfjs-dist@1.5.274</option>
+					<option value="pdfjs-dist@1.5.272">pdfjs-dist@1.5.272</option>
+					<option value="pdfjs-dist@1.5.270">pdfjs-dist@1.5.270</option>
+					<option value="pdfjs-dist@1.5.268">pdfjs-dist@1.5.268</option>
+					<option value="pdfjs-dist@1.5.266">pdfjs-dist@1.5.266</option>
+					<option value="pdfjs-dist@1.5.264">pdfjs-dist@1.5.264</option>
+					<option value="pdfjs-dist@1.5.262">pdfjs-dist@1.5.262</option>
+					<option value="pdfjs-dist@1.5.260">pdfjs-dist@1.5.260</option>
+					<option value="pdfjs-dist@1.5.258">pdfjs-dist@1.5.258</option>
+					<option value="pdfjs-dist@1.5.256">pdfjs-dist@1.5.256</option>
+					<option value="pdfjs-dist@1.5.254">pdfjs-dist@1.5.254</option>
+					<option value="pdfjs-dist@1.5.252">pdfjs-dist@1.5.252</option>
+					<option value="pdfjs-dist@1.5.250">pdfjs-dist@1.5.250</option>
+					<option value="pdfjs-dist@1.5.248">pdfjs-dist@1.5.248</option>
+					<option value="pdfjs-dist@1.5.246">pdfjs-dist@1.5.246</option>
+					<option value="pdfjs-dist@1.5.244">pdfjs-dist@1.5.244</option>
+					<option value="pdfjs-dist@1.5.242">pdfjs-dist@1.5.242</option>
+					<option value="pdfjs-dist@1.5.240">pdfjs-dist@1.5.240</option>
+					<option value="pdfjs-dist@1.5.238">pdfjs-dist@1.5.238</option>
+					<option value="pdfjs-dist@1.5.236">pdfjs-dist@1.5.236</option>
+					<option value="pdfjs-dist@1.5.234">pdfjs-dist@1.5.234</option>
+					<option value="pdfjs-dist@1.5.232">pdfjs-dist@1.5.232</option>
+					<option value="pdfjs-dist@1.5.230">pdfjs-dist@1.5.230</option>
+					<option value="pdfjs-dist@1.5.228">pdfjs-dist@1.5.228</option>
+					<option value="pdfjs-dist@1.5.226">pdfjs-dist@1.5.226</option>
+					<option value="pdfjs-dist@1.5.224">pdfjs-dist@1.5.224</option>
+					<option value="pdfjs-dist@1.5.222">pdfjs-dist@1.5.222</option>
+					<option value="pdfjs-dist@1.5.220">pdfjs-dist@1.5.220</option>
+					<option value="pdfjs-dist@1.5.218">pdfjs-dist@1.5.218</option>
+					<option value="pdfjs-dist@1.5.216">pdfjs-dist@1.5.216</option>
+					<option value="pdfjs-dist@1.5.214">pdfjs-dist@1.5.214</option>
+					<option value="pdfjs-dist@1.5.211">pdfjs-dist@1.5.211</option>
+					<option value="pdfjs-dist@1.5.209">pdfjs-dist@1.5.209</option>
+					<option value="pdfjs-dist@1.5.207">pdfjs-dist@1.5.207</option>
+					<option value="pdfjs-dist@1.5.205">pdfjs-dist@1.5.205</option>
+					<option value="pdfjs-dist@1.5.203">pdfjs-dist@1.5.203</option>
+					<option value="pdfjs-dist@1.5.201">pdfjs-dist@1.5.201</option>
+					<option value="pdfjs-dist@1.5.196">pdfjs-dist@1.5.196</option>
+					<option value="pdfjs-dist@1.5.194">pdfjs-dist@1.5.194</option>
+					<option value="pdfjs-dist@1.5.192">pdfjs-dist@1.5.192</option>
+					<option value="pdfjs-dist@1.5.190">pdfjs-dist@1.5.190</option>
+					<option value="pdfjs-dist@1.5.188">pdfjs-dist@1.5.188</option>
+					<option value="pdfjs-dist@1.4.265">pdfjs-dist@1.4.265</option>
+					<option value="pdfjs-dist@1.4.263">pdfjs-dist@1.4.263</option>
+					<option value="pdfjs-dist@1.4.260">pdfjs-dist@1.4.260</option>
+					<option value="pdfjs-dist@1.4.258">pdfjs-dist@1.4.258</option>
+					<option value="pdfjs-dist@1.4.257">pdfjs-dist@1.4.257</option>
+					<option value="pdfjs-dist@1.4.255">pdfjs-dist@1.4.255</option>
+					<option value="pdfjs-dist@1.4.250">pdfjs-dist@1.4.250</option>
+					<option value="pdfjs-dist@1.4.248">pdfjs-dist@1.4.248</option>
+					<option value="pdfjs-dist@1.4.244">pdfjs-dist@1.4.244</option>
+					<option value="pdfjs-dist@1.4.241">pdfjs-dist@1.4.241</option>
+					<option value="pdfjs-dist@1.4.239">pdfjs-dist@1.4.239</option>
+					<option value="pdfjs-dist@1.4.237">pdfjs-dist@1.4.237</option>
+					<option value="pdfjs-dist@1.4.235">pdfjs-dist@1.4.235</option>
+					<option value="pdfjs-dist@1.4.231">pdfjs-dist@1.4.231</option>
+					<option value="pdfjs-dist@1.4.229">pdfjs-dist@1.4.229</option>
+					<option value="pdfjs-dist@1.4.227">pdfjs-dist@1.4.227</option>
+					<option value="pdfjs-dist@1.4.225">pdfjs-dist@1.4.225</option>
+					<option value="pdfjs-dist@1.4.221">pdfjs-dist@1.4.221</option>
+					<option value="pdfjs-dist@1.4.219">pdfjs-dist@1.4.219</option>
+					<option value="pdfjs-dist@1.4.217">pdfjs-dist@1.4.217</option>
+					<option value="pdfjs-dist@1.4.215">pdfjs-dist@1.4.215</option>
+					<option value="pdfjs-dist@1.4.213">pdfjs-dist@1.4.213</option>
+					<option value="pdfjs-dist@1.4.211">pdfjs-dist@1.4.211</option>
+					<option value="pdfjs-dist@1.4.209">pdfjs-dist@1.4.209</option>
+					<option value="pdfjs-dist@1.4.205">pdfjs-dist@1.4.205</option>
+					<option value="pdfjs-dist@1.4.203">pdfjs-dist@1.4.203</option>
+					<option value="pdfjs-dist@1.4.201">pdfjs-dist@1.4.201</option>
+					<option value="pdfjs-dist@1.4.199">pdfjs-dist@1.4.199</option>
+					<option value="pdfjs-dist@1.4.197">pdfjs-dist@1.4.197</option>
+					<option value="pdfjs-dist@1.4.194">pdfjs-dist@1.4.194</option>
+					<option value="pdfjs-dist@1.4.192">pdfjs-dist@1.4.192</option>
+					<option value="pdfjs-dist@1.4.190">pdfjs-dist@1.4.190</option>
+					<option value="pdfjs-dist@1.4.187">pdfjs-dist@1.4.187</option>
+					<option value="pdfjs-dist@1.4.185">pdfjs-dist@1.4.185</option>
+					<option value="pdfjs-dist@1.4.183">pdfjs-dist@1.4.183</option>
+					<option value="pdfjs-dist@1.4.181">pdfjs-dist@1.4.181</option>
+					<option value="pdfjs-dist@1.4.179">pdfjs-dist@1.4.179</option>
+					<option value="pdfjs-dist@1.4.176">pdfjs-dist@1.4.176</option>
+					<option value="pdfjs-dist@1.4.174">pdfjs-dist@1.4.174</option>
+					<option value="pdfjs-dist@1.4.172">pdfjs-dist@1.4.172</option>
+					<option value="pdfjs-dist@1.4.170">pdfjs-dist@1.4.170</option>
+					<option value="pdfjs-dist@1.4.168">pdfjs-dist@1.4.168</option>
+					<option value="pdfjs-dist@1.4.166">pdfjs-dist@1.4.166</option>
+					<option value="pdfjs-dist@1.4.164">pdfjs-dist@1.4.164</option>
+					<option value="pdfjs-dist@1.4.162">pdfjs-dist@1.4.162</option>
+					<option value="pdfjs-dist@1.4.157">pdfjs-dist@1.4.157</option>
+					<option value="pdfjs-dist@1.4.155">pdfjs-dist@1.4.155</option>
+					<option value="pdfjs-dist@1.4.154">pdfjs-dist@1.4.154</option>
+					<option value="pdfjs-dist@1.4.152">pdfjs-dist@1.4.152</option>
+					<option value="pdfjs-dist@1.4.149">pdfjs-dist@1.4.149</option>
+					<option value="pdfjs-dist@1.4.147">pdfjs-dist@1.4.147</option>
+					<option value="pdfjs-dist@1.4.145">pdfjs-dist@1.4.145</option>
+					<option value="pdfjs-dist@1.4.143">pdfjs-dist@1.4.143</option>
+					<option value="pdfjs-dist@1.4.141">pdfjs-dist@1.4.141</option>
+					<option value="pdfjs-dist@1.4.139">pdfjs-dist@1.4.139</option>
+					<option value="pdfjs-dist@1.4.137">pdfjs-dist@1.4.137</option>
+					<option value="pdfjs-dist@1.4.135">pdfjs-dist@1.4.135</option>
+					<option value="pdfjs-dist@1.4.133">pdfjs-dist@1.4.133</option>
+					<option value="pdfjs-dist@1.4.131">pdfjs-dist@1.4.131</option>
+					<option value="pdfjs-dist@1.4.129">pdfjs-dist@1.4.129</option>
+					<option value="pdfjs-dist@1.4.127">pdfjs-dist@1.4.127</option>
+					<option value="pdfjs-dist@1.4.124">pdfjs-dist@1.4.124</option>
+					<option value="pdfjs-dist@1.4.122">pdfjs-dist@1.4.122</option>
+					<option value="pdfjs-dist@1.4.121">pdfjs-dist@1.4.121</option>
+					<option value="pdfjs-dist@1.4.119">pdfjs-dist@1.4.119</option>
+					<option value="pdfjs-dist@1.4.117">pdfjs-dist@1.4.117</option>
+					<option value="pdfjs-dist@1.4.115">pdfjs-dist@1.4.115</option>
+					<option value="pdfjs-dist@1.4.113">pdfjs-dist@1.4.113</option>
+					<option value="pdfjs-dist@1.4.111">pdfjs-dist@1.4.111</option>
+					<option value="pdfjs-dist@1.4.109">pdfjs-dist@1.4.109</option>
+					<option value="pdfjs-dist@1.4.107">pdfjs-dist@1.4.107</option>
+					<option value="pdfjs-dist@1.4.105">pdfjs-dist@1.4.105</option>
+					<option value="pdfjs-dist@1.4.102">pdfjs-dist@1.4.102</option>
+					<option value="pdfjs-dist@1.4.99">pdfjs-dist@1.4.99</option>
+					<option value="pdfjs-dist@1.4.97">pdfjs-dist@1.4.97</option>
+					<option value="pdfjs-dist@1.4.95">pdfjs-dist@1.4.95</option>
+					<option value="pdfjs-dist@1.4.93">pdfjs-dist@1.4.93</option>
+					<option value="pdfjs-dist@1.4.91">pdfjs-dist@1.4.91</option>
+					<option value="pdfjs-dist@1.4.87">pdfjs-dist@1.4.87</option>
+					<option value="pdfjs-dist@1.4.85">pdfjs-dist@1.4.85</option>
+					<option value="pdfjs-dist@1.4.83">pdfjs-dist@1.4.83</option>
+					<option value="pdfjs-dist@1.4.81">pdfjs-dist@1.4.81</option>
+					<option value="pdfjs-dist@1.4.79">pdfjs-dist@1.4.79</option>
+					<option value="pdfjs-dist@1.4.76">pdfjs-dist@1.4.76</option>
+					<option value="pdfjs-dist@1.4.74">pdfjs-dist@1.4.74</option>
+					<option value="pdfjs-dist@1.4.72">pdfjs-dist@1.4.72</option>
+					<option value="pdfjs-dist@1.4.68">pdfjs-dist@1.4.68</option>
+					<option value="pdfjs-dist@1.4.66">pdfjs-dist@1.4.66</option>
+					<option value="pdfjs-dist@1.4.64">pdfjs-dist@1.4.64</option>
+					<option value="pdfjs-dist@1.4.63">pdfjs-dist@1.4.63</option>
+					<option value="pdfjs-dist@1.4.62">pdfjs-dist@1.4.62</option>
+					<option value="pdfjs-dist@1.4.61">pdfjs-dist@1.4.61</option>
+					<option value="pdfjs-dist@1.4.59">pdfjs-dist@1.4.59</option>
+					<option value="pdfjs-dist@1.4.57">pdfjs-dist@1.4.57</option>
+					<option value="pdfjs-dist@1.4.55">pdfjs-dist@1.4.55</option>
+					<option value="pdfjs-dist@1.4.53">pdfjs-dist@1.4.53</option>
+					<option value="pdfjs-dist@1.4.51">pdfjs-dist@1.4.51</option>
+					<option value="pdfjs-dist@1.4.48">pdfjs-dist@1.4.48</option>
+					<option value="pdfjs-dist@1.4.46">pdfjs-dist@1.4.46</option>
+					<option value="pdfjs-dist@1.4.44">pdfjs-dist@1.4.44</option>
+					<option value="pdfjs-dist@1.4.42">pdfjs-dist@1.4.42</option>
+					<option value="pdfjs-dist@1.4.39">pdfjs-dist@1.4.39</option>
+					<option value="pdfjs-dist@1.4.37">pdfjs-dist@1.4.37</option>
+					<option value="pdfjs-dist@1.4.35">pdfjs-dist@1.4.35</option>
+					<option value="pdfjs-dist@1.4.33">pdfjs-dist@1.4.33</option>
+					<option value="pdfjs-dist@1.4.31">pdfjs-dist@1.4.31</option>
+					<option value="pdfjs-dist@1.4.23">pdfjs-dist@1.4.23</option>
+					<option value="pdfjs-dist@1.4.21">pdfjs-dist@1.4.21</option>
+					<option value="pdfjs-dist@1.4.20">pdfjs-dist@1.4.20</option>
+					<option value="pdfjs-dist@1.4.18">pdfjs-dist@1.4.18</option>
+					<option value="pdfjs-dist@1.4.16">pdfjs-dist@1.4.16</option>
+					<option value="pdfjs-dist@1.4.14">pdfjs-dist@1.4.14</option>
+					<option value="pdfjs-dist@1.4.13">pdfjs-dist@1.4.13</option>
+					<option value="pdfjs-dist@1.4.11">pdfjs-dist@1.4.11</option>
+					<option value="pdfjs-dist@1.3.233">pdfjs-dist@1.3.233</option>
+					<option value="pdfjs-dist@1.3.231">pdfjs-dist@1.3.231</option>
+					<option value="pdfjs-dist@1.3.228">pdfjs-dist@1.3.228</option>
+					<option value="pdfjs-dist@1.3.226">pdfjs-dist@1.3.226</option>
+					<option value="pdfjs-dist@1.3.224">pdfjs-dist@1.3.224</option>
+					<option value="pdfjs-dist@1.3.222">pdfjs-dist@1.3.222</option>
+					<option value="pdfjs-dist@1.3.220">pdfjs-dist@1.3.220</option>
+					<option value="pdfjs-dist@1.3.218">pdfjs-dist@1.3.218</option>
+					<option value="pdfjs-dist@1.3.216">pdfjs-dist@1.3.216</option>
+					<option value="pdfjs-dist@1.3.214">pdfjs-dist@1.3.214</option>
+					<option value="pdfjs-dist@1.3.212">pdfjs-dist@1.3.212</option>
+					<option value="pdfjs-dist@1.3.210">pdfjs-dist@1.3.210</option>
+					<option value="pdfjs-dist@1.3.208">pdfjs-dist@1.3.208</option>
+					<option value="pdfjs-dist@1.3.206">pdfjs-dist@1.3.206</option>
+					<option value="pdfjs-dist@1.3.204">pdfjs-dist@1.3.204</option>
+					<option value="pdfjs-dist@1.3.202">pdfjs-dist@1.3.202</option>
+					<option value="pdfjs-dist@1.3.200">pdfjs-dist@1.3.200</option>
+					<option value="pdfjs-dist@1.3.198">pdfjs-dist@1.3.198</option>
+					<option value="pdfjs-dist@1.3.196">pdfjs-dist@1.3.196</option>
+					<option value="pdfjs-dist@1.3.194">pdfjs-dist@1.3.194</option>
+					<option value="pdfjs-dist@1.3.192">pdfjs-dist@1.3.192</option>
+					<option value="pdfjs-dist@1.3.190">pdfjs-dist@1.3.190</option>
+					<option value="pdfjs-dist@1.3.187">pdfjs-dist@1.3.187</option>
+					<option value="pdfjs-dist@1.3.185">pdfjs-dist@1.3.185</option>
+					<option value="pdfjs-dist@1.3.183">pdfjs-dist@1.3.183</option>
+					<option value="pdfjs-dist@1.3.181">pdfjs-dist@1.3.181</option>
+					<option value="pdfjs-dist@1.3.179">pdfjs-dist@1.3.179</option>
+					<option value="pdfjs-dist@1.3.177">pdfjs-dist@1.3.177</option>
+					<option value="pdfjs-dist@1.3.175">pdfjs-dist@1.3.175</option>
+					<option value="pdfjs-dist@1.3.173">pdfjs-dist@1.3.173</option>
+					<option value="pdfjs-dist@1.3.171">pdfjs-dist@1.3.171</option>
+					<option value="pdfjs-dist@1.3.169">pdfjs-dist@1.3.169</option>
+					<option value="pdfjs-dist@1.3.167">pdfjs-dist@1.3.167</option>
+					<option value="pdfjs-dist@1.3.165">pdfjs-dist@1.3.165</option>
+					<option value="pdfjs-dist@1.3.163">pdfjs-dist@1.3.163</option>
+					<option value="pdfjs-dist@1.3.161">pdfjs-dist@1.3.161</option>
+					<option value="pdfjs-dist@1.3.158">pdfjs-dist@1.3.158</option>
+					<option value="pdfjs-dist@1.3.156">pdfjs-dist@1.3.156</option>
+					<option value="pdfjs-dist@1.3.154">pdfjs-dist@1.3.154</option>
+					<option value="pdfjs-dist@1.3.152">pdfjs-dist@1.3.152</option>
+					<option value="pdfjs-dist@1.3.150">pdfjs-dist@1.3.150</option>
+					<option value="pdfjs-dist@1.3.148">pdfjs-dist@1.3.148</option>
+					<option value="pdfjs-dist@1.3.146">pdfjs-dist@1.3.146</option>
+					<option value="pdfjs-dist@1.3.144">pdfjs-dist@1.3.144</option>
+					<option value="pdfjs-dist@1.3.142">pdfjs-dist@1.3.142</option>
+					<option value="pdfjs-dist@1.3.137">pdfjs-dist@1.3.137</option>
+					<option value="pdfjs-dist@1.3.135">pdfjs-dist@1.3.135</option>
+					<option value="pdfjs-dist@1.3.133">pdfjs-dist@1.3.133</option>
+					<option value="pdfjs-dist@1.3.131">pdfjs-dist@1.3.131</option>
+					<option value="pdfjs-dist@1.3.129">pdfjs-dist@1.3.129</option>
+					<option value="pdfjs-dist@1.3.127">pdfjs-dist@1.3.127</option>
+					<option value="pdfjs-dist@1.3.125">pdfjs-dist@1.3.125</option>
+					<option value="pdfjs-dist@1.3.124">pdfjs-dist@1.3.124</option>
+					<option value="pdfjs-dist@1.3.122">pdfjs-dist@1.3.122</option>
+					<option value="pdfjs-dist@1.3.120">pdfjs-dist@1.3.120</option>
+					<option value="pdfjs-dist@1.3.118">pdfjs-dist@1.3.118</option>
+					<option value="pdfjs-dist@1.3.116">pdfjs-dist@1.3.116</option>
+					<option value="pdfjs-dist@1.3.114">pdfjs-dist@1.3.114</option>
+					<option value="pdfjs-dist@1.3.112">pdfjs-dist@1.3.112</option>
+					<option value="pdfjs-dist@1.3.110">pdfjs-dist@1.3.110</option>
+					<option value="pdfjs-dist@1.3.108">pdfjs-dist@1.3.108</option>
+					<option value="pdfjs-dist@1.3.106">pdfjs-dist@1.3.106</option>
+					<option value="pdfjs-dist@1.3.105">pdfjs-dist@1.3.105</option>
+					<option value="pdfjs-dist@1.3.104">pdfjs-dist@1.3.104</option>
+					<option value="pdfjs-dist@1.3.103">pdfjs-dist@1.3.103</option>
+					<option value="pdfjs-dist@1.3.102">pdfjs-dist@1.3.102</option>
+					<option value="pdfjs-dist@1.3.100">pdfjs-dist@1.3.100</option>
+					<option value="pdfjs-dist@1.3.98">pdfjs-dist@1.3.98</option>
+					<option value="pdfjs-dist@1.3.96">pdfjs-dist@1.3.96</option>
+					<option value="pdfjs-dist@1.3.94">pdfjs-dist@1.3.94</option>
+					<option value="pdfjs-dist@1.3.90">pdfjs-dist@1.3.90</option>
+					<option value="pdfjs-dist@1.3.88">pdfjs-dist@1.3.88</option>
+					<option value="pdfjs-dist@1.3.81">pdfjs-dist@1.3.81</option>
+					<option value="pdfjs-dist@1.3.80">pdfjs-dist@1.3.80</option>
+					<option value="pdfjs-dist@1.3.78">pdfjs-dist@1.3.78</option>
+					<option value="pdfjs-dist@1.3.76">pdfjs-dist@1.3.76</option>
+					<option value="pdfjs-dist@1.3.74">pdfjs-dist@1.3.74</option>
+					<option value="pdfjs-dist@1.3.72">pdfjs-dist@1.3.72</option>
+					<option value="pdfjs-dist@1.3.70">pdfjs-dist@1.3.70</option>
+					<option value="pdfjs-dist@1.3.68">pdfjs-dist@1.3.68</option>
+					<option value="pdfjs-dist@1.3.66">pdfjs-dist@1.3.66</option>
+					<option value="pdfjs-dist@1.3.64">pdfjs-dist@1.3.64</option>
+					<option value="pdfjs-dist@1.3.62">pdfjs-dist@1.3.62</option>
+					<option value="pdfjs-dist@1.3.60">pdfjs-dist@1.3.60</option>
+					<option value="pdfjs-dist@1.3.58">pdfjs-dist@1.3.58</option>
+					<option value="pdfjs-dist@1.3.56">pdfjs-dist@1.3.56</option>
+					<option value="pdfjs-dist@1.3.54">pdfjs-dist@1.3.54</option>
+					<option value="pdfjs-dist@1.3.52">pdfjs-dist@1.3.52</option>
+					<option value="pdfjs-dist@1.3.50">pdfjs-dist@1.3.50</option>
+					<option value="pdfjs-dist@1.3.48">pdfjs-dist@1.3.48</option>
+					<option value="pdfjs-dist@1.3.46">pdfjs-dist@1.3.46</option>
+					<option value="pdfjs-dist@1.3.44">pdfjs-dist@1.3.44</option>
+					<option value="pdfjs-dist@1.3.42">pdfjs-dist@1.3.42</option>
+					<option value="pdfjs-dist@1.3.40">pdfjs-dist@1.3.40</option>
+					<option value="pdfjs-dist@1.3.38">pdfjs-dist@1.3.38</option>
+					<option value="pdfjs-dist@1.3.36">pdfjs-dist@1.3.36</option>
+					<option value="pdfjs-dist@1.3.34">pdfjs-dist@1.3.34</option>
+					<option value="pdfjs-dist@1.3.32">pdfjs-dist@1.3.32</option>
+					<option value="pdfjs-dist@1.3.28">pdfjs-dist@1.3.28</option>
+					<option value="pdfjs-dist@1.3.26">pdfjs-dist@1.3.26</option>
+					<option value="pdfjs-dist@1.3.24">pdfjs-dist@1.3.24</option>
+					<option value="pdfjs-dist@1.3.22">pdfjs-dist@1.3.22</option>
+					<option value="pdfjs-dist@1.3.20">pdfjs-dist@1.3.20</option>
+					<option value="pdfjs-dist@1.3.17">pdfjs-dist@1.3.17</option>
+					<option value="pdfjs-dist@1.3.16">pdfjs-dist@1.3.16</option>
+					<option value="pdfjs-dist@1.3.14">pdfjs-dist@1.3.14</option>
+					<option value="pdfjs-dist@1.3.12">pdfjs-dist@1.3.12</option>
+					<option value="pdfjs-dist@1.3.10">pdfjs-dist@1.3.10</option>
+					<option value="pdfjs-dist@1.3.6">pdfjs-dist@1.3.6</option>
+					<option value="pdfjs-dist@1.2.135">pdfjs-dist@1.2.135</option>
+					<option value="pdfjs-dist@1.2.133">pdfjs-dist@1.2.133</option>
+					<option value="pdfjs-dist@1.2.131">pdfjs-dist@1.2.131</option>
+					<option value="pdfjs-dist@1.2.129">pdfjs-dist@1.2.129</option>
+					<option value="pdfjs-dist@1.2.127">pdfjs-dist@1.2.127</option>
+					<option value="pdfjs-dist@1.2.125">pdfjs-dist@1.2.125</option>
+					<option value="pdfjs-dist@1.2.123">pdfjs-dist@1.2.123</option>
+					<option value="pdfjs-dist@1.2.121">pdfjs-dist@1.2.121</option>
+					<option value="pdfjs-dist@1.2.119">pdfjs-dist@1.2.119</option>
+					<option value="pdfjs-dist@1.2.117">pdfjs-dist@1.2.117</option>
+					<option value="pdfjs-dist@1.2.115">pdfjs-dist@1.2.115</option>
+					<option value="pdfjs-dist@1.2.113">pdfjs-dist@1.2.113</option>
+					<option value="pdfjs-dist@1.2.111">pdfjs-dist@1.2.111</option>
+					<option value="pdfjs-dist@1.2.109">pdfjs-dist@1.2.109</option>
+					<option value="pdfjs-dist@1.2.107">pdfjs-dist@1.2.107</option>
+					<option value="pdfjs-dist@1.2.105">pdfjs-dist@1.2.105</option>
+					<option value="pdfjs-dist@1.2.103">pdfjs-dist@1.2.103</option>
+					<option value="pdfjs-dist@1.2.101">pdfjs-dist@1.2.101</option>
+					<option value="pdfjs-dist@1.2.99">pdfjs-dist@1.2.99</option>
+					<option value="pdfjs-dist@1.2.97">pdfjs-dist@1.2.97</option>
+					<option value="pdfjs-dist@1.2.95">pdfjs-dist@1.2.95</option>
+					<option value="pdfjs-dist@1.2.93">pdfjs-dist@1.2.93</option>
+					<option value="pdfjs-dist@1.2.91">pdfjs-dist@1.2.91</option>
+					<option value="pdfjs-dist@1.2.89">pdfjs-dist@1.2.89</option>
+					<option value="pdfjs-dist@1.2.87">pdfjs-dist@1.2.87</option>
+					<option value="pdfjs-dist@1.2.85">pdfjs-dist@1.2.85</option>
+					<option value="pdfjs-dist@1.2.83">pdfjs-dist@1.2.83</option>
+					<option value="pdfjs-dist@1.2.81">pdfjs-dist@1.2.81</option>
+					<option value="pdfjs-dist@1.2.79">pdfjs-dist@1.2.79</option>
+					<option value="pdfjs-dist@1.2.77">pdfjs-dist@1.2.77</option>
+					<option value="pdfjs-dist@1.2.73">pdfjs-dist@1.2.73</option>
+					<option value="pdfjs-dist@1.2.70">pdfjs-dist@1.2.70</option>
+					<option value="pdfjs-dist@1.2.68">pdfjs-dist@1.2.68</option>
+					<option value="pdfjs-dist@1.2.66">pdfjs-dist@1.2.66</option>
+					<option value="pdfjs-dist@1.2.64">pdfjs-dist@1.2.64</option>
+					<option value="pdfjs-dist@1.2.61">pdfjs-dist@1.2.61</option>
+					<option value="pdfjs-dist@1.2.58">pdfjs-dist@1.2.58</option>
+					<option value="pdfjs-dist@1.2.56">pdfjs-dist@1.2.56</option>
+					<option value="pdfjs-dist@1.2.55">pdfjs-dist@1.2.55</option>
+					<option value="pdfjs-dist@1.2.52">pdfjs-dist@1.2.52</option>
+					<option value="pdfjs-dist@1.2.49">pdfjs-dist@1.2.49</option>
+					<option value="pdfjs-dist@1.2.47">pdfjs-dist@1.2.47</option>
+					<option value="pdfjs-dist@1.2.45">pdfjs-dist@1.2.45</option>
+					<option value="pdfjs-dist@1.2.43">pdfjs-dist@1.2.43</option>
+					<option value="pdfjs-dist@1.2.41">pdfjs-dist@1.2.41</option>
+					<option value="pdfjs-dist@1.2.39">pdfjs-dist@1.2.39</option>
+					<option value="pdfjs-dist@1.2.38">pdfjs-dist@1.2.38</option>
+					<option value="pdfjs-dist@1.2.36">pdfjs-dist@1.2.36</option>
+					<option value="pdfjs-dist@1.2.34">pdfjs-dist@1.2.34</option>
+					<option value="pdfjs-dist@1.2.32">pdfjs-dist@1.2.32</option>
+					<option value="pdfjs-dist@1.2.30">pdfjs-dist@1.2.30</option>
+					<option value="pdfjs-dist@1.2.28">pdfjs-dist@1.2.28</option>
+					<option value="pdfjs-dist@1.2.26">pdfjs-dist@1.2.26</option>
+					<option value="pdfjs-dist@1.1.551">pdfjs-dist@1.1.551</option>
+					<option value="pdfjs-dist@1.1.546">pdfjs-dist@1.1.546</option>
+					<option value="pdfjs-dist@1.1.544">pdfjs-dist@1.1.544</option>
+					<option value="pdfjs-dist@1.1.542">pdfjs-dist@1.1.542</option>
+					<option value="pdfjs-dist@1.1.539">pdfjs-dist@1.1.539</option>
+					<option value="pdfjs-dist@1.1.537">pdfjs-dist@1.1.537</option>
+					<option value="pdfjs-dist@1.1.535">pdfjs-dist@1.1.535</option>
+					<option value="pdfjs-dist@1.1.534">pdfjs-dist@1.1.534</option>
+					<option value="pdfjs-dist@1.1.531">pdfjs-dist@1.1.531</option>
+					<option value="pdfjs-dist@1.1.529">pdfjs-dist@1.1.529</option>
+					<option value="pdfjs-dist@1.1.527">pdfjs-dist@1.1.527</option>
+					<option value="pdfjs-dist@1.1.523">pdfjs-dist@1.1.523</option>
+					<option value="pdfjs-dist@1.1.521">pdfjs-dist@1.1.521</option>
+					<option value="pdfjs-dist@1.1.519">pdfjs-dist@1.1.519</option>
+					<option value="pdfjs-dist@1.1.517">pdfjs-dist@1.1.517</option>
+					<option value="pdfjs-dist@1.1.515">pdfjs-dist@1.1.515</option>
+					<option value="pdfjs-dist@1.1.513">pdfjs-dist@1.1.513</option>
+					<option value="pdfjs-dist@1.1.511">pdfjs-dist@1.1.511</option>
+					<option value="pdfjs-dist@1.1.509">pdfjs-dist@1.1.509</option>
+					<option value="pdfjs-dist@1.1.507">pdfjs-dist@1.1.507</option>
+					<option value="pdfjs-dist@1.1.505">pdfjs-dist@1.1.505</option>
+					<option value="pdfjs-dist@1.1.503">pdfjs-dist@1.1.503</option>
+					<option value="pdfjs-dist@1.1.500">pdfjs-dist@1.1.500</option>
+					<option value="pdfjs-dist@1.1.498">pdfjs-dist@1.1.498</option>
+					<option value="pdfjs-dist@1.1.496">pdfjs-dist@1.1.496</option>
+					<option value="pdfjs-dist@1.1.494">pdfjs-dist@1.1.494</option>
+					<option value="pdfjs-dist@1.1.492">pdfjs-dist@1.1.492</option>
+					<option value="pdfjs-dist@1.1.490">pdfjs-dist@1.1.490</option>
+					<option value="pdfjs-dist@1.1.488">pdfjs-dist@1.1.488</option>
+					<option value="pdfjs-dist@1.1.485">pdfjs-dist@1.1.485</option>
+					<option value="pdfjs-dist@1.1.483">pdfjs-dist@1.1.483</option>
+					<option value="pdfjs-dist@1.1.480">pdfjs-dist@1.1.480</option>
+					<option value="pdfjs-dist@1.1.478">pdfjs-dist@1.1.478</option>
+					<option value="pdfjs-dist@1.1.476">pdfjs-dist@1.1.476</option>
+					<option value="pdfjs-dist@1.1.474">pdfjs-dist@1.1.474</option>
+					<option value="pdfjs-dist@1.1.472">pdfjs-dist@1.1.472</option>
+					<option value="pdfjs-dist@1.1.471">pdfjs-dist@1.1.471</option>
+					<option value="pdfjs-dist@1.1.469">pdfjs-dist@1.1.469</option>
+					<option value="pdfjs-dist@1.1.467">pdfjs-dist@1.1.467</option>
+					<option value="pdfjs-dist@1.1.465">pdfjs-dist@1.1.465</option>
+					<option value="pdfjs-dist@1.1.463">pdfjs-dist@1.1.463</option>
+					<option value="pdfjs-dist@1.1.462">pdfjs-dist@1.1.462</option>
+					<option value="pdfjs-dist@1.1.460">pdfjs-dist@1.1.460</option>
+					<option value="pdfjs-dist@1.1.456">pdfjs-dist@1.1.456</option>
+					<option value="pdfjs-dist@1.1.454">pdfjs-dist@1.1.454</option>
+					<option value="pdfjs-dist@1.1.452">pdfjs-dist@1.1.452</option>
+					<option value="pdfjs-dist@1.1.450">pdfjs-dist@1.1.450</option>
+					<option value="pdfjs-dist@1.1.448">pdfjs-dist@1.1.448</option>
+					<option value="pdfjs-dist@1.1.446">pdfjs-dist@1.1.446</option>
+					<option value="pdfjs-dist@1.1.444">pdfjs-dist@1.1.444</option>
+					<option value="pdfjs-dist@1.1.442">pdfjs-dist@1.1.442</option>
+					<option value="pdfjs-dist@1.1.440">pdfjs-dist@1.1.440</option>
+					<option value="pdfjs-dist@1.1.438">pdfjs-dist@1.1.438</option>
+					<option value="pdfjs-dist@1.1.435">pdfjs-dist@1.1.435</option>
+					<option value="pdfjs-dist@1.1.433">pdfjs-dist@1.1.433</option>
+					<option value="pdfjs-dist@1.1.431">pdfjs-dist@1.1.431</option>
+					<option value="pdfjs-dist@1.1.429">pdfjs-dist@1.1.429</option>
+					<option value="pdfjs-dist@1.1.427">pdfjs-dist@1.1.427</option>
+					<option value="pdfjs-dist@1.1.425">pdfjs-dist@1.1.425</option>
+					<option value="pdfjs-dist@1.1.417">pdfjs-dist@1.1.417</option>
+					<option value="pdfjs-dist@1.1.415">pdfjs-dist@1.1.415</option>
+					<option value="pdfjs-dist@1.1.413">pdfjs-dist@1.1.413</option>
+					<option value="pdfjs-dist@1.1.411">pdfjs-dist@1.1.411</option>
+					<option value="pdfjs-dist@1.1.409">pdfjs-dist@1.1.409</option>
+					<option value="pdfjs-dist@1.1.407">pdfjs-dist@1.1.407</option>
+					<option value="pdfjs-dist@1.1.405">pdfjs-dist@1.1.405</option>
+					<option value="pdfjs-dist@1.1.403">pdfjs-dist@1.1.403</option>
+					<option value="pdfjs-dist@1.1.401">pdfjs-dist@1.1.401</option>
+					<option value="pdfjs-dist@1.1.399">pdfjs-dist@1.1.399</option>
+					<option value="pdfjs-dist@1.1.397">pdfjs-dist@1.1.397</option>
+					<option value="pdfjs-dist@1.1.395">pdfjs-dist@1.1.395</option>
+					<option value="pdfjs-dist@1.1.394">pdfjs-dist@1.1.394</option>
+					<option value="pdfjs-dist@1.1.392">pdfjs-dist@1.1.392</option>
+					<option value="pdfjs-dist@1.1.390">pdfjs-dist@1.1.390</option>
+					<option value="pdfjs-dist@1.1.387">pdfjs-dist@1.1.387</option>
+					<option value="pdfjs-dist@1.1.381">pdfjs-dist@1.1.381</option>
+					<option value="pdfjs-dist@1.1.379">pdfjs-dist@1.1.379</option>
+					<option value="pdfjs-dist@1.1.377">pdfjs-dist@1.1.377</option>
+					<option value="pdfjs-dist@1.1.375">pdfjs-dist@1.1.375</option>
+					<option value="pdfjs-dist@1.1.373">pdfjs-dist@1.1.373</option>
+					<option value="pdfjs-dist@1.1.370">pdfjs-dist@1.1.370</option>
+					<option value="pdfjs-dist@1.1.368">pdfjs-dist@1.1.368</option>
+					<option value="pdfjs-dist@1.1.366">pdfjs-dist@1.1.366</option>
+					<option value="pdfjs-dist@1.1.364">pdfjs-dist@1.1.364</option>
+					<option value="pdfjs-dist@1.1.361">pdfjs-dist@1.1.361</option>
+					<option value="pdfjs-dist@1.1.359">pdfjs-dist@1.1.359</option>
+					<option value="pdfjs-dist@1.1.357">pdfjs-dist@1.1.357</option>
+					<option value="pdfjs-dist@1.1.355">pdfjs-dist@1.1.355</option>
+					<option value="pdfjs-dist@1.1.352">pdfjs-dist@1.1.352</option>
+					<option value="pdfjs-dist@1.1.350">pdfjs-dist@1.1.350</option>
+					<option value="pdfjs-dist@1.1.347">pdfjs-dist@1.1.347</option>
+					<option value="pdfjs-dist@1.1.345">pdfjs-dist@1.1.345</option>
+					<option value="pdfjs-dist@1.1.343">pdfjs-dist@1.1.343</option>
+					<option value="pdfjs-dist@1.1.341">pdfjs-dist@1.1.341</option>
+					<option value="pdfjs-dist@1.1.339">pdfjs-dist@1.1.339</option>
+					<option value="pdfjs-dist@1.1.337">pdfjs-dist@1.1.337</option>
+					<option value="pdfjs-dist@1.1.335">pdfjs-dist@1.1.335</option>
+					<option value="pdfjs-dist@1.1.334">pdfjs-dist@1.1.334</option>
+					<option value="pdfjs-dist@1.1.332">pdfjs-dist@1.1.332</option>
+					<option value="pdfjs-dist@1.1.329">pdfjs-dist@1.1.329</option>
+					<option value="pdfjs-dist@1.1.326">pdfjs-dist@1.1.326</option>
+					<option value="pdfjs-dist@1.1.324">pdfjs-dist@1.1.324</option>
+					<option value="pdfjs-dist@1.1.322">pdfjs-dist@1.1.322</option>
+					<option value="pdfjs-dist@1.1.320">pdfjs-dist@1.1.320</option>
+					<option value="pdfjs-dist@1.1.316">pdfjs-dist@1.1.316</option>
+					<option value="pdfjs-dist@1.1.313">pdfjs-dist@1.1.313</option>
+					<option value="pdfjs-dist@1.1.311">pdfjs-dist@1.1.311</option>
+					<option value="pdfjs-dist@1.1.309">pdfjs-dist@1.1.309</option>
+					<option value="pdfjs-dist@1.1.307">pdfjs-dist@1.1.307</option>
+					<option value="pdfjs-dist@1.1.305">pdfjs-dist@1.1.305</option>
+					<option value="pdfjs-dist@1.1.303">pdfjs-dist@1.1.303</option>
+					<option value="pdfjs-dist@1.1.301">pdfjs-dist@1.1.301</option>
+					<option value="pdfjs-dist@1.1.299">pdfjs-dist@1.1.299</option>
+					<option value="pdfjs-dist@1.1.297">pdfjs-dist@1.1.297</option>
+					<option value="pdfjs-dist@1.1.295">pdfjs-dist@1.1.295</option>
+					<option value="pdfjs-dist@1.1.293">pdfjs-dist@1.1.293</option>
+					<option value="pdfjs-dist@1.1.290">pdfjs-dist@1.1.290</option>
+					<option value="pdfjs-dist@1.1.288">pdfjs-dist@1.1.288</option>
+					<option value="pdfjs-dist@1.1.286">pdfjs-dist@1.1.286</option>
+					<option value="pdfjs-dist@1.1.284">pdfjs-dist@1.1.284</option>
+					<option value="pdfjs-dist@1.1.280">pdfjs-dist@1.1.280</option>
+					<option value="pdfjs-dist@1.1.278">pdfjs-dist@1.1.278</option>
+					<option value="pdfjs-dist@1.1.276">pdfjs-dist@1.1.276</option>
+					<option value="pdfjs-dist@1.1.274">pdfjs-dist@1.1.274</option>
+					<option value="pdfjs-dist@1.1.272">pdfjs-dist@1.1.272</option>
+					<option value="pdfjs-dist@1.1.270">pdfjs-dist@1.1.270</option>
+					<option value="pdfjs-dist@1.1.268">pdfjs-dist@1.1.268</option>
+					<option value="pdfjs-dist@1.1.266">pdfjs-dist@1.1.266</option>
+					<option value="pdfjs-dist@1.1.264">pdfjs-dist@1.1.264</option>
+					<option value="pdfjs-dist@1.1.262">pdfjs-dist@1.1.262</option>
+					<option value="pdfjs-dist@1.1.260">pdfjs-dist@1.1.260</option>
+					<option value="pdfjs-dist@1.1.258">pdfjs-dist@1.1.258</option>
+					<option value="pdfjs-dist@1.1.256">pdfjs-dist@1.1.256</option>
+					<option value="pdfjs-dist@1.1.254">pdfjs-dist@1.1.254</option>
+					<option value="pdfjs-dist@1.1.252">pdfjs-dist@1.1.252</option>
+					<option value="pdfjs-dist@1.1.250">pdfjs-dist@1.1.250</option>
+					<option value="pdfjs-dist@1.1.248">pdfjs-dist@1.1.248</option>
+					<option value="pdfjs-dist@1.1.246">pdfjs-dist@1.1.246</option>
+					<option value="pdfjs-dist@1.1.244">pdfjs-dist@1.1.244</option>
+					<option value="pdfjs-dist@1.1.242">pdfjs-dist@1.1.242</option>
+					<option value="pdfjs-dist@1.1.240">pdfjs-dist@1.1.240</option>
+					<option value="pdfjs-dist@1.1.238">pdfjs-dist@1.1.238</option>
+					<option value="pdfjs-dist@1.1.233">pdfjs-dist@1.1.233</option>
+					<option value="pdfjs-dist@1.1.230">pdfjs-dist@1.1.230</option>
+					<option value="pdfjs-dist@1.1.228">pdfjs-dist@1.1.228</option>
+					<option value="pdfjs-dist@1.1.226">pdfjs-dist@1.1.226</option>
+					<option value="pdfjs-dist@1.1.224">pdfjs-dist@1.1.224</option>
+					<option value="pdfjs-dist@1.1.222">pdfjs-dist@1.1.222</option>
+					<option value="pdfjs-dist@1.1.220">pdfjs-dist@1.1.220</option>
+					<option value="pdfjs-dist@1.1.218">pdfjs-dist@1.1.218</option>
+					<option value="pdfjs-dist@1.1.217">pdfjs-dist@1.1.217</option>
+					<option value="pdfjs-dist@1.1.215">pdfjs-dist@1.1.215</option>
+					<option value="pdfjs-dist@1.1.213">pdfjs-dist@1.1.213</option>
+					<option value="pdfjs-dist@1.1.211">pdfjs-dist@1.1.211</option>
+					<option value="pdfjs-dist@1.1.209">pdfjs-dist@1.1.209</option>
+					<option value="pdfjs-dist@1.1.207">pdfjs-dist@1.1.207</option>
+					<option value="pdfjs-dist@1.1.205">pdfjs-dist@1.1.205</option>
+					<option value="pdfjs-dist@1.1.203">pdfjs-dist@1.1.203</option>
+					<option value="pdfjs-dist@1.1.201">pdfjs-dist@1.1.201</option>
+					<option value="pdfjs-dist@1.1.199">pdfjs-dist@1.1.199</option>
+					<option value="pdfjs-dist@1.1.197">pdfjs-dist@1.1.197</option>
+					<option value="pdfjs-dist@1.1.195">pdfjs-dist@1.1.195</option>
+					<option value="pdfjs-dist@1.1.193">pdfjs-dist@1.1.193</option>
+					<option value="pdfjs-dist@1.1.191">pdfjs-dist@1.1.191</option>
+					<option value="pdfjs-dist@1.1.189">pdfjs-dist@1.1.189</option>
+					<option value="pdfjs-dist@1.1.187">pdfjs-dist@1.1.187</option>
+					<option value="pdfjs-dist@1.1.185">pdfjs-dist@1.1.185</option>
+					<option value="pdfjs-dist@1.1.183">pdfjs-dist@1.1.183</option>
+					<option value="pdfjs-dist@1.1.181">pdfjs-dist@1.1.181</option>
+					<option value="pdfjs-dist@1.1.179">pdfjs-dist@1.1.179</option>
+					<option value="pdfjs-dist@1.1.177">pdfjs-dist@1.1.177</option>
+					<option value="pdfjs-dist@1.1.174">pdfjs-dist@1.1.174</option>
+					<option value="pdfjs-dist@1.1.171">pdfjs-dist@1.1.171</option>
+					<option value="pdfjs-dist@1.1.169">pdfjs-dist@1.1.169</option>
+					<option value="pdfjs-dist@1.1.167">pdfjs-dist@1.1.167</option>
+					<option value="pdfjs-dist@1.1.165">pdfjs-dist@1.1.165</option>
+					<option value="pdfjs-dist@1.1.159">pdfjs-dist@1.1.159</option>
+					<option value="pdfjs-dist@1.1.157">pdfjs-dist@1.1.157</option>
+					<option value="pdfjs-dist@1.1.156">pdfjs-dist@1.1.156</option>
+					<option value="pdfjs-dist@1.1.155">pdfjs-dist@1.1.155</option>
+					<option value="pdfjs-dist@1.1.153">pdfjs-dist@1.1.153</option>
+					<option value="pdfjs-dist@1.1.151">pdfjs-dist@1.1.151</option>
+					<option value="pdfjs-dist@1.1.149">pdfjs-dist@1.1.149</option>
+					<option value="pdfjs-dist@1.1.147">pdfjs-dist@1.1.147</option>
+					<option value="pdfjs-dist@1.1.145">pdfjs-dist@1.1.145</option>
+					<option value="pdfjs-dist@1.1.143">pdfjs-dist@1.1.143</option>
+					<option value="pdfjs-dist@1.1.140">pdfjs-dist@1.1.140</option>
+					<option value="pdfjs-dist@1.1.138">pdfjs-dist@1.1.138</option>
+					<option value="pdfjs-dist@1.1.136">pdfjs-dist@1.1.136</option>
+					<option value="pdfjs-dist@1.1.134">pdfjs-dist@1.1.134</option>
+					<option value="pdfjs-dist@1.1.132">pdfjs-dist@1.1.132</option>
+					<option value="pdfjs-dist@1.1.130">pdfjs-dist@1.1.130</option>
+					<option value="pdfjs-dist@1.1.128">pdfjs-dist@1.1.128</option>
+					<option value="pdfjs-dist@1.1.126">pdfjs-dist@1.1.126</option>
+					<option value="pdfjs-dist@1.1.124">pdfjs-dist@1.1.124</option>
+					<option value="pdfjs-dist@1.1.122">pdfjs-dist@1.1.122</option>
+					<option value="pdfjs-dist@1.1.120">pdfjs-dist@1.1.120</option>
+					<option value="pdfjs-dist@1.1.118">pdfjs-dist@1.1.118</option>
+					<option value="pdfjs-dist@1.1.116">pdfjs-dist@1.1.116</option>
+					<option value="pdfjs-dist@1.1.114">pdfjs-dist@1.1.114</option>
+					<option value="pdfjs-dist@1.1.113">pdfjs-dist@1.1.113</option>
+					<option value="pdfjs-dist@1.1.111">pdfjs-dist@1.1.111</option>
+					<option value="pdfjs-dist@1.1.109">pdfjs-dist@1.1.109</option>
+					<option value="pdfjs-dist@1.1.107">pdfjs-dist@1.1.107</option>
+					<option value="pdfjs-dist@1.1.105">pdfjs-dist@1.1.105</option>
+					<option value="pdfjs-dist@1.1.103">pdfjs-dist@1.1.103</option>
+					<option value="pdfjs-dist@1.1.101">pdfjs-dist@1.1.101</option>
+					<option value="pdfjs-dist@1.1.98">pdfjs-dist@1.1.98</option>
+					<option value="pdfjs-dist@1.1.96">pdfjs-dist@1.1.96</option>
+					<option value="pdfjs-dist@1.1.94">pdfjs-dist@1.1.94</option>
+					<option value="pdfjs-dist@1.1.89">pdfjs-dist@1.1.89</option>
+					<option value="pdfjs-dist@1.1.86">pdfjs-dist@1.1.86</option>
+					<option value="pdfjs-dist@1.1.84">pdfjs-dist@1.1.84</option>
+					<option value="pdfjs-dist@1.1.82">pdfjs-dist@1.1.82</option>
+					<option value="pdfjs-dist@1.1.73">pdfjs-dist@1.1.73</option>
+					<option value="pdfjs-dist@1.1.71">pdfjs-dist@1.1.71</option>
+					<option value="pdfjs-dist@1.1.69">pdfjs-dist@1.1.69</option>
+					<option value="pdfjs-dist@1.1.67">pdfjs-dist@1.1.67</option>
+					<option value="pdfjs-dist@1.1.65">pdfjs-dist@1.1.65</option>
+					<option value="pdfjs-dist@1.1.63">pdfjs-dist@1.1.63</option>
+					<option value="pdfjs-dist@1.1.60">pdfjs-dist@1.1.60</option>
+					<option value="pdfjs-dist@1.1.58">pdfjs-dist@1.1.58</option>
+					<option value="pdfjs-dist@1.1.56">pdfjs-dist@1.1.56</option>
+					<option value="pdfjs-dist@1.1.54">pdfjs-dist@1.1.54</option>
+					<option value="pdfjs-dist@1.1.52">pdfjs-dist@1.1.52</option>
+					<option value="pdfjs-dist@1.1.49">pdfjs-dist@1.1.49</option>
+					<option value="pdfjs-dist@1.1.47">pdfjs-dist@1.1.47</option>
+					<option value="pdfjs-dist@1.1.45">pdfjs-dist@1.1.45</option>
+					<option value="pdfjs-dist@1.1.44">pdfjs-dist@1.1.44</option>
+					<option value="pdfjs-dist@1.1.42">pdfjs-dist@1.1.42</option>
+					<option value="pdfjs-dist@1.1.40">pdfjs-dist@1.1.40</option>
+					<option value="pdfjs-dist@1.1.38">pdfjs-dist@1.1.38</option>
+					<option value="pdfjs-dist@1.1.36">pdfjs-dist@1.1.36</option>
+					<option value="pdfjs-dist@1.1.34">pdfjs-dist@1.1.34</option>
+					<option value="pdfjs-dist@1.1.32">pdfjs-dist@1.1.32</option>
+					<option value="pdfjs-dist@1.1.28">pdfjs-dist@1.1.28</option>
+					<option value="pdfjs-dist@1.1.26">pdfjs-dist@1.1.26</option>
+					<option value="pdfjs-dist@1.1.24">pdfjs-dist@1.1.24</option>
+					<option value="pdfjs-dist@1.1.22">pdfjs-dist@1.1.22</option>
+					<option value="pdfjs-dist@1.1.20">pdfjs-dist@1.1.20</option>
+					<option value="pdfjs-dist@1.1.18">pdfjs-dist@1.1.18</option>
+					<option value="pdfjs-dist@1.1.15">pdfjs-dist@1.1.15</option>
+					<option value="pdfjs-dist@1.1.13">pdfjs-dist@1.1.13</option>
+					<option value="pdfjs-dist@1.1.11">pdfjs-dist@1.1.11</option>
+					<option value="pdfjs-dist@1.1.9">pdfjs-dist@1.1.9</option>
+					<option value="pdfjs-dist@1.1.7">pdfjs-dist@1.1.7</option>
+					<option value="pdfjs-dist@1.1.5">pdfjs-dist@1.1.5</option>
+					<option value="pdfjs-dist@1.1.3">pdfjs-dist@1.1.3</option>
+					<option value="pdfjs-dist@1.0.1211">pdfjs-dist@1.0.1211</option>
+					<option value="pdfjs-dist@1.0.1209">pdfjs-dist@1.0.1209</option>
+					<option value="pdfjs-dist@1.0.1207">pdfjs-dist@1.0.1207</option>
+					<option value="pdfjs-dist@1.0.1205">pdfjs-dist@1.0.1205</option>
+					<option value="pdfjs-dist@1.0.1203">pdfjs-dist@1.0.1203</option>
+					<option value="pdfjs-dist@1.0.1201">pdfjs-dist@1.0.1201</option>
+					<option value="pdfjs-dist@1.0.1199">pdfjs-dist@1.0.1199</option>
+					<option value="pdfjs-dist@1.0.1196">pdfjs-dist@1.0.1196</option>
+					<option value="pdfjs-dist@1.0.1194">pdfjs-dist@1.0.1194</option>
+					<option value="pdfjs-dist@1.0.1193">pdfjs-dist@1.0.1193</option>
+					<option value="pdfjs-dist@1.0.1191">pdfjs-dist@1.0.1191</option>
+					<option value="pdfjs-dist@1.0.1189">pdfjs-dist@1.0.1189</option>
+					<option value="pdfjs-dist@1.0.1187">pdfjs-dist@1.0.1187</option>
+					<option value="pdfjs-dist@1.0.1185">pdfjs-dist@1.0.1185</option>
+					<option value="pdfjs-dist@1.0.1183">pdfjs-dist@1.0.1183</option>
+					<option value="pdfjs-dist@1.0.1181">pdfjs-dist@1.0.1181</option>
+					<option value="pdfjs-dist@1.0.1179">pdfjs-dist@1.0.1179</option>
+					<option value="pdfjs-dist@1.0.1177">pdfjs-dist@1.0.1177</option>
+					<option value="pdfjs-dist@1.0.1175">pdfjs-dist@1.0.1175</option>
+					<option value="pdfjs-dist@1.0.1173">pdfjs-dist@1.0.1173</option>
+					<option value="pdfjs-dist@1.0.1171">pdfjs-dist@1.0.1171</option>
+					<option value="pdfjs-dist@1.0.1169">pdfjs-dist@1.0.1169</option>
+					<option value="pdfjs-dist@1.0.1167">pdfjs-dist@1.0.1167</option>
+					<option value="pdfjs-dist@1.0.1165">pdfjs-dist@1.0.1165</option>
+					<option value="pdfjs-dist@1.0.1162">pdfjs-dist@1.0.1162</option>
+					<option value="pdfjs-dist@1.0.1160">pdfjs-dist@1.0.1160</option>
+					<option value="pdfjs-dist@1.0.1158">pdfjs-dist@1.0.1158</option>
+					<option value="pdfjs-dist@1.0.1156">pdfjs-dist@1.0.1156</option>
+					<option value="pdfjs-dist@1.0.1154">pdfjs-dist@1.0.1154</option>
+					<option value="pdfjs-dist@1.0.1152">pdfjs-dist@1.0.1152</option>
+					<option value="pdfjs-dist@1.0.1151">pdfjs-dist@1.0.1151</option>
+					<option value="pdfjs-dist@1.0.1149">pdfjs-dist@1.0.1149</option>
+					<option value="pdfjs-dist@1.0.1147">pdfjs-dist@1.0.1147</option>
+					<option value="pdfjs-dist@1.0.1145">pdfjs-dist@1.0.1145</option>
+					<option value="pdfjs-dist@1.0.1143">pdfjs-dist@1.0.1143</option>
+					<option value="pdfjs-dist@1.0.1141">pdfjs-dist@1.0.1141</option>
+					<option value="pdfjs-dist@1.0.1137">pdfjs-dist@1.0.1137</option>
+					<option value="pdfjs-dist@1.0.1135">pdfjs-dist@1.0.1135</option>
+					<option value="pdfjs-dist@1.0.1132">pdfjs-dist@1.0.1132</option>
+					<option value="pdfjs-dist@1.0.1130">pdfjs-dist@1.0.1130</option>
+					<option value="pdfjs-dist@1.0.1123">pdfjs-dist@1.0.1123</option>
+					<option value="pdfjs-dist@1.0.1118">pdfjs-dist@1.0.1118</option>
+					<option value="pdfjs-dist@1.0.1110">pdfjs-dist@1.0.1110</option>
+					<option value="pdfjs-dist@1.0.1108">pdfjs-dist@1.0.1108</option>
+					<option value="pdfjs-dist@1.0.1106">pdfjs-dist@1.0.1106</option>
+					<option value="pdfjs-dist@1.0.1104">pdfjs-dist@1.0.1104</option>
+					<option value="pdfjs-dist@1.0.1102">pdfjs-dist@1.0.1102</option>
+					<option value="pdfjs-dist@1.0.1100">pdfjs-dist@1.0.1100</option>
+					<option value="pdfjs-dist@1.0.1093">pdfjs-dist@1.0.1093</option>
+					<option value="pdfjs-dist@1.0.1092">pdfjs-dist@1.0.1092</option>
+					<option value="pdfjs-dist@1.0.1090">pdfjs-dist@1.0.1090</option>
+					<option value="pdfjs-dist@1.0.1088">pdfjs-dist@1.0.1088</option>
+					<option value="pdfjs-dist@1.0.1086">pdfjs-dist@1.0.1086</option>
+					<option value="pdfjs-dist@1.0.1084">pdfjs-dist@1.0.1084</option>
+					<option value="pdfjs-dist@1.0.1082">pdfjs-dist@1.0.1082</option>
+					<option value="pdfjs-dist@1.0.1080">pdfjs-dist@1.0.1080</option>
+					<option value="pdfjs-dist@1.0.1078">pdfjs-dist@1.0.1078</option>
+					<option value="pdfjs-dist@1.0.1076">pdfjs-dist@1.0.1076</option>
+					<option value="pdfjs-dist@1.0.1074">pdfjs-dist@1.0.1074</option>
+					<option value="pdfjs-dist@1.0.1072">pdfjs-dist@1.0.1072</option>
+					<option value="pdfjs-dist@1.0.1069">pdfjs-dist@1.0.1069</option>
+					<option value="pdfjs-dist@1.0.1067">pdfjs-dist@1.0.1067</option>
+					<option value="pdfjs-dist@1.0.1065">pdfjs-dist@1.0.1065</option>
+					<option value="pdfjs-dist@1.0.1063">pdfjs-dist@1.0.1063</option>
+					<option value="pdfjs-dist@1.0.1062">pdfjs-dist@1.0.1062</option>
+					<option value="pdfjs-dist@1.0.1061">pdfjs-dist@1.0.1061</option>
+					<option value="pdfjs-dist@1.0.1059">pdfjs-dist@1.0.1059</option>
+					<option value="pdfjs-dist@1.0.1057">pdfjs-dist@1.0.1057</option>
+					<option value="pdfjs-dist@1.0.1055">pdfjs-dist@1.0.1055</option>
+					<option value="pdfjs-dist@1.0.1053">pdfjs-dist@1.0.1053</option>
+					<option value="pdfjs-dist@1.0.1051">pdfjs-dist@1.0.1051</option>
+					<option value="pdfjs-dist@1.0.1040">pdfjs-dist@1.0.1040</option>
+					<option value="pdfjs-dist@1.0.1038">pdfjs-dist@1.0.1038</option>
+					<option value="pdfjs-dist@1.0.1037">pdfjs-dist@1.0.1037</option>
+					<option value="pdfjs-dist@1.0.1035">pdfjs-dist@1.0.1035</option>
+					<option value="pdfjs-dist@1.0.1033">pdfjs-dist@1.0.1033</option>
+					<option value="pdfjs-dist@1.0.1031">pdfjs-dist@1.0.1031</option>
+					<option value="pdfjs-dist@1.0.1029">pdfjs-dist@1.0.1029</option>
+					<option value="pdfjs-dist@1.0.1027">pdfjs-dist@1.0.1027</option>
+					<option value="pdfjs-dist@1.0.1025">pdfjs-dist@1.0.1025</option>
+					<option value="pdfjs-dist@1.0.1023">pdfjs-dist@1.0.1023</option>
+					<option value="pdfjs-dist@1.0.1021">pdfjs-dist@1.0.1021</option>
+					<option value="pdfjs-dist@1.0.1019">pdfjs-dist@1.0.1019</option>
+					<option value="pdfjs-dist@1.0.1017">pdfjs-dist@1.0.1017</option>
+					<option value="pdfjs-dist@1.0.1015">pdfjs-dist@1.0.1015</option>
+					<option value="pdfjs-dist@1.0.1013">pdfjs-dist@1.0.1013</option>
+					<option value="pdfjs-dist@1.0.1011">pdfjs-dist@1.0.1011</option>
+					<option value="pdfjs-dist@1.0.1008">pdfjs-dist@1.0.1008</option>
+					<option value="pdfjs-dist@1.0.1006">pdfjs-dist@1.0.1006</option>
+					<option value="pdfjs-dist@1.0.1004">pdfjs-dist@1.0.1004</option>
+					<option value="pdfjs-dist@1.0.1002">pdfjs-dist@1.0.1002</option>
+					<option value="pdfjs-dist@1.0.1000">pdfjs-dist@1.0.1000</option>
+					<option value="pdfjs-dist@1.0.997">pdfjs-dist@1.0.997</option>
+					<option value="pdfjs-dist@1.0.995">pdfjs-dist@1.0.995</option>
+					<option value="pdfjs-dist@1.0.993">pdfjs-dist@1.0.993</option>
+					<option value="pdfjs-dist@1.0.984">pdfjs-dist@1.0.984</option>
+					<option value="pdfjs-dist@1.0.982">pdfjs-dist@1.0.982</option>
+					<option value="pdfjs-dist@1.0.980">pdfjs-dist@1.0.980</option>
+					<option value="pdfjs-dist@1.0.978">pdfjs-dist@1.0.978</option>
+					<option value="pdfjs-dist@1.0.976">pdfjs-dist@1.0.976</option>
+					<option value="pdfjs-dist@1.0.974">pdfjs-dist@1.0.974</option>
+					<option value="pdfjs-dist@1.0.972">pdfjs-dist@1.0.972</option>
+					<option value="pdfjs-dist@1.0.970">pdfjs-dist@1.0.970</option>
+					<option value="pdfjs-dist@1.0.968">pdfjs-dist@1.0.968</option>
+					<option value="pdfjs-dist@1.0.966">pdfjs-dist@1.0.966</option>
+					<option value="pdfjs-dist@1.0.964">pdfjs-dist@1.0.964</option>
+					<option value="pdfjs-dist@1.0.962">pdfjs-dist@1.0.962</option>
+					<option value="pdfjs-dist@1.0.960">pdfjs-dist@1.0.960</option>
+					<option value="pdfjs-dist@1.0.958">pdfjs-dist@1.0.958</option>
+					<option value="pdfjs-dist@1.0.956">pdfjs-dist@1.0.956</option>
+					<option value="pdfjs-dist@1.0.954">pdfjs-dist@1.0.954</option>
+					<option value="pdfjs-dist@1.0.951">pdfjs-dist@1.0.951</option>
+					<option value="pdfjs-dist@1.0.948">pdfjs-dist@1.0.948</option>
+					<option value="pdfjs-dist@1.0.945">pdfjs-dist@1.0.945</option>
+					<option value="pdfjs-dist@1.0.943">pdfjs-dist@1.0.943</option>
+					<option value="pdfjs-dist@1.0.942">pdfjs-dist@1.0.942</option>
+					<option value="pdfjs-dist@1.0.940">pdfjs-dist@1.0.940</option>
+					<option value="pdfjs-dist@1.0.937">pdfjs-dist@1.0.937</option>
+					<option value="pdfjs-dist@1.0.935">pdfjs-dist@1.0.935</option>
+					<option value="pdfjs-dist@1.0.933">pdfjs-dist@1.0.933</option>
+					<option value="pdfjs-dist@1.0.931">pdfjs-dist@1.0.931</option>
+					<option value="pdfjs-dist@1.0.929">pdfjs-dist@1.0.929</option>
+					<option value="pdfjs-dist@1.0.927">pdfjs-dist@1.0.927</option>
+					<option value="pdfjs-dist@1.0.925">pdfjs-dist@1.0.925</option>
+					<option value="pdfjs-dist@1.0.924">pdfjs-dist@1.0.924</option>
+					<option value="pdfjs-dist@1.0.921">pdfjs-dist@1.0.921</option>
+					<option value="pdfjs-dist@1.0.919">pdfjs-dist@1.0.919</option>
+					<option value="pdfjs-dist@1.0.917">pdfjs-dist@1.0.917</option>
+					<option value="pdfjs-dist@1.0.915">pdfjs-dist@1.0.915</option>
+					<option value="pdfjs-dist@1.0.913">pdfjs-dist@1.0.913</option>
+					<option value="pdfjs-dist@1.0.911">pdfjs-dist@1.0.911</option>
+					<option value="pdfjs-dist@1.0.909">pdfjs-dist@1.0.909</option>
+					<option value="pdfjs-dist@1.0.907">pdfjs-dist@1.0.907</option>
+					<option value="pdfjs-dist@1.0.905">pdfjs-dist@1.0.905</option>
+					<option value="pdfjs-dist@1.0.903">pdfjs-dist@1.0.903</option>
+					<option value="pdfjs-dist@1.0.900">pdfjs-dist@1.0.900</option>
+					<option value="pdfjs-dist@1.0.898">pdfjs-dist@1.0.898</option>
+					<option value="pdfjs-dist@1.0.896">pdfjs-dist@1.0.896</option>
+					<option value="pdfjs-dist@1.0.894">pdfjs-dist@1.0.894</option>
+					<option value="pdfjs-dist@1.0.892">pdfjs-dist@1.0.892</option>
+					<option value="pdfjs-dist@1.0.889">pdfjs-dist@1.0.889</option>
+					<option value="pdfjs-dist@1.0.887">pdfjs-dist@1.0.887</option>
+					<option value="pdfjs-dist@1.0.884">pdfjs-dist@1.0.884</option>
+					<option value="pdfjs-dist@1.0.882">pdfjs-dist@1.0.882</option>
+					<option value="pdfjs-dist@1.0.880">pdfjs-dist@1.0.880</option>
+					<option value="pdfjs-dist@1.0.878">pdfjs-dist@1.0.878</option>
+					<option value="pdfjs-dist@1.0.876">pdfjs-dist@1.0.876</option>
+					<option value="pdfjs-dist@1.0.874">pdfjs-dist@1.0.874</option>
+					<option value="pdfjs-dist@1.0.872">pdfjs-dist@1.0.872</option>
+					<option value="pdfjs-dist@1.0.869">pdfjs-dist@1.0.869</option>
+					<option value="pdfjs-dist@1.0.867">pdfjs-dist@1.0.867</option>
+					<option value="pdfjs-dist@1.0.864">pdfjs-dist@1.0.864</option>
+					<option value="pdfjs-dist@1.0.863">pdfjs-dist@1.0.863</option>
+					<option value="pdfjs-dist@1.0.861">pdfjs-dist@1.0.861</option>
+					<option value="pdfjs-dist@1.0.858">pdfjs-dist@1.0.858</option>
+					<option value="pdfjs-dist@1.0.855">pdfjs-dist@1.0.855</option>
+					<option value="pdfjs-dist@1.0.853">pdfjs-dist@1.0.853</option>
+					<option value="pdfjs-dist@1.0.851">pdfjs-dist@1.0.851</option>
+					<option value="pdfjs-dist@1.0.849">pdfjs-dist@1.0.849</option>
+					<option value="pdfjs-dist@1.0.837">pdfjs-dist@1.0.837</option>
+					<option value="pdfjs-dist@1.0.835">pdfjs-dist@1.0.835</option>
+					<option value="pdfjs-dist@1.0.833">pdfjs-dist@1.0.833</option>
+					<option value="pdfjs-dist@1.0.830">pdfjs-dist@1.0.830</option>
+					<option value="pdfjs-dist@1.0.828">pdfjs-dist@1.0.828</option>
+					<option value="pdfjs-dist@1.0.826">pdfjs-dist@1.0.826</option>
+					<option value="pdfjs-dist@1.0.824">pdfjs-dist@1.0.824</option>
+					<option value="pdfjs-dist@1.0.822">pdfjs-dist@1.0.822</option>
+					<option value="pdfjs-dist@1.0.820">pdfjs-dist@1.0.820</option>
+					<option value="pdfjs-dist@1.0.818">pdfjs-dist@1.0.818</option>
+					<option value="pdfjs-dist@1.0.816">pdfjs-dist@1.0.816</option>
+					<option value="pdfjs-dist@1.0.813">pdfjs-dist@1.0.813</option>
+				</select>
+			</div>
+
+			<div class="listing">
+				<table>
+					<tbody>
+					<tr>
+						<td class="name level-up" colspan="2"><a href="../">...</a></td>
+					</tr>
+
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.d.mts">pdf.d.mts</a>
+						</td>
+						<td class="size">28 B</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.min.mjs">pdf.min.mjs</a>
+						</td>
+						<td class="size">359.18 KB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.mjs">pdf.mjs</a>
+						</td>
+						<td class="size">722.64 KB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.mjs.map">pdf.mjs.map</a>
+						</td>
+						<td class="size">1.7 MB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.sandbox.min.mjs">pdf.sandbox.min.mjs</a>
+						</td>
+						<td class="size">717.06 KB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.sandbox.mjs">pdf.sandbox.mjs</a>
+						</td>
+						<td class="size">903.87 KB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.sandbox.mjs.map">pdf.sandbox.mjs.map</a>
+						</td>
+						<td class="size">762 KB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.worker.min.mjs">pdf.worker.min.mjs</a>
+						</td>
+						<td class="size">1.32 MB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.worker.mjs">pdf.worker.mjs</a>
+						</td>
+						<td class="size">2.19 MB</td>
+					</tr>
+					<tr>
+						<td class="name">
+							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4C4 2.89543 4.89543 2 6 2H11L16 7V16C16 17.1046 15.1046 18 14 18H6C4.89543 18 4 17.1046 4 16V4Z" stroke="#5C667A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<a rel="nofollow" href="/npm/pdfjs-dist@4.3.136/legacy/build/pdf.worker.mjs.map">pdf.worker.mjs.map</a>
+						</td>
+						<td class="size">5.1 MB</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="landing">
+				<p class="left">Free Open Source CDN for <strong>pdfjs-dist</strong></p>
+
+				<p class="right">
+					Looking for a nice landing page for your package?
+					<a href="https://www.jsdelivr.com/package/npm/pdfjs-dist">https://www.jsdelivr.com/package/npm/pdfjs-dist</a>
+				</p>
+			</div>
+		</div>
+
+		<footer>
+			<div class="footer-left">
+				<svg class="logo" viewBox="0 0 140 34" xmlns="http://www.w3.org/2000/svg">
+					<g fill="#1e3b45">
+						<path
+							d="m43.616 19.576c0 4.005-1.389 6.008-4.168 6.008-.432 0-.853-.059-1.261-.174v-1.112c.455.154.883.232 1.285.232 1.065 0 1.833-.404 2.304-1.209.471-.807.706-2.063.706-3.769v-10.859h1.134z"/>
+						<path
+							d="m47.065 24.705v-1.309c1.188.756 2.393 1.135 3.612 1.135 1.296 0 2.28-.268 2.952-.805.671-.537 1.007-1.288 1.007-2.251 0-.85-.226-1.528-.678-2.032-.451-.506-1.429-1.194-2.935-2.067-1.682-.979-2.747-1.799-3.195-2.46-.447-.66-.671-1.422-.671-2.286 0-1.172.455-2.169 1.366-2.988.911-.817 2.126-1.227 3.647-1.227.988 0 1.975.166 2.963.498v1.204c-.972-.44-2.011-.66-3.113-.66-1.127 0-2.02.287-2.681.858-.659.571-.99 1.297-.99 2.177 0 .848.226 1.524.677 2.026.452.5 1.426 1.184 2.923 2.048 1.551.881 2.584 1.663 3.097 2.345.514.684.77 1.469.77 2.356 0 1.274-.442 2.311-1.325 3.114-.884.803-2.133 1.204-3.746 1.204-.572 0-1.229-.09-1.973-.266-.745-.178-1.313-.383-1.707-.614z"/>
+						<path
+							d="m59.104 25.295v-16.602h5.881c5.895 0 8.844 2.698 8.844 8.093 0 2.585-.805 4.65-2.413 6.194-1.61 1.543-3.753 2.315-6.431 2.315zm3.74-13.556v10.522h1.852c1.621 0 2.892-.485 3.814-1.458s1.383-2.296 1.383-3.97c0-1.583-.457-2.827-1.372-3.734-.914-.907-2.199-1.36-3.85-1.36z"/>
+						<path
+							d="m86.841 25.295h-9.957v-16.602h9.574v3.046h-5.834v3.693h5.43v3.032h-5.43v3.796h6.217z"/>
+						<path d="m99.893 25.295h-9.887v-16.602h3.74v13.568h6.147z"/>
+						<path d="m105.989 8.693v16.602h-3.74v-16.602z"/>
+						<path
+							d="m123.834 8.693-5.719 16.602h-4.236l-5.651-16.602h4.029l3.462 11.553c.186.625.297 1.178.336 1.657h.068c.055-.518.174-1.084.36-1.702l3.439-11.508z"/>
+						<path
+							d="m140 25.295h-4.295l-2.581-4.273c-.193-.322-.379-.613-.555-.868-.178-.254-.358-.473-.539-.654-.182-.18-.369-.321-.567-.416-.197-.096-.41-.145-.643-.145h-1.006v6.356h-3.74v-16.602h5.926c4.029 0 6.043 1.506 6.043 4.515 0 .578-.088 1.114-.266 1.604s-.428.932-.752 1.325c-.324.395-.717.733-1.176 1.02-.459.285-.969.508-1.534.67v.047c.248.076.486.203.719.375.231.174.455.377.67.61.217.231.424.479.619.746.197.266.377.526.539.782zm-10.185-13.8v4.619h1.62c.803 0 1.448-.231 1.932-.694.494-.471.742-1.053.742-1.749 0-1.45-.87-2.177-2.605-2.177h-1.689z"/>
+					</g>
+					<path d="m15.386.338-3.106 11.038v.104 11.039l3.106 11.143 3.194-11.143v-11.039-.104z"
+						  fill="#bd483b"/>
+					<path d="m15.386.338-15.386 5.542 2.186 20.492 13.2 7.29" fill="#e64e3d"/>
+					<path d="m15.386 33.662 13.268-7.365 2.483-20.49-15.751-5.469" fill="#bd483b"/>
+					<path
+						d="m12.594 25.088c-1.514-.473-2.864-1.317-3.94-2.431l-.003-.002c-.131-.137-.257-.274-.381-.418-.838-.979-1.478-2.13-1.857-3.396.251.233.518.447.796.647.003.008.008.016.011.027-.003-.012-.008-.02-.011-.027.398.279.822.526 1.269.737.141.064.282.125.427.186.177.07.36.135.542.195.011.006.024.006.035.01.032.012.065.023.097.033.074.756.649 1.372 1.39 1.504.287 1.157.833 2.146 1.625 2.935z"
+						fill="#fec82f"/>
+					<path
+						d="m13.174 11.794c0 .324.088.627.243.883-1.25 1.753-2.108 3.656-2.479 5.539-.041.209-.077.416-.105.619-.429.113-.79.393-1.016.762-.013 0-.024-.004-.035-.01-.023-.006-.04-.014-.061-.021-.142-.045-.281-.098-.417-.152-.204-.08-.403-.174-.598-.272-.663-.338-1.26-.772-1.781-1.291-.11-.111-.213-.219-.311-.332l-.041-.049c-.038-.045-.078-.092-.115-.137-.017-.021-.032-.039-.047-.059-.014-.018-.024-.031-.037-.045-.005-.01-.013-.016-.017-.023-.02-.022-.037-.047-.053-.068-.008-.012-.017-.022-.023-.029-.001-.004-.002-.004-.004-.008-.013-.014-.024-.033-.037-.049-.055-.072-.107-.149-.157-.225-.009-.012-.019-.024-.025-.039-.006-.006-.015-.018-.02-.027-.014-.203-.02-.408-.02-.617 0-1.882.557-3.636 1.512-5.105.113-.176.235-.348.361-.514.12-.16.245-.319.374-.467 1.126-1.317 2.61-2.315 4.299-2.847.026.182.059.367.095.553.192.967.513 1.942.949 2.898-.271.3-.434.698-.434 1.132z"
+						fill="#fec82f"/>
+					<path
+						d="m12.176 20.479c0 .221-.079.424-.212.58-.029.037-.061.068-.096.1-.161.141-.368.225-.596.225-.173 0-.335-.049-.472-.135-.147-.09-.265-.219-.342-.375-.058-.121-.089-.252-.089-.395 0-.26.11-.494.286-.658.029-.027.06-.051.091-.074.148-.107.331-.17.526-.17.206 0 .395.068.546.186.085.063.155.139.213.229.094.137.145.307.145.487z"
+						fill="#fec82f"/>
+					<path
+						d="m15.777 11.794c0 .147-.032.281-.094.403-.148.299-.456.502-.808.502-.044 0-.087-.002-.128-.006-.008-.004-.016-.004-.025-.006-.383-.066-.684-.369-.741-.756-.007-.043-.01-.09-.01-.137 0-.102.017-.201.05-.295.123-.354.46-.606.854-.606h.002.036c.392.018.72.285.827.645.025.082.037.168.037.256z"
+						fill="#fec82f"/>
+					<path
+						d="m24.752 16.143c0 .907-.129 1.782-.368 2.61-.799-.211-1.606-.52-2.4-.914.022-.109.033-.221.033-.336 0-.225-.044-.442-.125-.639.031-.029.064-.061.095-.094.957-.977 1.763-2.055 2.404-3.212.234.821.361 1.69.361 2.585z"
+						fill="#df9c26"/>
+					<path
+						d="m23.881 12.196c-.063.139-.131.277-.201.416-.627 1.235-1.455 2.382-2.459 3.407-.009.01-.02.02-.028.027-.255-.156-.557-.244-.879-.244-.375 0-.722.123-1.004.328-.514-.404-1.011-.848-1.49-1.327-.608-.604-1.157-1.247-1.647-1.909.252-.297.405-.68.405-1.102 0-.313-.087-.61-.237-.862 1.21-1.163 2.547-2.106 3.917-2.788 1.572.961 2.841 2.372 3.623 4.054z"
+						fill="#df9c26"/>
+					<path
+						d="m21.217 17.503c0 .379-.23.701-.556.836-.108.045-.225.07-.348.07-.063 0-.125-.008-.185-.02-.385-.082-.681-.408-.715-.805.011-.01.021-.016.028-.022-.01-.008-.021-.014-.03-.023-.001-.012-.001-.022-.001-.037 0-.389.25-.723.601-.85.095-.033.196-.053.302-.053.09 0 .179.014.262.039.346.105.606.412.64.785.002.027.002.055.002.08z"
+						fill="#df9c26"/>
+					<path
+						d="m21.452 18.767c-.301.274-.7.44-1.139.44-.351 0-.677-.107-.949-.289-.039.025-.078.051-.115.072-1.233.781-2.538 1.352-3.864 1.698v4.824c3.887 0 7.222-2.37 8.64-5.744-.859-.237-1.723-.573-2.573-1.001z"
+						fill="#df9c26"/>
+					<path
+						d="m15.386 20.688c-.793.205-1.591.33-2.385.367-.042.002-.086.006-.128.008-.151.41-.454.744-.839.94.245.909.688 1.698 1.319 2.327.524.524 1.162.92 1.891 1.18.046 0 .093.002.142.002z"
+						fill="#fec82f"/>
+					<path
+						d="m18.612 17.503c0-.172.026-.34.074-.498-.562-.44-1.106-.92-1.625-1.442-.614-.614-1.172-1.262-1.675-1.934v5.946c1.124-.324 2.235-.823 3.291-1.489.009-.006.02-.014.03-.022-.061-.174-.095-.364-.095-.561z"
+						fill="#df9c26"/>
+					<path
+						d="m15.386 13.629c-.045-.059-.091-.113-.132-.174-.123.029-.249.043-.378.043-.227 0-.441-.045-.637-.123-1.134 1.606-1.912 3.341-2.25 5.049-.032.162-.059.32-.083.475.477.195.848.596.996 1.092.016-.004.029-.004.046-.004.809-.039 1.627-.18 2.438-.412z"
+						fill="#fec82f"/>
+					<path
+						d="m15.386 6.778v3.394c.048.016.098.033.145.055 1.106-1.073 2.316-1.979 3.573-2.681-1.14-.496-2.399-.768-3.718-.768z"
+						fill="#df9c26"/>
+					<path
+						d="m15.386 6.778c-.608 0-1.201.055-1.773.168.025.197.06.404.101.606.168.86.449 1.725.829 2.575.106-.02.219-.033.333-.033.178 0 .347.027.51.078z"
+						fill="#fec82f"/>
+				</svg>
+
+				<p class="copyright">&copy; jsdelivr.com, 2012 - 2026</p>
+			</div>
+
+			<div class="footer-right">
+				<a href="https://github.com/jsdelivr/jsdelivr">
+					<span class="gh-icon">
+						<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" viewBox="0 0 16 16" xml:space="preserve">
+						<path id="XMLID_1_" fill="#ff5627" d="M8,0.2c-4.4,0-8,3.6-8,8c0,3.5,2.3,6.5,5.5,7.6C5.9,15.9,6,15.6,6,15.4c0-0.2,0-0.7,0-1.4
+							C3.8,14.5,3.3,13,3.3,13c-0.4-0.9-0.9-1.2-0.9-1.2c-0.7-0.5,0.1-0.5,0.1-0.5c0.8,0.1,1.2,0.8,1.2,0.8C4.4,13.4,5.6,13,6,12.8
+							c0.1-0.5,0.3-0.9,0.5-1.1c-1.8-0.2-3.6-0.9-3.6-4c0-0.9,0.3-1.6,0.8-2.1c-0.1-0.2-0.4-1,0.1-2.1c0,0,0.7-0.2,2.2,0.8
+							c0.6-0.2,1.3-0.3,2-0.3c0.7,0,1.4,0.1,2,0.3c1.5-1,2.2-0.8,2.2-0.8c0.4,1.1,0.2,1.9,0.1,2.1c0.5,0.6,0.8,1.3,0.8,2.1
+							c0,3.1-1.9,3.7-3.7,3.9C9.7,12,10,12.5,10,13.2c0,1.1,0,1.9,0,2.2c0,0.2,0.1,0.5,0.6,0.4c3.2-1.1,5.5-4.1,5.5-7.6
+							C16,3.8,12.4,0.2,8,0.2z"/>
+						</svg>
+					</span>
+					Documentation
+				</a>
+
+				<a href="https://www.jsdelivr.com/features">Learn more about jsDelivr</a>
+			</div>
+		</footer>
+
+		<script>
+			var versions = document.querySelector('.versions');
+
+			[].slice.call(versions.querySelectorAll('option')).forEach(function(option) {
+				if (option.value === 'pdfjs-dist@4.3.136') {
+					option.selected = true;
+				}
+			});
+
+			versions.addEventListener('change', function() {
+				location.pathname = '/npm/' + this.value + '/legacy/build/';
+			});
+		</script>
+	</body>
+</html>

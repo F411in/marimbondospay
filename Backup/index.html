@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Banco dos Marimbondos - Sistema de Gestão (Alpha 1.1)</title>
+    
+    <!-- Frameworks e Fontes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --bg: #f8fafc;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        html, body {
+            touch-action: manipulation;
+        }
+        input, textarea, select {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        .btn-bounce:active { transform: scale(0.96); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animações Modernas */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
+        .animate-scale { animation: scaleIn 0.3s ease-out forwards; }
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        .bee-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Transições Suaves */
+        button { transition: all 0.2s ease; }
+        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        button:active:not(:disabled) { transform: scale(0.96); }
+
+        /* Modal Animado */
+        #global-modal {
+            animation: fadeIn 0.3s ease-out forwards;
+            transition: all 0.3s ease-out;
+        }
+        #global-modal.opacity-0 {
+            animation: fadeOut 0.25s ease-in forwards;
+        }
+        #global-modal-content {
+            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transition: all 0.25s ease-in;
+            transform-origin: center center;
+        }
+        #global-modal-content.scale-95 {
+            animation: scaleOut 0.25s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes scaleOut {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(0.95); opacity: 0; }
+        }
+
+        /* Checkbox Customizada para Seleção de Aluno */
+        .trans-student-cb:checked + div {
+            border-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        .banned-overlay {
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.03) 10px, rgba(239, 68, 68, 0.03) 20px);
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 640px) {
+            body { font-size: 14px; }
+            header { padding: 12px 16px; }
+            main { padding: 12px !important; }
+            .p-6 { padding: 16px; }
+            input, textarea, select { min-height: 44px; padding: 12px; }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            input, textarea, select { min-height: 48px; }
+            button { min-height: 48px; }
+        }
+
+        /* Tema Claro */
+        .dark-light { 
+            --bg: #ffffff;
+            color: #0f172a;
+            background-color: #f1f5f9;
+        }
+        .dark-light header,
+        .dark-light main,
+        .dark-light .bg-slate-900,
+        .dark-light .bg-slate-800 { background-color: #e2e8f0; }
+        .dark-light .bg-white { background-color: #f8fafc; }
+        .dark-light .text-slate-800 { color: #1e293b; }
+        .dark-light .text-slate-600 { color: #475569; }
+        .dark-light .text-slate-500 { color: #64748b; }
+        .dark-light .text-slate-700 { color: #334155; }
+        .dark-light #login-form { background-color: #ffffff; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- NOTIFICAÇÕES TOAST -->
+    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 md:left-auto md:right-5 md:translate-x-0 z-[100] space-y-3 w-full max-w-[90%] md:w-auto"></div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-100 z-[90] flex items-center justify-center p-4 overflow-y-auto">
+        <div class="max-w-md w-full glass p-8 rounded-[2.5rem] shadow-2xl border border-white animate-in my-auto">
+            <div class="text-center mb-8">
+                <div class="bg-amber-400 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-lg bee-float">🐝</div>
+                <h1 class="text-3xl font-black font-outfit text-slate-800 tracking-tight uppercase">Marimbondos Pay</h1>
+                <p class="text-slate-500 font-medium text-sm mt-1">EMAI Professor Paulo Freire</p>
+                <span class="inline-block mt-2 px-3 py-1 bg-slate-200 text-slate-600 text-[10px] font-bold rounded-full uppercase tracking-widest">Versão Alpha 1.1</span>
+            </div>
+            
+            <div class="bg-amber-50 border border-amber-100 p-4 rounded-2xl mb-6">
+                <div class="flex gap-3">
+                    <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0"></i>
+                    <p class="text-[11px] text-amber-800 leading-relaxed">
+                        <strong>INSTRUÇÕES:</strong> Informe seu e-mail e a senha numérica de 4 dígitos. Acesso restrito a funcionários.
+                    </p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">E-mail</label>
+                    <input type="email" id="login-email" class="w-full p-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700" placeholder="exemplo@escola.com">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 Dígitos)</label>
+                    <input type="password" id="login-pin" maxlength="4" inputmode="numeric" class="w-full p-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition text-center text-2xl tracking-[0.5em] font-bold text-slate-800" placeholder="****">
+                </div>
+                <button id="login-btn" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl btn-bounce flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors mt-2">
+                    Entrar <i data-lucide="log-in" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <a href="https://wa.me/5583991956560?text=Olá, preciso de ajuda com o Marimbondos - Pay" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-green-50 text-green-600 rounded-full text-xs font-bold hover:bg-green-100 transition-colors border border-green-100 hover:scale-105 active:scale-95">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i> Suporte via WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PRINCIPAL -->
+    <div id="app-content" class="hidden min-h-screen flex flex-col">
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-400 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm">🐝</div>
+                <div>
+                    <p id="user-display-name" class="font-bold text-slate-800 leading-none text-sm">Usuário</p>
+                    <p id="user-display-role" class="text-[9px] font-bold text-amber-600 uppercase tracking-tighter mt-1">Cargo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openGlobalAddModal()" class="p-2.5 text-slate-600 hover:bg-slate-100 bg-slate-50 border border-slate-200 rounded-full transition btn-bounce" title="Adicionar Novo">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                </button>
+                <button onclick="logout()" class="p-2.5 text-slate-400 hover:text-red-500 transition btn-bounce" title="Sair">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="p-4 max-w-5xl mx-auto space-y-4 w-full flex-1 flex flex-col">
+            <!-- NAVEGAÇÃO DINÂMICA (Renderizada via JS) -->
+            <div id="nav-container" class="flex bg-slate-200/50 p-1 rounded-2xl gap-1 overflow-x-auto no-scrollbar shrink-0">
+                <!-- Botões gerados aqui -->
+            </div>
+
+            <!-- ÁREA DE CONTEÚDO -->
+            <div id="tab-content" class="animate-in flex-1">
+                <!-- Conteúdo -->
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAIS DO SISTEMA -->
+    <div id="global-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 opacity-0 transition-opacity">
+        <div id="global-modal-content" class="bg-white w-full max-w-md rounded-[2rem] p-6 shadow-2xl transform scale-95 transition-transform max-h-[90vh] overflow-y-auto">
+            <!-- Conteúdo Injetado via JS -->
+        </div>
+    </div>
+
+    <script>
+        // --- SISTEMA DE PERSISTÊNCIA COM LOCALSTORAGE ---
+        class DataPersistence {
+            constructor() {
+                this.storageKey = 'marimbondos_db';
+                this.dbName = 'MarimbondosDB';
+                this.storeName = 'appData';
+                this.db = null;
+                this.initIndexedDB();
+            }
+
+            initIndexedDB() {
+                if (!('indexedDB' in window)) {
+                    console.warn('IndexedDB não disponível, usando localStorage');
+                    return;
+                }
+                
+                const request = indexedDB.open(this.dbName, 1);
+                
+                request.onerror = () => {
+                    console.error('Erro ao abrir IndexedDB');
+                };
+                
+                request.onsuccess = (e) => {
+                    this.db = e.target.result;
+                    console.log('✓ IndexedDB inicializado');
+                };
+                
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(this.storeName)) {
+                        db.createObjectStore(this.storeName);
+                    }
+                };
+            }
+
+            save(data) {
+                // Tentar salvar em IndexedDB primeiro
+                if (this.db) {
+                    try {
+                        const transaction = this.db.transaction([this.storeName], 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        store.put(data, this.storageKey);
+                        console.log('✓ Dados salvos em IndexedDB');
+                    } catch(err) {
+                        console.warn('Erro ao salvar em IndexedDB:', err);
+                        // Fallback para localStorage
+                        this.saveToLocalStorage(data);
+                    }
+                } else {
+                    // Usar localStorage como fallback
+                    this.saveToLocalStorage(data);
+                }
+            }
+
+            saveToLocalStorage(data) {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    console.log('✓ Dados salvos em localStorage');
+                } catch(err) {
+                    console.error('Erro ao salvar em localStorage:', err);
+                }
+            }
+
+            load() {
+                // Tentar carregar de IndexedDB primeiro
+                if (this.db) {
+                    return new Promise((resolve) => {
+                        try {
+                            const transaction = this.db.transaction([this.storeName], 'readonly');
+                            const store = transaction.objectStore(this.storeName);
+                            const request = store.get(this.storageKey);
+                            
+                            request.onsuccess = () => {
+                                if (request.result) {
+                                    console.log('✓ Dados carregados de IndexedDB');
+                                    resolve(request.result);
+                                } else {
+                                    // Fallback para localStorage
+                                    resolve(this.loadFromLocalStorage());
+                                }
+                            };
+                            
+                            request.onerror = () => {
+                                console.warn('Erro ao carregar de IndexedDB');
+                                resolve(this.loadFromLocalStorage());
+                            };
+                        } catch(err) {
+                            console.warn('Erro ao acessar IndexedDB:', err);
+                            resolve(this.loadFromLocalStorage());
+                        }
+                    });
+                } else {
+                    // Usar localStorage diretamente
+                    return Promise.resolve(this.loadFromLocalStorage());
+                }
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    const data = localStorage.getItem(this.storageKey);
+                    if (data) {
+                        console.log('✓ Dados carregados de localStorage');
+                        return JSON.parse(data);
+                    }
+                    return null;
+                } catch(err) {
+                    console.error('Erro ao carregar de localStorage:', err);
+                    return null;
+                }
+            }
+
+            clear() {
+                // Limpar IndexedDB
+                if (this.db) {
+                    try {
+                        const transaction = this.db.transaction([this.storeName], 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        store.delete(this.storageKey);
+                    } catch(err) {
+                        console.warn('Erro ao limpar IndexedDB:', err);
+                    }
+                }
+                
+                // Limpar localStorage
+                try {
+                    localStorage.removeItem(this.storageKey);
+                } catch(err) {
+                    console.error('Erro ao limpar localStorage:', err);
+                }
+            }
+        }
+
+        const persistence = new DataPersistence();
+
+        // --- VERIFICADOR DE BIBLIOTECAS ---
+        function checkLibraries() {
+            setTimeout(() => {
+                if (typeof XLSX === 'undefined') {
+                    console.warn('XLSX library não foi carregado. Tentando carregar de fonte alternativa...');
+                    // Carregar XLSX de alternativa
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                    script.onload = () => console.log('XLSX carregado com sucesso da fonte alternativa');
+                    script.onerror = () => console.error('Falha ao carregar XLSX de fonte alternativa');
+                    document.head.appendChild(script);
+                } else {
+                    console.log('✓ XLSX carregado corretamente');
+                }
+            }, 500);
+        }
+
+        // Executar verificação quando página carrega
+        window.addEventListener('load', checkLibraries);
+
+        // --- SISTEMA DE TEMA (Dark/Light/Auto) ---
+        const THEME_SETTINGS = {
+            current: 'auto' // 'auto', 'dark', 'light'
+        };
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('marimbondos_theme') || 'auto';
+            THEME_SETTINGS.current = savedTheme;
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const theme = THEME_SETTINGS.current;
+            const isDark = theme === 'auto' 
+                ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+                : theme === 'dark';
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.body.classList.remove('dark-light');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.add('dark-light');
+            }
+            
+            localStorage.setItem('marimbondos_theme', THEME_SETTINGS.current);
+        }
+
+        function setTheme(theme) {
+            THEME_SETTINGS.current = theme;
+            applyTheme();
+        }
+
+        // --- DADOS E PERMISSÕES GLOBAIS ---
+        let MOCK_USER = {
+            email: "v.oliveira10@live.com",
+            pin: "1104",
+            name: "Prof. Victor Oliveira",
+            role: "Desenvolvedor",
+            roleType: "dev" 
+        };
+
+        let MOCK_SETTINGS = {
+            maxWeeklyCreditPerTeacher: 50,
+            aeeWeeklyBonus: 30,
+            baseCreditPerStudent: 100,
+            feiraDate: "",
+            creditsFrozen: false
+        };
+
+        let MOCK_STUDENTS = [];
+        let MOCK_TEACHERS = [
+            { email: "v.oliveira10@live.com", name: "Prof. Victor Oliveira", role: "Desenvolvedor" }
+        ];
+
+        let MOCK_HISTORY = [];
+        let historyCounter = 1;
+        let MOCK_NOTICES = [];
+        let noticesCounter = 1;
+
+        const FIXED_CLASSES = [
+            "1º Ano A", "1º Ano B", "2º Ano A", "2º Ano B", 
+            "3º Ano A", "3º Ano B", "4º Ano A", "4º Ano B", 
+            "5º Ano A", "5º Ano B"
+        ];
+
+        // --- FUNÇÕES DE PERSISTÊNCIA ---
+        function saveAllData() {
+            const data = {
+                settings: MOCK_SETTINGS,
+                students: MOCK_STUDENTS,
+                teachers: MOCK_TEACHERS,
+                history: MOCK_HISTORY,
+                notices: MOCK_NOTICES,
+                counters: {
+                    history: historyCounter,
+                    notices: noticesCounter
+                }
+            };
+            persistence.save(data);
+        }
+
+        function loadAllData() {
+            return persistence.load().then(saved => {
+                if (saved) {
+                    MOCK_SETTINGS = saved.settings || MOCK_SETTINGS;
+                    MOCK_STUDENTS = saved.students || [];
+                    MOCK_TEACHERS = saved.teachers || [{ email: "v.oliveira10@live.com", name: "Prof. Victor Oliveira", role: "Desenvolvedor" }];
+                    MOCK_HISTORY = saved.history || [];
+                    MOCK_NOTICES = saved.notices || [];
+                    if (saved.counters) {
+                        historyCounter = saved.counters.history || 1;
+                        noticesCounter = saved.counters.notices || 1;
+                    }
+                    console.log('✓ Dados carregados com sucesso');
+                } else {
+                    // Inicialização padrão - apenas DEV
+                    if (!MOCK_TEACHERS.some(t => t.email === MOCK_USER.email)) {
+                        MOCK_TEACHERS = [{ email: MOCK_USER.email, name: MOCK_USER.name, role: MOCK_USER.role }];
+                    }
+                    saveAllData();
+                    console.log('✓ Sistema inicializado (primeiro acesso)');
+                }
+            }).catch(err => {
+                console.error('Erro ao carregar dados:', err);
+                // Inicialização padrão em caso de erro
+                if (!MOCK_TEACHERS.some(t => t.email === MOCK_USER.email)) {
+                    MOCK_TEACHERS = [{ email: MOCK_USER.email, name: MOCK_USER.name, role: MOCK_USER.role }];
+                }
+            });
+        }
+
+        let currentClassView = null;
+        let currentTabView = 'transactions';
+        let transactionClassFilter = 'Todos';
+
+        const TABS_CONFIG = [
+            { id: 'transactions', icon: 'arrow-right-left', label: 'Transações', roles: ['teacher', 'admin', 'dev'] },
+            { id: 'ranking', icon: 'trophy', label: 'Ranking', roles: ['teacher', 'admin', 'dev'] },
+            { id: 'history', icon: 'clock', label: 'Histórico', roles: ['teacher', 'admin', 'dev'] },
+            { id: 'students', icon: 'users', label: 'Alunos', roles: ['teacher', 'admin', 'dev'] },
+            { id: 'teachers', icon: 'shield-alert', label: 'Professores', roles: ['admin', 'dev'] },
+            { id: 'notices', icon: 'bell-ring', label: 'Avisos', roles: ['teacher', 'admin', 'dev'] },
+            { id: 'account', icon: 'user-cog', label: 'Minha Conta', roles: ['teacher', 'admin', 'dev'] },          
+            { id: 'settings', icon: 'settings', label: 'Configurações', roles: ['dev'] }
+
+        ];
+
+        // --- INICIALIZAÇÃO ---
+        window.onload = async () => {
+            console.log('🚀 Início do window.onload');
+            initTheme();
+            console.log('✓ Tema inicializado');
+            await loadAllData();
+            console.log('✓ Dados carregados');
+            initIcons();
+            console.log('✓ Ícones inicializados');
+            setupLoginEnterKey();
+            console.log('✓ Listeners de login configurados');
+        };
+
+        function initIcons() {
+            lucide.createIcons();
+        }
+
+        function setupLoginEnterKey() {
+            console.log('🔧 Configurando listeners de login...');
+            const pressEnter = (e) => { if(e.key === 'Enter') handleLogin(); };
+            document.getElementById('login-email').addEventListener('keypress', pressEnter);
+            document.getElementById('login-pin').addEventListener('keypress', pressEnter);
+            // Event listener para o botão de login
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                console.log('✓ Botão de login encontrado, adicionando click listener');
+                loginBtn.addEventListener('click', handleLogin);
+            } else {
+                console.error('❌ Botão de login (#login-btn) NÃO encontrado!');
+            }
+        }
+
+        function handleLogin() {
+            console.log('🔵 handleLogin() foi chamado!');
+            const email = document.getElementById('login-email').value.trim();
+            const pin = document.getElementById('login-pin').value.trim();
+            
+            console.log('📋 Tentativa de login:');
+            console.log('  Email:', JSON.stringify(email), '| MOCK_USER.email:', JSON.stringify(MOCK_USER.email));
+            console.log('  PIN:', JSON.stringify(pin), '| MOCK_USER.pin:', JSON.stringify(MOCK_USER.pin));
+            console.log('  Email match:', email === MOCK_USER.email);
+            console.log('  PIN match:', pin === MOCK_USER.pin);
+            
+            // Verificar se é o usuário DEV (desenvolvedor)
+            if (email === MOCK_USER.email && pin === MOCK_USER.pin) {
+                console.log('✓ Login DEV bem-sucedido');
+                setCurrentUser(MOCK_USER);
+                showLoginSuccessScreen();
+                return;
+            }
+            
+            console.log('ℹ DEV login falhou, verificando professores...');
+            console.log('  Total de professores:', MOCK_TEACHERS.length);
+            console.log('  Professores:', MOCK_TEACHERS.map(t => ({ email: t.email, temSenha: !!t.password })));
+            
+            // Verificar se é um professor registrado
+            const teacher = MOCK_TEACHERS.find(t => t.email === email);
+            if (teacher) {
+                console.log('  Professor encontrado:', teacher.email);
+                if (teacher.password) {
+                    console.log('  Comparando PIN:', JSON.stringify(pin), 'com senha:', JSON.stringify(teacher.password));
+                    if (teacher.password === pin) {
+                        console.log('✓ Login de professor bem-sucedido');
+                        setCurrentUser({
+                            email: teacher.email,
+                            name: teacher.name,
+                            pin: teacher.password,
+                            role: teacher.role,
+                            roleType: 'teacher'
+                        });
+                        showLoginSuccessScreen();
+                        return;
+                    } else {
+                        console.log('✗ Senha incorreta para professor');
+                    }
+                } else {
+                    console.log('✗ Professor não tem senha configurada');
+                }
+            } else {
+                console.log('  Professor com email', JSON.stringify(email), 'não encontrado');
+            }
+            
+            console.log('❌ Login falhou');
+            showToast("E-mail ou senha incorretos.", "error");
+        }
+        
+        function setCurrentUser(user) {
+            MOCK_USER = user;
+        }
+        
+        function showLoginSuccessScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('user-display-name').textContent = MOCK_USER.name;
+            document.getElementById('user-display-role').textContent = MOCK_USER.role;
+            buildNavigation();
+            switchTab('transactions');
+            setTimeout(showActiveNotices, 600);
+        }
+
+        function logout() {
+            confirmAction("Sair do Sistema", "Deseja realmente fazer logout?", "executeLogout", null, false);
+        }
+
+        function executeLogout() {
+            window.location.reload();
+        }
+
+        function addHistory(title, desc, type, studentIdOrData = null, deletionType = 'student') {
+            let processedDesc = desc;
+            
+            // Destacar valores monetários na descrição
+            const valueMatch = desc.match(/M\$ \d+(\.\d+)?/g);
+            if (valueMatch) {
+                valueMatch.forEach(match => {
+                    let colorClass = 'text-slate-800';
+                    if (type === 'credit' || title.toLowerCase().includes('crédito')) colorClass = 'text-green-600';
+                    if (type === 'debit' || title.toLowerCase().includes('débito')) colorClass = 'text-red-600';
+                    
+                    processedDesc = processedDesc.replace(match, `<b class="${colorClass} bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm font-black">${match}</b>`);
+                });
+            }
+
+            const entry = {
+                id: historyCounter++,
+                date: new Date().toLocaleString('pt-BR'),
+                author: MOCK_USER.name,
+                title: title,
+                desc: processedDesc,
+                type: type,// 'transaction', 'edit', 'deletion', 'creation', etc.
+                deletionType: deletionType // 'student' ou 'teacher' para diferenciar exclusões
+            };
+
+            if (type === 'deletion') {
+                entry.studentData = studentIdOrData;
+                entry.studentId = studentIdOrData.id;
+            } else if (typeof studentIdOrData === 'number') {
+                entry.studentId = studentIdOrData;
+            } else if (studentIdOrData && studentIdOrData.id) {
+                entry.studentId = studentIdOrData.id;
+            }
+
+            MOCK_HISTORY.unshift(entry);
+            saveAllData();
+        }
+
+        function handleTransaction(type) {
+            const valInput = document.getElementById('trans-value');
+            const val = parseFloat(valInput.value);
+            if (!val || val <= 0) { showToast("Insira um valor válido.", "error"); return; }
+            
+            const reasonInput = document.getElementById('trans-reason');
+            const reason = reasonInput ? reasonInput.value.trim() : "";
+            if (!reason) { showToast("O motivo da transação é obrigatório.", "error"); return; }
+
+            const checkboxes = document.querySelectorAll('.trans-student-cb:checked:not([disabled])');
+            if(checkboxes.length === 0) { showToast("Selecione ao menos um aluno elegível.", "error"); return; }
+            
+            // Verificação de Congelamento de Créditos
+            if (type === 'credit' && MOCK_SETTINGS.creditsFrozen && MOCK_USER.roleType === 'teacher') {
+                showToast("A distribuição de créditos está congelada de momento.", "error");
+                return;
+            }
+
+            let successCount = 0;
+            const isDev = MOCK_USER.roleType === 'dev';
+            let affectedIds = [];
+
+            checkboxes.forEach(cb => {
+                const studentId = parseInt(cb.value);
+                const student = MOCK_STUDENTS.find(s => s.id === studentId);
+                if (student) {
+                    if (student.banned && type === 'credit') return;
+                    if (type === 'credit') {
+                        if (!isDev && (student.weekCredits + val > MOCK_SETTINGS.maxWeeklyCreditPerTeacher)) {
+                            showToast(`Limite semanal excedido para ${student.name}.`, "error");
+                            return;
+                        }
+                        student.balance += val; student.weekCredits += val;
+                        successCount++; affectedIds.push(student.id);
+                        addHistory("Crédito", `Recebeu M$ ${val}. Motivo: ${reason}`, 'credit', student.id);
+                    } else { 
+                        student.balance -= val;
+                        successCount++; affectedIds.push(student.id);
+                        addHistory("Débito", `Retirada de M$ ${val}. Motivo: ${reason}`, 'debit', student.id);
+                    }
+                }
+            });
+
+            if (successCount > 0) {
+                showToast(`Sucesso! Operação realizada.`, "success");
+                valInput.value = '';
+                if(reasonInput) reasonInput.value = '';
+                checkboxes.forEach(cb => cb.checked = false);
+                saveAllData();
+                switchTab('transactions');
+            }
+        }
+
+        function filterTransactionStudents(term) {
+            term = term.toLowerCase();
+            const labels = document.querySelectorAll('.trans-student-label');
+            labels.forEach(label => {
+                const name = label.getAttribute('data-name').toLowerCase();
+                const studentClass = label.getAttribute('data-class');
+                const matchesTerm = name.includes(term);
+                const matchesClass = transactionClassFilter === 'Todos' || studentClass === transactionClassFilter;
+                label.style.display = (matchesTerm && matchesClass) ? 'block' : 'none';
+            });
+        }
+
+        function setTransactionClassFilter(className) {
+            transactionClassFilter = className;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                btn.classList.remove('bg-amber-500', 'text-slate-900', 'border-amber-500');
+                btn.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
+            });
+            event.currentTarget.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700');
+            event.currentTarget.classList.add('bg-amber-500', 'text-slate-900', 'border-amber-500');
+            filterTransactionStudents(document.getElementById('trans-search')?.value || '');
+        }
+
+        // --- GESTÃO DE ALUNOS (CRUD) ---
+        
+        function openClassDetails(className) {
+            currentClassView = className;
+            const studentsInClass = MOCK_STUDENTS.filter(s => s.class === className).sort((a,b) => a.name.localeCompare(b.name));
+            
+            let studentsListHtml = studentsInClass.length > 0 ? studentsInClass.map(s => `
+                <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl mb-2 hover:bg-white transition-colors">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                             <p class="text-sm font-bold text-slate-800 ${s.banned ? 'line-through text-slate-400' : ''}">${s.name}</p>
+                             ${s.aee ? '<span class="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase">AEE</span>' : ''}
+                        </div>
+                        <p class="text-[10px] font-bold text-amber-600 uppercase">Saldo: M$ ${s.balance}</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="openStudentHistory(${s.id})" class="p-2 text-slate-400 hover:text-amber-500 transition btn-bounce" title="Histórico do Aluno">
+                            <i data-lucide="history" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="openEditStudentModal(${s.id})" class="p-2 text-slate-400 hover:text-blue-500 transition btn-bounce" title="Editar">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="toggleBanStudent(${s.id})" class="p-2 ${s.banned ? 'text-red-500' : 'text-slate-400 hover:text-red-500'} transition btn-bounce" title="${s.banned ? 'Desbanir' : 'Banir'}">
+                            <i data-lucide="${s.banned ? 'unlock' : 'ban'}" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="handleDeleteStudent(${s.id})" class="p-2 text-slate-400 hover:text-red-600 transition btn-bounce" title="Excluir">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center py-10"><p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Nenhum aluno nesta turma</p></div>';
+
+            openModal(`
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">${className}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Lista de Alunos</p>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-300 hover:text-slate-600 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+                <div class="max-h-[50vh] overflow-y-auto no-scrollbar pr-1 mb-6">
+                    ${studentsListHtml}
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="closeModal()" class="py-3 bg-slate-100 text-slate-500 font-bold rounded-xl text-xs uppercase tracking-widest btn-bounce">Voltar</button>
+                    <button onclick="openAddStudentModal('${className}')" class="py-3 bg-slate-900 text-white font-bold rounded-xl text-xs uppercase tracking-widest btn-bounce flex items-center justify-center gap-2">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Adicionar
+                    </button>
+                </div>
+            `);
+        }
+
+        // --- HISTÓRICO INDIVIDUAL DO ALUNO ---
+        function openStudentHistory(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if (!student) return;
+
+            const studentHistory = MOCK_HISTORY.filter(h => h.studentId === id);
+            
+            let histHtml = studentHistory.length > 0 ? studentHistory.map(h => `
+                <div class="p-3 bg-slate-50 border-l-4 ${h.type === 'credit' ? 'border-green-500' : h.type === 'debit' ? 'border-red-500' : 'border-amber-400'} rounded-r-xl mb-3">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">${h.date}</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded uppercase tracking-tighter">${h.type}</span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-800">${h.title}</p>
+                    <p class="text-[11px] text-slate-600 leading-tight">${h.desc}</p>
+                    <p class="text-[9px] text-slate-400 mt-2 flex items-center gap-1 font-bold italic">
+                        <i data-lucide="user" class="w-2.5 h-2.5"></i> Por: ${h.author}
+                    </p>
+                </div>
+            `).join('') : '<div class="text-center py-10 opacity-50"><i data-lucide="clock" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i><p class="text-[10px] font-bold uppercase">Sem registros para este aluno</p></div>';
+
+            openModal(`
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Histórico: ${student.name}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${student.class}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Atual</p>
+                        <p class="text-xl font-black text-amber-500">M$ ${student.balance}</p>
+                    </div>
+                </div>
+                <div class="max-h-[50vh] overflow-y-auto no-scrollbar pr-1 mb-6">
+                    ${histHtml}
+                </div>
+                <button onclick="openClassDetails('${student.class}')" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">
+                    Voltar para Turma
+                </button>
+            `);
+        }
+
+        function openEditStudentModal(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if (!student) return;
+
+            // Controle de permissão para saldo
+            const canEditBalance = MOCK_USER.roleType === 'dev' || MOCK_USER.roleType === 'admin';
+
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Editar Aluno</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Alterar Informações</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Nome Completo</label>
+                        <input type="text" id="edit-std-name" value="${student.name}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Turma</label>
+                        <select id="edit-std-class" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                            ${FIXED_CLASSES.map(c => `<option value="${c}" ${c === student.class ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    ${canEditBalance ? `
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Saldo (M$)</label>
+                        <input type="number" id="edit-std-balance" value="${student.balance}" class="w-full p-4 bg-amber-50 border border-amber-200 rounded-2xl outline-none focus:border-amber-500 transition font-bold text-amber-700">
+                    </div>
+                    ` : ''}
+                    <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Atendimento Especial (AEE)</span>
+                        <input type="checkbox" id="edit-std-aee" ${student.aee ? 'checked' : ''} class="w-5 h-5 accent-amber-500">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="openClassDetails('${student.class}')" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveStudentEdit(${id})" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Salvar</button>
+                </div>
+            `);
+        }
+
+        function saveStudentEdit(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            const newName = document.getElementById('edit-std-name').value.trim();
+            const newClass = document.getElementById('edit-std-class').value;
+            const newAee = document.getElementById('edit-std-aee').checked;
+            const balanceInput = document.getElementById('edit-std-balance');
+
+            if (!newName) { showToast("O nome não pode estar vazio.", "error"); return; }
+
+            const oldName = student.name;
+            const oldClass = student.class;
+            const oldBalance = student.balance;
+
+            student.name = newName;
+            student.class = newClass;
+            student.aee = newAee;
+            
+            if(balanceInput) {
+                student.balance = parseFloat(balanceInput.value) || 0;
+            }
+
+            addHistory("Aluno Editado", `${oldName} (${oldClass}) atualizado.`, 'edit', student.id);
+            if (oldBalance !== student.balance) {
+                addHistory("Saldo Ajustado", `Saldo alterado de M$ ${oldBalance} para M$ ${student.balance} manualmente.`, 'edit', student.id);
+            }
+
+            showToast("Dados salvos com sucesso!");
+            saveAllData();
+            openClassDetails(newClass);
+            if (currentTabView === 'students') switchTab('students');
+        }
+
+        function handleDeleteStudent(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if (!student) return;
+
+            openModal(`
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Excluir Aluno?</h3>
+                    <p class="text-xs text-slate-500 px-4">Tem certeza que deseja remover <b>${student.name}</b>? Esta ação pode ser revertida por um desenvolvedor no histórico.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="openClassDetails('${student.class}')" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Manter</button>
+                    <button onclick="confirmDeleteStudent(${id})" class="flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-lg shadow-red-200">Excluir</button>
+                </div>
+            `);
+        }
+
+        function confirmDeleteStudent(id) {
+            const index = MOCK_STUDENTS.findIndex(s => s.id === id);
+            const student = {...MOCK_STUDENTS[index]};
+            const className = student.class;
+
+            MOCK_STUDENTS.splice(index, 1);
+            
+            addHistory("Aluno Excluído", `${student.name} removido do ${className}.`, 'deletion', student, 'student');
+            showToast("Aluno removido.", "error");
+            saveAllData();
+            closeModal();
+            switchTab('students');
+        }
+
+        function toggleBanStudent(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if(!student) return;
+
+            const action = student.banned ? "desbanir" : "banir";
+            window.pendingBanStudentId = id; // Armazenar ID globalmente
+            confirmAction(
+                `${action.charAt(0).toUpperCase() + action.slice(1)} Aluno`, 
+                `Deseja realmente ${action} o(a) aluno(a) ${student.name}?`, 
+                "executeBanStudent", 
+                null, 
+                true
+            );
+        }
+
+        function executeBanStudent() {
+            const id = window.pendingBanStudentId;
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if (!student) return;
+
+            student.banned = !student.banned;
+            const status = student.banned ? "Banido" : "Desbanido";
+            showToast(`Aluno ${status.toLowerCase()}!`, student.banned ? "error" : "success");
+            addHistory(`${status} Aluno`, `${student.name} foi ${status.toLowerCase()}.`, 'edit', student.id);
+            saveAllData();
+            openClassDetails(student.class);
+            window.pendingBanStudentId = null;
+        }
+
+        // --- GESTÃO DE PROFESSORES (CRUD) ---
+        function openEditTeacherModal(email) {
+            const teacher = MOCK_TEACHERS.find(t => t.email === email);
+            if (!teacher) return;
+
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Editar Professor</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Alterar Informações</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Nome Completo</label>
+                        <input type="text" id="edit-teacher-name" value="${teacher.name}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">E-mail</label>
+                        <input type="email" id="edit-teacher-email" value="${teacher.email}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 dígitos)</label>
+                        <input type="password" id="edit-teacher-password" maxlength="4" inputmode="numeric" value="${teacher.password || ''}" placeholder="Deixe em branco para manter" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 text-center tracking-[0.2em]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Cargo / Função</label>
+                        <select id="edit-teacher-role" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                            <option value="Professor" ${teacher.role === 'Professor' ? 'selected' : ''}>Professor</option>
+                            <option value="Admin" ${teacher.role === 'Admin' ? 'selected' : ''}>Administrador</option>
+                            <option value="Desenvolvedor" ${teacher.role === 'Desenvolvedor' ? 'selected' : ''}>Desenvolvedor</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveTeacherEdit('${email}')" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Salvar</button>
+                </div>
+            `);
+        }
+
+        function saveTeacherEdit(oldEmail) {
+            const teacher = MOCK_TEACHERS.find(t => t.email === oldEmail);
+            if (!teacher) return;
+
+            const newName = document.getElementById('edit-teacher-name').value.trim();
+            const newEmail = document.getElementById('edit-teacher-email').value.trim();
+            const newPassword = document.getElementById('edit-teacher-password').value.trim();
+            const newRole = document.getElementById('edit-teacher-role').value;
+
+            if (!newName) { showToast("O nome não pode estar vazio.", "error"); return; }
+            if (!newEmail) { showToast("O e-mail não pode estar vazio.", "error"); return; }
+            if (!newEmail.includes('@')) { showToast("E-mail inválido.", "error"); return; }
+            
+            // Validar senha se fornecida
+            if (newPassword && (newPassword.length !== 4 || isNaN(newPassword))) { 
+                showToast("Senha deve conter exatamente 4 dígitos.", "error"); 
+                return; 
+            }
+
+            // Verifica se o novo e-mail já existe (e é diferente do atual)
+            if (newEmail !== oldEmail && MOCK_TEACHERS.find(t => t.email === newEmail)) {
+                showToast("Este e-mail já está cadastrado.", "error");
+                return;
+            }
+
+            const oldName = teacher.name;
+            const oldRole = teacher.role;
+
+            teacher.name = newName;
+            teacher.email = newEmail;
+            teacher.role = newRole;
+            
+            // Atualizar senha apenas se uma nova foi fornecida
+            if (newPassword) {
+                teacher.password = newPassword;
+            }
+
+            addHistory("Professor Editado", `${oldName} foi atualizado para ${newName} (${newRole}).`, 'edit');
+            showToast("Dados do professor salvos com sucesso!");
+            saveAllData();
+            closeModal();
+        }
+
+        function handleDeleteTeacher(email) {
+            const teacher = MOCK_TEACHERS.find(t => t.email === email);
+            if (!teacher) return;
+
+            openModal(`
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Excluir Professor?</h3>
+                    <p class="text-xs text-slate-500 px-4">Tem certeza que deseja remover <b>${teacher.name}</b> do sistema? Esta ação será registada no histórico.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Manter</button>
+                    <button onclick="confirmDeleteTeacher('${email}')" class="flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-lg shadow-red-200">Excluir</button>
+                </div>
+            `);
+        }
+
+        function confirmDeleteTeacher(email) {
+            const index = MOCK_TEACHERS.findIndex(t => t.email === email);
+            const teacher = MOCK_TEACHERS[index];
+
+            // Proteção: Não permite deletar o único dev ou o usuário atual
+            if (teacher.role.toLowerCase() === 'desenvolvedor' && MOCK_TEACHERS.filter(t => t.role.toLowerCase() === 'desenvolvedor').length === 1) {
+                showToast("Não é permitido excluir o único Desenvolvedor do sistema.", "error");
+                closeModal();
+                return;
+            }
+
+            if (teacher.email === MOCK_USER.email) {
+                showToast("Não é permitido excluir sua própria conta.", "error");
+                closeModal();
+                return;
+            }
+
+            MOCK_TEACHERS.splice(index, 1);
+            
+            addHistory("Professor Excluído", `${teacher.name} (${teacher.email}) foi removido do sistema.`, 'deletion', teacher, 'teacher');
+            showToast("Professor removido com sucesso.", "error");
+            saveAllData();
+            closeModal();
+            switchTab('teachers');
+        }
+
+        // --- GESTÃO DE AVISOS (NOTICES) ---
+        function openCreateNoticeModal() {
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Novo Aviso</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Criar Notificação</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Título</label>
+                        <input type="text" id="create-notice-title" placeholder="Ex: Aviso Importante" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Mensagem</label>
+                        <textarea id="create-notice-message" placeholder="Digite sua mensagem..." rows="4" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 resize-none"></textarea>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ativar Aviso</span>
+                        <input type="checkbox" id="create-notice-active" checked class="w-5 h-5 accent-amber-500">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveNewNotice()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Criar</button>
+                </div>
+            `);
+        }
+
+        function saveNewNotice() {
+            const title = document.getElementById('create-notice-title').value.trim();
+            const message = document.getElementById('create-notice-message').value.trim();
+            const active = document.getElementById('create-notice-active').checked;
+
+            if (!title) { showToast("O título não pode estar vazio.", "error"); return; }
+            if (!message) { showToast("A mensagem não pode estar vazia.", "error"); return; }
+
+            const newNotice = {
+                id: noticesCounter++,
+                author: MOCK_USER.email,
+                authorName: MOCK_USER.name,
+                title: title,
+                message: message,
+                active: active,
+                createdAt: new Date().toLocaleString('pt-BR')
+            };
+
+            MOCK_NOTICES.unshift(newNotice);
+            addHistory("Novo Aviso", `Aviso "${title}" foi criado.`, 'creation');
+            showToast("Aviso criado com sucesso!");
+            saveAllData();
+            closeModal();
+            switchTab('notices');
+        }
+
+        function openEditNoticeModal(id) {
+            const notice = MOCK_NOTICES.find(n => n.id === id);
+            if (!notice) return;
+
+            // Verifica permissão
+            const canEdit = MOCK_USER.email === notice.author || MOCK_USER.roleType === 'dev';
+            if (!canEdit) {
+                showToast("Você não tem permissão para editar este aviso.", "error");
+                return;
+            }
+
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Editar Aviso</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Atualizar Notificação</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Título</label>
+                        <input type="text" id="edit-notice-title" value="${notice.title}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Mensagem</label>
+                        <textarea id="edit-notice-message" rows="4" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 resize-none">${notice.message}</textarea>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aviso Ativo</span>
+                        <input type="checkbox" id="edit-notice-active" ${notice.active ? 'checked' : ''} class="w-5 h-5 accent-amber-500">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveEditNotice(${id})" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Salvar</button>
+                </div>
+            `);
+        }
+
+        function saveEditNotice(id) {
+            const notice = MOCK_NOTICES.find(n => n.id === id);
+            if (!notice) return;
+
+            const title = document.getElementById('edit-notice-title').value.trim();
+            const message = document.getElementById('edit-notice-message').value.trim();
+            const active = document.getElementById('edit-notice-active').checked;
+
+            if (!title) { showToast("O título não pode estar vazio.", "error"); return; }
+            if (!message) { showToast("A mensagem não pode estar vazia.", "error"); return; }
+
+            notice.title = title;
+            notice.message = message;
+            notice.active = active;
+
+            addHistory("Aviso Editado", `Aviso "${title}" foi atualizado.`, 'edit');
+            showToast("Aviso atualizado com sucesso!");
+            saveAllData();
+            closeModal();
+            switchTab('notices');
+        }
+
+        function handleDeleteNotice(id) {
+            const notice = MOCK_NOTICES.find(n => n.id === id);
+            if (!notice) return;
+
+            // Verifica permissão
+            const canDelete = MOCK_USER.email === notice.author || MOCK_USER.roleType === 'dev';
+            if (!canDelete) {
+                showToast("Você não tem permissão para deletar este aviso.", "error");
+                return;
+            }
+
+            openModal(`
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Excluir Aviso?</h3>
+                    <p class="text-xs text-slate-500 px-4">Tem certeza que deseja remover este aviso?</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Manter</button>
+                    <button onclick="confirmDeleteNotice(${id})" class="flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-lg shadow-red-200">Excluir</button>
+                </div>
+            `);
+        }
+
+        function confirmDeleteNotice(id) {
+            const index = MOCK_NOTICES.findIndex(n => n.id === id);
+            if (index > -1) {
+                MOCK_NOTICES.splice(index, 1);
+                addHistory("Aviso Excluído", "Um aviso foi removido do sistema.", 'deletion');
+                showToast("Aviso removido com sucesso.", "error");
+                saveAllData();
+                closeModal();
+                switchTab('notices');
+            }
+        }
+
+        function toggleNoticeActive(id) {
+            const notice = MOCK_NOTICES.find(n => n.id === id);
+            if (!notice) return;
+
+            // Verifica permissão
+            const canToggle = MOCK_USER.email === notice.author || MOCK_USER.roleType === 'dev';
+            if (!canToggle) {
+                showToast("Você não tem permissão para alterar este aviso.", "error");
+                return;
+            }
+
+            notice.active = !notice.active;
+            saveAllData();
+            switchTab('notices');
+            switchTab('notices');
+        }
+
+        // --- ADICIONAR PROFESSOR ---
+        function openAddTeacherModal() {
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Novo Professor</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Cadastrar no Sistema</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Nome Completo</label>
+                        <input type="text" id="new-teacher-name" placeholder="Ex: Prof. João Silva" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">E-mail</label>
+                        <input type="email" id="new-teacher-email" placeholder="Ex: professor@escola.com" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Senha (4 dígitos)</label>
+                        <input type="password" id="new-teacher-password" maxlength="4" inputmode="numeric" placeholder="Ex: 1234" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 text-center tracking-[0.2em]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Cargo / Função</label>
+                        <select id="new-teacher-role" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                            <option value="Professor">Professor</option>
+                            <option value="Admin">Administrador</option>
+                            <option value="Desenvolvedor">Desenvolvedor</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveNewTeacher()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Cadastrar</button>
+                </div>
+            `);
+        }
+
+        function saveNewTeacher() {
+            const name = document.getElementById('new-teacher-name').value.trim();
+            const email = document.getElementById('new-teacher-email').value.trim();
+            const password = document.getElementById('new-teacher-password').value.trim();
+            const role = document.getElementById('new-teacher-role').value;
+
+            if (!name) { showToast("Informe o nome do professor.", "error"); return; }
+            if (!email) { showToast("Informe o e-mail.", "error"); return; }
+            if (!email.includes('@')) { showToast("E-mail inválido.", "error"); return; }
+            if (!password) { showToast("Informe a senha (4 dígitos).", "error"); return; }
+            if (password.length !== 4 || isNaN(password)) { showToast("Senha deve conter exatamente 4 dígitos.", "error"); return; }
+
+            // Verificar se e-mail já existe
+            if (MOCK_TEACHERS.find(t => t.email === email)) {
+                showToast("Este e-mail já está cadastrado.", "error");
+                return;
+            }
+
+            const newTeacher = {
+                email: email,
+                name: name,
+                password: password,
+                role: role
+            };
+
+            MOCK_TEACHERS.push(newTeacher);
+            addHistory("Professor Cadastrado", `${name} (${email}) foi adicionado ao sistema como ${role}.`, 'creation', { id: MOCK_TEACHERS.length, name, email }, 'teacher');
+            showToast("Professor cadastrado com sucesso!");
+            saveAllData();
+            closeModal();
+            switchTab('teachers');
+        }
+
+        // --- AÇÃO AO CLICAR NO ALUNO NO RANKING ---
+        function handleRankingClick(id) {
+            const student = MOCK_STUDENTS.find(s => s.id === id);
+            if (!student) return;
+
+            // Se for professor, abre direto o histórico
+            if (MOCK_USER.roleType === 'teacher') {
+                openStudentHistory(id);
+            } else {
+                // Se for admin ou dev, abre o modal de escolha
+                openModal(`
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="user" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">${student.name}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${student.class} • Saldo: M$ ${student.balance}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button onclick="openStudentHistory(${id})" class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center gap-2 hover:border-amber-400 transition group btn-bounce">
+                            <i data-lucide="history" class="w-6 h-6 text-slate-400 group-hover:text-amber-500"></i>
+                            <span class="text-[10px] font-bold uppercase text-slate-600">Ver Histórico</span>
+                        </button>
+                        <button onclick="openEditStudentModal(${id})" class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center gap-2 hover:border-blue-400 transition group btn-bounce">
+                            <i data-lucide="pencil" class="w-6 h-6 text-slate-400 group-hover:text-blue-500"></i>
+                            <span class="text-[10px] font-bold uppercase text-slate-600">Editar Aluno</span>
+                        </button>
+                    </div>
+                    <button onclick="closeModal()" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-xl text-xs uppercase tracking-widest btn-bounce">Cancelar</button>
+                `);
+            }
+        }
+
+        // --- REVERSÃO DE EXCLUSÃO (SÓ DEV) ---
+        function undoDelete(historyId) {
+            if (MOCK_USER.roleType !== 'dev') return;
+            
+            const histIndex = MOCK_HISTORY.findIndex(h => h.id === historyId);
+            const histItem = MOCK_HISTORY[histIndex];
+            
+            if (histItem && histItem.studentData) {
+                const deletionType = histItem.deletionType || 'student';
+                
+                if (deletionType === 'teacher') {
+                    // Restaurar professor
+                    MOCK_TEACHERS.push(histItem.studentData);
+                    MOCK_HISTORY.splice(histIndex, 1);
+                    
+                    showToast("Professor restaurado com sucesso!");
+                    addHistory("Restauração de Professor", `${histItem.studentData.name} foi restaurado.`, 'creation', histItem.studentData.id, 'teacher');
+                } else {
+                    // Restaurar aluno
+                    const exists = MOCK_STUDENTS.find(s => s.id === histItem.studentData.id);
+                    if(exists) {
+                        histItem.studentData.id = Math.max(...MOCK_STUDENTS.map(s => s.id), 0) + 1;
+                    }
+                    
+                    MOCK_STUDENTS.push(histItem.studentData);
+                    MOCK_HISTORY.splice(histIndex, 1);
+                    
+                    showToast("Aluno restaurado com sucesso!");
+                    addHistory("Restauração", `Aluno ${histItem.studentData.name} foi restaurado.`, 'creation', histItem.studentData.id, 'student');
+                }
+                
+                saveAllData();
+                switchTab('history');
+            }
+        }
+
+        function deleteHistoryEntry(historyId) {
+            if (MOCK_USER.roleType !== 'dev') return;
+            
+            const histIndex = MOCK_HISTORY.findIndex(h => h.id === historyId);
+            if (histIndex > -1) {
+                const entry = MOCK_HISTORY[histIndex];
+                MOCK_HISTORY.splice(histIndex, 1);
+                showToast("Registro removido do histórico.", "success");
+                saveAllData();
+                switchTab('history');
+            }
+        }
+
+        // --- MODAIS GERAIS ---
+        function openModal(contentHtml) {
+            const modal = document.getElementById('global-modal');
+            const content = document.getElementById('global-modal-content');
+            content.innerHTML = contentHtml;
+            modal.classList.remove('hidden');
+            
+            // Adiciona listener para fechar ao clicar fora (no backdrop)
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+            
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                content.classList.remove('scale-95'); 
+            }, 10);
+            initIcons();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('global-modal');
+            const content = document.getElementById('global-modal-content');
+            modal.classList.add('opacity-0'); 
+            content.classList.add('scale-95');
+            setTimeout(() => { 
+                modal.classList.add('hidden');
+                modal.onclick = null; // Remove o listener
+            }, 300);
+        }
+
+        function showActiveNotices() {
+            const activeNotices = MOCK_NOTICES.filter(n => n.active);
+            if (activeNotices.length === 0) return;
+
+            let noticesHtml = activeNotices.map(n => `
+                <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-3">
+                    <p class="font-bold text-blue-900 mb-1">${n.title}</p>
+                    <p class="text-sm text-blue-800">${n.message}</p>
+                    <p class="text-[10px] text-blue-600 mt-2">Por: ${n.authorName}</p>
+                </div>
+            `).join('');
+
+            openModal(`
+                <div class="text-center mb-4">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="bell" class="w-6 h-6"></i></div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Avisos Importantes</h3>
+                </div>
+                <div class="max-h-64 overflow-y-auto no-scrollbar mb-6">
+                    ${noticesHtml}
+                </div>
+                <button onclick="closeModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 transition text-white font-bold rounded-xl btn-bounce">Entendi</button>
+            `);
+        }
+
+        function confirmAction(title, message, onConfirm, onCancel = null, isDangerous = false) {
+            const bgColor = isDangerous ? 'from-red-500 to-red-600' : 'from-slate-800 to-slate-900';
+            const confirmButtonColor = isDangerous ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-900 hover:bg-slate-800';
+            
+            openModal(`
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br ${bgColor} text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="${isDangerous ? 'alert-triangle' : 'help-circle'}" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">${title}</h3>
+                    <p class="text-sm text-slate-600 mt-2">${message}</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal(); ${onCancel ? onCancel + '()' : ''}" class="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl btn-bounce uppercase text-xs">Cancelar</button>
+                    <button onclick="closeModal(); ${onConfirm}();" class="${confirmButtonColor} flex-1 py-3 text-white font-bold rounded-xl btn-bounce uppercase text-xs transition">Confirmar</button>
+                </div>
+            `);
+        }
+
+        function openGlobalAddModal() {
+            openModal(`
+                <div class="text-center mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Adicionar Novo</h3>
+                    <p class="text-xs text-slate-500">Escolha o que deseja cadastrar</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="openAddStudentModal()" class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center gap-2 hover:border-amber-400 transition group hover:scale-105 active:scale-95">
+                        <i data-lucide="user" class="w-6 h-6 text-slate-400 group-hover:text-amber-500"></i>
+                        <span class="text-[10px] font-bold uppercase text-slate-600">Aluno</span>
+                    </button>
+                    <button onclick="openAddTeacherModal()" class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center gap-2 hover:border-blue-400 transition group hover:scale-105 active:scale-95">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-slate-400 group-hover:text-blue-500"></i>
+                        <span class="text-[10px] font-bold uppercase text-slate-600">Professor</span>
+                    </button>
+                </div>
+                <button onclick="closeModal()" class="w-full py-3 text-slate-400 font-bold text-xs uppercase tracking-widest">Cancelar</button>
+            `);
+        }
+
+        function openAddStudentModal(defaultClass = "") {
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Novo Aluno</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Cadastrar no Sistema</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Nome Completo</label>
+                        <input type="text" id="new-std-name" placeholder="Ex: João Silva" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Turma</label>
+                        <select id="new-std-class" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                            ${FIXED_CLASSES.map(c => `<option value="${c}" ${c === defaultClass ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aluno AEE?</span>
+                        <input type="checkbox" id="new-std-aee" class="w-5 h-5 accent-amber-500">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="${defaultClass ? `openClassDetails('${defaultClass}')` : 'closeModal()'}" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveNewStudent()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Cadastrar</button>
+                </div>
+            `);
+        }
+
+        function saveNewStudent() {
+            const name = document.getElementById('new-std-name').value.trim();
+            const className = document.getElementById('new-std-class').value;
+            const aee = document.getElementById('new-std-aee').checked;
+
+            if (!name) { showToast("Informe o nome do aluno.", "error"); return; }
+
+            const newId = Math.max(...MOCK_STUDENTS.map(s => s.id), 0) + 1;
+            const newStudent = {
+                id: newId,
+                name: name,
+                class: className,
+                balance: 0,
+                aee: aee,
+                weekCredits: 0,
+                banned: false
+            };
+
+            MOCK_STUDENTS.push(newStudent);
+            addHistory("Novo Aluno", `${name} cadastrado no ${className}.`, 'creation', newStudent.id);
+            showToast("Aluno cadastrado com sucesso!");
+            saveAllData();
+            openClassDetails(className);
+            if (currentTabView === 'students') switchTab('students');
+        }
+
+        function showLoginNotices() {
+            openModal(`
+                <div class="text-center mb-4">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="bell-ring" class="w-6 h-6"></i></div>
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Mural de Avisos</h3>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm text-slate-700 space-y-3 mb-6">
+                    <p><strong>Direção:</strong> Boas-vindas ao painel Marimbondos Pay. Este sistema é uma ferramenta para gestão da feira escolar.</p>
+                </div>
+                <button onclick="closeModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 transition text-white font-bold rounded-xl btn-bounce">Ciente</button>
+            `);
+        }
+
+        // --- NOVAS FUNÇÕES DE CONFIGURAÇÃO, BACKUP E GESTÃO DE DADOS ---
+        function exportBackup() {
+            const data = { settings: MOCK_SETTINGS, students: MOCK_STUDENTS, teachers: MOCK_TEACHERS, history: MOCK_HISTORY };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `backup_marimbondos_${new Date().getTime()}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast("Backup exportado com sucesso!", "success");
+            addHistory("Backup do Sistema", "Ficheiro de backup gerado e transferido para o dispositivo.", 'creation');
+        }
+
+        function triggerImport() { document.getElementById('import-file').click(); }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Verifica se o JSON é válido e é um objeto
+                    if (data && typeof data === 'object') {
+                        if(data.settings) MOCK_SETTINGS = data.settings;
+                        if(data.students) MOCK_STUDENTS = data.students;
+                        if(data.teachers) MOCK_TEACHERS = data.teachers;
+                        if(data.history) MOCK_HISTORY = data.history;
+                        
+                        showToast("Dados importados com sucesso!", "success");
+                        addHistory("Restauração de Backup", "O sistema foi restaurado através de um ficheiro JSON.", 'edit');
+                        switchTab('settings');
+                    } else {
+                        throw new Error("Formato de dados não reconhecido.");
+                    }
+                } catch(err) {
+                    console.error("Erro ao importar ficheiro:", err);
+                    showToast("Ficheiro inválido ou corrompido.", "error");
+                } finally {
+                    // Limpa o input para permitir importar o mesmo ficheiro novamente se necessário
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportExcel() {
+            try {
+                // Verificar se XLSX está carregado
+                if (typeof XLSX === 'undefined') {
+                    showToast("Biblioteca Excel não carregada. Por favor, recarregue a página.", "error");
+                    console.error('XLSX library not loaded');
+                    return;
+                }
+                
+                console.log('Iniciando exportação Excel...');
+                console.log('Estudantes:', MOCK_STUDENTS.length);
+                console.log('Professores:', MOCK_TEACHERS.length);
+                console.log('Avisos:', MOCK_NOTICES.length);
+                console.log('Histórico:', MOCK_HISTORY.length);
+                
+                // Preparar dados para as abas
+                const studentsData = MOCK_STUDENTS.map(s => ({
+                    'ID': s.id,
+                    'Nome': s.name,
+                    'Turma': s.class,
+                    'Saldo (M$)': s.balance,
+                    'AEE': s.aee,
+                    'Créditos/Semana': s.weekCredits,
+                    'Banido': s.banned ? 'Sim' : 'Não'
+                }));
+
+                const teachersData = MOCK_TEACHERS.map(t => ({
+                    'Email': t.email,
+                    'Nome': t.name,
+                    'Cargo': t.role
+                }));
+
+                const noticesData = MOCK_NOTICES.map(n => ({
+                    'ID': n.id,
+                    'Título': n.title,
+                    'Mensagem': n.message,
+                    'Autor': n.authorName,
+                    'Ativo': n.active ? 'Sim' : 'Não',
+                    'Data': n.createdAt
+                }));
+
+                const settingsData = [{
+                    'Chave': 'maxWeeklyCreditPerTeacher',
+                    'Valor': MOCK_SETTINGS.maxWeeklyCreditPerTeacher
+                }, {
+                    'Chave': 'aeeWeeklyBonus',
+                    'Valor': MOCK_SETTINGS.aeeWeeklyBonus
+                }, {
+                    'Chave': 'baseCreditPerStudent',
+                    'Valor': MOCK_SETTINGS.baseCreditPerStudent
+                }, {
+                    'Chave': 'feiraDate',
+                    'Valor': MOCK_SETTINGS.feiraDate
+                }, {
+                    'Chave': 'creditsFrozen',
+                    'Valor': MOCK_SETTINGS.creditsFrozen ? 'Sim' : 'Não'
+                }];
+
+                const historyData = MOCK_HISTORY.map(h => ({
+                    'ID': h.id || '',
+                    'Título': h.title || '',
+                    'Descrição': h.desc || '',
+                    'Tipo': h.type || '',
+                    'Autor': h.author || 'Sistema',
+                    'Data': h.date || new Date().toLocaleDateString('pt-BR'),
+                    'ID Aluno': h.studentId || '-'
+                }));
+
+                console.log('Dados preparados com sucesso');
+
+                // Criar novo workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Adicionar sheets
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(studentsData), "Alunos");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(teachersData), "Professores");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(noticesData), "Avisos");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(historyData), "Histórico");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(settingsData), "Configurações");
+
+                console.log('Workbook criado com sucesso');
+
+                // Gerar arquivo
+                const fileName = `database_marimbondos_${new Date().getTime()}.xlsx`;
+                console.log('Iniciando download do arquivo:', fileName);
+                XLSX.writeFile(wb, fileName);
+                
+                console.log('Arquivo enviado para download com sucesso');
+                showToast("Base de dados exportada para Excel com sucesso!", "success");
+                addHistory("Exportação Excel", "Database foi exportada em formato de planilha Excel.", 'creation');
+            } catch(err) {
+                console.error('Erro ao exportar Excel:', err);
+                console.error('Stack:', err.stack);
+                if (typeof XLSX === 'undefined') {
+                    showToast("Biblioteca Excel não disponível. Recarregue a página e tente novamente.", "error");
+                } else {
+                    showToast("Erro ao exportar arquivo Excel: " + err.message, "error");
+                }
+            }
+        }
+
+        function importExcel() {
+            document.getElementById('import-excel-file').click();
+        }
+
+        function importExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Ler sheets
+                    const studentsSheet = workbook.Sheets['Alunos'];
+                    const teachersSheet = workbook.Sheets['Professores'];
+                    const noticesSheet = workbook.Sheets['Avisos'];
+                    const settingsSheet = workbook.Sheets['Configurações'];
+
+                    // Importar Students se existir
+                    if (studentsSheet) {
+                        const students = XLSX.utils.sheet_to_json(studentsSheet).map(s => ({
+                            id: s['ID'],
+                            name: s['Nome'],
+                            class: s['Turma'],
+                            balance: Number(s['Saldo (M$)']) || 0,
+                            aee: s['AEE'] || 'Não',
+                            weekCredits: Number(s['Créditos/Semana']) || 0,
+                            banned: s['Banido'] === 'Sim'
+                        }));
+                        MOCK_STUDENTS = students;
+                    }
+
+                    // Importar Teachers se existir
+                    if (teachersSheet) {
+                        const teachers = XLSX.utils.sheet_to_json(teachersSheet).map(t => ({
+                            email: t['Email'],
+                            name: t['Nome'],
+                            role: t['Cargo']
+                        }));
+                        MOCK_TEACHERS = teachers;
+                    }
+
+                    // Importar Notices se existir
+                    if (noticesSheet) {
+                        const notices = XLSX.utils.sheet_to_json(noticesSheet).map(n => ({
+                            id: n['ID'],
+                            title: n['Título'],
+                            message: n['Mensagem'],
+                            authorName: n['Autor'],
+                            author: MOCK_USER.email, // Usar email do usuário atual
+                            active: n['Ativo'] === 'Sim',
+                            createdAt: n['Data']
+                        }));
+                        MOCK_NOTICES = notices;
+                    }
+
+                    // Importar Settings se existir
+                    if (settingsSheet) {
+                        const settings = XLSX.utils.sheet_to_json(settingsSheet);
+                        settings.forEach(s => {
+                            if (s['Chave'] === 'maxWeeklyCreditPerTeacher') MOCK_SETTINGS.maxWeeklyCreditPerTeacher = Number(s['Valor']);
+                            if (s['Chave'] === 'aeeWeeklyBonus') MOCK_SETTINGS.aeeWeeklyBonus = Number(s['Valor']);
+                            if (s['Chave'] === 'baseCreditPerStudent') MOCK_SETTINGS.baseCreditPerStudent = Number(s['Valor']);
+                            if (s['Chave'] === 'feiraDate') MOCK_SETTINGS.feiraDate = s['Valor'];
+                            if (s['Chave'] === 'creditsFrozen') MOCK_SETTINGS.creditsFrozen = s['Valor'] === 'Sim';
+                        });
+                    }
+
+                    showToast("Base de dados importada com sucesso!", "success");
+                    addHistory("Importação Excel", "Database foi importada a partir de um ficheiro Excel.", 'edit');
+                    switchTab('settings');
+                } catch(err) {
+                    console.error("Erro ao importar Excel:", err);
+                    showToast("Ficheiro Excel inválido ou corrompido.", "error");
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function promptClearHistory() {
+            confirmAction(
+                "Limpar Histórico", 
+                "Tem a certeza que deseja apagar TODO o histórico? Esta ação não pode ser desfeita.", 
+                "executeClearHistory", 
+                null, 
+                true
+            );
+        }
+
+        function executeClearHistory() {
+            MOCK_HISTORY = [];
+            addHistory("Sistema", "O histórico completo foi limpo por um administrador.", 'deletion');
+            saveAllData();
+            showToast("Histórico apagado com sucesso.");
+            if (currentTabView === 'settings') switchTab('settings');
+        }
+
+        function promptDeleteStudents() {
+            const cls = document.getElementById('danger-class-select').value;
+            const msg = cls === 'all' ? "TODOS os alunos cadastrados" : `todos os alunos da turma ${cls}`;
+            window.pendingDeleteClass = cls;
+            confirmAction(
+                "Apagar Alunos", 
+                `ATENÇÃO: Tem a certeza que deseja apagar ${msg}? Esta ação é irreversível.`, 
+                "executeDeleteStudents", 
+                null, 
+                true
+            );
+        }
+
+        function executeDeleteStudents() {
+            const cls = window.pendingDeleteClass;
+            if(cls === 'all') {
+                MOCK_STUDENTS = [];
+            } else {
+                MOCK_STUDENTS = MOCK_STUDENTS.filter(s => s.class !== cls);
+            }
+            addHistory("Exclusão em Massa", `${cls === 'all' ? 'TODOS os alunos' : `alunos da turma ${cls}`} foram apagados do sistema.`, 'deletion');
+            saveAllData();
+            showToast("Alunos removidos com sucesso.");
+            window.pendingDeleteClass = null;
+            if (currentTabView === 'settings') switchTab('settings');
+        }
+
+        function promptFactoryReset() {
+            confirmAction(
+                "Formatação Total", 
+                "PERIGO EXTREMO: Isso apagará TODOS os alunos, professores e histórico (mantendo apenas o DEV). Tem a certeza absoluta?", 
+                "executeFactoryReset", 
+                null, 
+                true
+            );
+        }
+
+        function executeFactoryReset() {
+            MOCK_STUDENTS = [];
+            MOCK_TEACHERS = MOCK_TEACHERS.filter(t => t.role.toLowerCase().includes('desenvolvedor') || t.role === 'dev');
+            MOCK_HISTORY = [];
+            addHistory("Reset de Fábrica", "Sistema totalmente redefinido. Apenas a conta DEV foi mantida.", 'deletion');
+            saveAllData();
+            showToast("Sistema formatado com sucesso.");
+            if (currentTabView === 'settings') switchTab('settings');
+        }
+
+        // --- MINHA CONTA ---
+        function openEditAccountModal() {
+            openModal(`
+                <div class="mb-6">
+                    <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Editar Dados Pessoais</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Atualize suas informações</p>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Nome Completo</label>
+                        <input type="text" id="edit-account-name" value="${MOCK_USER.name}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">E-mail</label>
+                        <input type="email" id="edit-account-email" value="${MOCK_USER.email}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Alterar Senha (4 Dígitos)</label>
+                        <input type="password" id="edit-account-password" maxlength="4" inputmode="numeric" placeholder="Deixe em branco para manter" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 text-center tracking-[0.3em]">
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl">
+                        <p class="text-[10px] text-blue-600 font-bold">ℹ️ A senha deve conter 4 dígitos numéricos.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                    <button onclick="saveAccountChanges()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl">Salvar</button>
+                </div>
+            `);
+        }
+
+        function saveAccountChanges() {
+            const newName = document.getElementById('edit-account-name').value.trim();
+            const newEmail = document.getElementById('edit-account-email').value.trim();
+            const newPassword = document.getElementById('edit-account-password').value;
+
+            if (!newName) { showToast("O nome não pode estar vazio.", "error"); return; }
+            if (!newEmail) { showToast("O e-mail não pode estar vazio.", "error"); return; }
+            if (!newEmail.includes('@')) { showToast("E-mail inválido.", "error"); return; }
+            if (newPassword && (newPassword.length !== 4 || !/^\d+$/.test(newPassword))) { showToast("A senha deve conter exatamente 4 dígitos numéricos.", "error"); return; }
+
+            // Se o e-mail mudou, verificar se já existe em outro usuário
+            if (newEmail !== MOCK_USER.email) {
+                const emailExists = MOCK_TEACHERS.find(t => t.email === newEmail && t.email !== MOCK_USER.email);
+                if (emailExists) {
+                    showToast("Este e-mail já está cadastrado no sistema.", "error");
+                    return;
+                }
+            }
+
+            const oldEmail = MOCK_USER.email;
+            MOCK_USER.name = newName;
+            MOCK_USER.email = newEmail;
+            
+            // Atualizar também em MOCK_TEACHERS
+            const teacherIndex = MOCK_TEACHERS.findIndex(t => t.email === oldEmail);
+            if (teacherIndex > -1) {
+                MOCK_TEACHERS[teacherIndex].name = newName;
+                MOCK_TEACHERS[teacherIndex].email = newEmail;
+            }
+
+            if (newPassword) {
+                MOCK_USER.pin = newPassword;
+                showToast("Dados e senha alterados com sucesso!", "success");
+            } else {
+                showToast("Dados alterados com sucesso!", "success");
+            }
+
+            // Atualizar nome na header
+            document.getElementById('user-display-name').textContent = MOCK_USER.name;
+
+            addHistory("Perfil Atualizado", "Dados da conta foram modificados.", 'edit');
+            saveAllData();
+            closeModal();
+            switchTab('account');
+        }
+
+        function buildNavigation() {
+            const navContainer = document.getElementById('nav-container');
+            const userRole = MOCK_USER.roleType;
+            let html = '';
+            TABS_CONFIG.forEach(tab => {
+                if (tab.roles.includes(userRole)) {
+                    html += `
+                        <button onclick="switchTab('${tab.id}')" id="tab-${tab.id}" class="flex-1 min-w-[110px] py-3 rounded-xl font-bold text-[11px] transition-all flex flex-col items-center justify-center gap-1 text-slate-500 hover:bg-slate-100">
+                            <i data-lucide="${tab.icon}" class="w-5 h-5 mb-1"></i> ${tab.label}
+                        </button>
+                    `;
+                }
+            });
+            navContainer.innerHTML = html;
+        }
+
+        function saveSettings() {
+            const maxCredit = parseFloat(document.getElementById('config-max-credit').value);
+            const aeeBonus = parseFloat(document.getElementById('config-aee-bonus').value);
+            const feiraDate = document.getElementById('config-feira-date').value;
+            const creditsFrozen = document.getElementById('config-freeze-credits').checked;
+
+            if (isNaN(maxCredit) || maxCredit < 0) { showToast("Valor de limite semanal inválido.", "error"); return; }
+            if (isNaN(aeeBonus) || aeeBonus < 0) { showToast("Valor de bônus AEE inválido.", "error"); return; }
+
+            const oldSettings = { ...MOCK_SETTINGS };
+
+            MOCK_SETTINGS.maxWeeklyCreditPerTeacher = maxCredit;
+            MOCK_SETTINGS.aeeWeeklyBonus = aeeBonus;
+            MOCK_SETTINGS.feiraDate = feiraDate;
+            MOCK_SETTINGS.creditsFrozen = creditsFrozen;
+
+            addHistory("Configurações Alteradas", `As configurações do sistema foram atualizadas por ${MOCK_USER.name}.`, 'edit');
+            saveAllData();
+            showToast("Configurações salvas com sucesso!", "success");
+        }
+
+        function switchTab(tabId) {
+            currentTabView = tabId;
+            const container = document.getElementById('tab-content');
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                btn.classList.add('text-slate-500');
+            });
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if(activeBtn) activeBtn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+
+            let content = '';
+            switch(tabId) {
+                case 'transactions':
+                    const sortedStudents = [...MOCK_STUDENTS].sort((a,b) => a.name.localeCompare(b.name));
+                    
+                    const classFilters = ['Todos', ...FIXED_CLASSES].map(c => `
+                        <button onclick="setTransactionClassFilter('${c}')" class="filter-chip whitespace-nowrap px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all ${transactionClassFilter === c ? 'bg-amber-500 text-slate-900 border-amber-500' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                            ${c}
+                        </button>
+                    `).join('');
+
+                    const studentCheckboxes = sortedStudents.map(s => `
+                        <label class="trans-student-label block relative mb-2" data-name="${s.name}" data-class="${s.class}" style="display: ${transactionClassFilter === 'Todos' || transactionClassFilter === s.class ? 'block' : 'none'}" onclick="event.stopPropagation(); this.querySelector('.trans-student-cb').checked = !this.querySelector('.trans-student-cb').checked;">
+                            <input type="checkbox" value="${s.id}" class="trans-student-cb peer sr-only" ${s.banned ? 'disabled' : ''}>
+                            <div class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition border border-slate-700 bg-slate-800 hover:border-slate-500 ${s.banned ? 'opacity-50 cursor-not-allowed' : ''}">
+                                <div class="w-5 h-5 border border-slate-500 rounded flex items-center justify-center peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-colors">
+                                    <i data-lucide="check" class="w-3 h-3 text-slate-800 opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                </div>
+                                <div class="flex-1 flex justify-between items-center">
+                                    <div>
+                                        <p class="text-sm font-bold ${s.banned ? 'text-red-400 line-through' : 'text-slate-200'}">${s.name}</p>
+                                        <p class="text-[10px] text-slate-400 uppercase">${s.class} ${s.aee ? '<span class="text-blue-400 font-bold">• AEE</span>' : ''}</p>
+                                    </div>
+                                    <div class="font-bold text-amber-500 text-xs">M$ ${s.balance}</div>
+                                </div>
+                            </div>
+                        </label>
+                    `).join('');
+
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Gestão de Transações</h3>
+                            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[2rem] text-white shadow-xl">
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between items-end mb-2">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase">Filtrar por Turma</label>
+                                            <button onclick="document.querySelectorAll('.trans-student-cb:not([disabled])').forEach(cb => { if(cb.closest('.trans-student-label').style.display !== 'none') cb.checked = true })" class="text-[10px] text-amber-400 hover:text-amber-300 underline font-bold">Marcar Todos</button>
+                                        </div>
+                                        <div class="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1">
+                                            ${classFilters}
+                                        </div>
+                                        <div class="relative mb-2">
+                                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500"></i>
+                                            <input type="text" id="trans-search" onkeyup="filterTransactionStudents(this.value)" placeholder="Buscar nome..." class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs outline-none focus:border-amber-500 transition-colors text-white">
+                                        </div>
+                                        <div class="max-h-56 overflow-y-auto bg-slate-900/50 p-1 rounded-xl no-scrollbar border border-slate-700/50">
+                                            ${studentCheckboxes}
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 border-t border-slate-700 pt-4">
+                                        <div class="mb-4">
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wider">Motivo da Transação (Obrigatório)</label>
+                                            <input type="text" id="trans-reason" placeholder="Ex: Tarefa concluída, Mau comportamento..." class="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-amber-500 transition">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wider">Valores Rápidos (M$)</label>
+                                            <div class="grid grid-cols-4 gap-2">
+                                                <button onclick="document.getElementById('trans-value').value = 25" class="py-2 bg-slate-800 border border-slate-700 rounded-lg text-amber-400 font-bold hover:bg-slate-700 transition btn-bounce">25</button>
+                                                <button onclick="document.getElementById('trans-value').value = 50" class="py-2 bg-slate-800 border border-slate-700 rounded-lg text-amber-400 font-bold hover:bg-slate-700 transition btn-bounce">50</button>
+                                                <button onclick="document.getElementById('trans-value').value = 75" class="py-2 bg-slate-800 border border-slate-700 rounded-lg text-amber-400 font-bold hover:bg-slate-700 transition btn-bounce">75</button>
+                                                <button onclick="document.getElementById('trans-value').value = 100" class="py-2 bg-slate-800 border border-slate-700 rounded-lg text-amber-400 font-bold hover:bg-slate-700 transition btn-bounce">100</button>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-3 items-end">
+                                            <div class="flex-1">
+                                                <input type="number" id="trans-value" placeholder="Outro valor..." class="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none text-xl font-black text-amber-400 text-center transition focus:border-amber-500">
+                                            </div>
+                                            <div class="flex-1 flex gap-2">
+                                                <button onclick="handleTransaction('credit')" class="flex-1 bg-green-500 hover:bg-green-600 py-3 rounded-xl flex items-center justify-center btn-bounce text-white shadow-lg"><i data-lucide="plus" class="w-6 h-6"></i></button>
+                                                <button onclick="handleTransaction('debit')" class="flex-1 bg-red-500 hover:bg-red-600 py-3 rounded-xl flex items-center justify-center btn-bounce text-white shadow-lg"><i data-lucide="minus" class="w-6 h-6"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'students':
+                    const classesHtml = FIXED_CLASSES.map(className => {
+                        const studentsInClass = MOCK_STUDENTS.filter(s => s.class === className);
+                        return `
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-3">
+                                <button onclick="openClassDetails('${className}')" class="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+                                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <h4 class="font-black text-slate-800 text-sm uppercase tracking-tight">${className}</h4>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${studentsInClass.length} ${studentsInClass.length === 1 ? 'Aluno' : 'Alunos'}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-slate-300">
+                                        <span class="text-[10px] font-bold uppercase">Ver Lista</span>
+                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    </div>
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+
+                    content = `
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Alunos por Turma</h3>
+                                <button onclick="openAddStudentModal()" class="text-[10px] font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="plus" class="w-3 h-3"></i> NOVO ALUNO
+                                </button>
+                            </div>
+                            <div class="pb-8">
+                                ${classesHtml}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'history':
+                    const isAdminOrDev = MOCK_USER.roleType === 'admin' || MOCK_USER.roleType === 'dev';
+                    const isDev = MOCK_USER.roleType === 'dev';
+
+                    const filteredHistory = MOCK_HISTORY.filter(h => {
+                        if (h.type === 'deletion') return isAdminOrDev;
+                        return true;
+                    });
+
+                    // Estilos baseados no tipo de ação
+                    const typeStyles = {
+                        'credit': 'border-green-500 bg-green-50/30',
+                        'debit': 'border-red-500 bg-red-50/30',
+                        'edit': 'border-blue-500 bg-blue-50/30',
+                        'deletion': 'border-red-600 bg-red-100',
+                        'creation': 'border-amber-400 bg-amber-50/30'
+                    };
+
+                    const histHtml = filteredHistory.map(h => {
+                        const borderStyle = typeStyles[h.type] || 'border-slate-200 bg-white';
+                        
+                        return `
+                            <div class="p-4 rounded-2xl border-l-4 card-shadow mb-3 flex justify-between items-start transition-all hover:translate-x-1 ${borderStyle}">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <p class="text-[10px] font-bold text-slate-400">${h.date}</p>
+                                        ${h.type === 'deletion' ? '<span class="text-[8px] font-black bg-red-500 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Exclusão</span>' : ''}
+                                        ${h.type === 'credit' ? '<span class="text-[8px] font-black bg-green-500 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Crédito</span>' : ''}
+                                        ${h.type === 'debit' ? '<span class="text-[8px] font-black bg-red-400 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Débito</span>' : ''}
+                                    </div>
+                                    <p class="font-black text-sm text-slate-800 uppercase tracking-tight">${h.title}</p>
+                                    <div class="text-xs text-slate-600 mt-1 leading-relaxed">${h.desc}</div>
+                                    <p class="text-[9px] text-slate-400 mt-2 font-bold italic flex items-center gap-1">
+                                        <i data-lucide="user" class="w-2.5 h-2.5"></i> Executado por: ${h.author}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-1 ml-4">
+                                    ${(isDev && h.type === 'deletion' && h.studentData) ? `
+                                        <button onclick="undoDelete(${h.id})" class="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition btn-bounce flex items-center gap-1 border border-blue-100">
+                                            <i data-lucide="undo-2" class="w-4 h-4"></i>
+                                            <span class="text-[10px] font-bold uppercase">Reverter</span>
+                                        </button>
+                                    ` : ''}
+                                    ${isDev ? `
+                                        <button onclick="deleteHistoryEntry(${h.id})" class="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition btn-bounce flex items-center gap-1 border border-red-100" title="Deletar este registro">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    content = `<div><h3 class="font-black text-slate-800 uppercase tracking-tighter mb-4 text-lg">Histórico de Atividades</h3>${histHtml || '<div class="text-center py-20 opacity-40"><i data-lucide="clock" class="w-12 h-12 mx-auto mb-2"></i><p class="text-xs font-bold uppercase tracking-widest">Sem registos</p></div>'}</div>`;
+                    break;
+
+                case 'ranking':
+                    // Filtra os banidos e ordena do maior saldo para o menor
+                    const rankedStudents = MOCK_STUDENTS
+                        .filter(s => !s.banned)
+                        .sort((a, b) => b.balance - a.balance);
+
+                    let rankingHtml = '';
+
+                    if (rankedStudents.length === 0) {
+                        rankingHtml = '<div class="text-center py-20 opacity-40"><i data-lucide="trophy" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i><p class="text-[10px] font-bold uppercase tracking-widest">Nenhum aluno elegível</p></div>';
+                    } else {
+                        rankingHtml = rankedStudents.map((s, index) => {
+                            let rankBadge = '';
+                            let bgClass = 'bg-white';
+                            
+                            // Estilização especial para o Top 3
+                            if (index === 0) {
+                                rankBadge = '<div class="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 flex items-center justify-center font-black shadow-lg"><i data-lucide="trophy" class="w-4 h-4"></i></div>';
+                                bgClass = 'bg-gradient-to-r from-yellow-50 to-white border-yellow-200';
+                            } else if (index === 1) {
+                                rankBadge = '<div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-black shadow-md">2</div>';
+                                bgClass = 'bg-gradient-to-r from-slate-50 to-white border-slate-200';
+                            } else if (index === 2) {
+                                rankBadge = '<div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-black shadow-md">3</div>';
+                                bgClass = 'bg-gradient-to-r from-orange-50 to-white border-orange-200';
+                            } else {
+                                rankBadge = `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xs">${index + 1}</div>`;
+                            }
+
+                            return `
+                                <button onclick="handleRankingClick(${s.id})" class="w-full text-left flex items-center gap-4 p-4 rounded-2xl border border-slate-100 shadow-sm mb-3 transition-all hover:scale-[1.01] hover:shadow-md cursor-pointer ${bgClass}">
+                                    <div class="shrink-0">
+                                        ${rankBadge}
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-black text-slate-800 uppercase tracking-tight text-sm">${s.name}</p>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${s.class}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Saldo</p>
+                                        <p class="font-black text-amber-500 text-lg leading-none">M$ ${s.balance}</p>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('');
+                    }
+
+                    content = `
+                        <div class="space-y-4 animate-in">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Ranking Escolar</h3>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Os maiores acumuladores</p>
+                                </div>
+                                <div class="bg-amber-100 text-amber-600 p-3 rounded-2xl shadow-sm">
+                                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <div class="pb-8">
+                                ${rankingHtml}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'teachers':
+                    const teachersHtml = MOCK_TEACHERS.map(t => {
+                        let roleColor = 'bg-slate-100 text-slate-600 border-slate-200';
+                        if (t.role.toLowerCase() === 'desenvolvedor' || t.role.toLowerCase() === 'dev') roleColor = 'bg-purple-100 text-purple-700 border-purple-200';
+                        else if (t.role.toLowerCase() === 'admin' || t.role.toLowerCase().includes('diret')) roleColor = 'bg-amber-100 text-amber-700 border-amber-200';
+                        
+                        return `
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between mb-3 transition hover:border-slate-300">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border border-slate-100">
+                                        <i data-lucide="shield" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-black text-slate-800 text-sm uppercase tracking-tight">${t.name}</p>
+                                        <p class="text-[10px] text-slate-400 font-bold tracking-widest">${t.email}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest border ${roleColor}">${t.role}</span>
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="openEditTeacherModal('${t.email}')" class="p-2 text-slate-400 hover:text-blue-500 transition btn-bounce" title="Editar">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="handleDeleteTeacher('${t.email}')" class="p-2 text-slate-400 hover:text-red-600 transition btn-bounce" title="Excluir">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    content = `
+                        <div class="space-y-4 animate-in">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Corpo Docente</h3>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gestão de Professores e Administradores</p>
+                                </div>
+                            </div>
+                            <div class="pb-8">
+                                ${teachersHtml || '<div class="text-center py-10 opacity-50"><p class="text-[10px] font-bold uppercase">Nenhum professor cadastrado</p></div>'}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'settings':
+                    // Cálculos de Estatísticas
+                    const totalStudents = MOCK_STUDENTS.length;
+                    const totalTeachers = MOCK_TEACHERS.filter(t => t.role.toLowerCase().includes('professor')).length;
+                    const totalAdmins = MOCK_TEACHERS.filter(t => t.role.toLowerCase().includes('admin') || t.role.toLowerCase().includes('diret')).length;
+                    const bannedStudents = MOCK_STUDENTS.filter(s => s.banned).length;
+                    const totalDevs = MOCK_TEACHERS.filter(t => t.role.toLowerCase().includes('desenvol') || t.role === 'dev').length;
+                    const posBalance = MOCK_STUDENTS.filter(s => s.balance > 0).length;
+                    const negBalance = MOCK_STUDENTS.filter(s => s.balance < 0).length;
+                    const zeroBalance = MOCK_STUDENTS.filter(s => s.balance === 0).length;
+
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Administração e Sistema</h3>
+                            
+                            <!-- Estatísticas -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="users" class="w-3 h-3 text-blue-500"></i> Alunos</span>
+                                    <span class="text-2xl font-black text-slate-800">${totalStudents}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3 text-purple-500"></i> Professores</span>
+                                    <span class="text-2xl font-black text-slate-800">${totalTeachers + totalAdmins + totalDevs}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="ban" class="w-3 h-3 text-orange-500"></i> Banidos</span>
+                                    <span class="text-2xl font-black text-orange-600">${bannedStudents}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3 text-green-500"></i> Saldo +</span>
+                                    <span class="text-2xl font-black text-green-600">${posBalance}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="trending-down" class="w-3 h-3 text-red-500"></i> Saldo -</span>
+                                    <span class="text-2xl font-black text-red-600">${negBalance}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="minus" class="w-3 h-3 text-slate-400"></i> Saldo 0</span>
+                                    <span class="text-2xl font-black text-slate-600">${zeroBalance}</span>
+                                </div>
+                            </div>
+
+                            <!-- Parâmetros Gerais -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-6 mt-4">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <i data-lucide="sliders" class="w-4 h-4 text-amber-500"></i> Parâmetros Gerais
+                                    </h4>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-slate-700">Congelar Distribuição de Créditos</label>
+                                                <p class="text-[10px] text-slate-500">Impede que professores enviem créditos. Apenas Administradores e Dev poderão.</p>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                                <input type="checkbox" id="config-freeze-credits" class="sr-only peer" ${MOCK_SETTINGS.creditsFrozen ? 'checked' : ''}>
+                                                <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-6 after:transition-all peer-checked:bg-amber-500"></div>
+                                            </label>
+                                        </div>
+
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-slate-700">Limite Semanal (Professores)</label>
+                                                <p class="text-[10px] text-slate-500">Máximo de M$ que um professor pode distribuir por semana.</p>
+                                            </div>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                <span class="text-sm font-bold text-amber-500">M$</span>
+                                                <input type="number" id="config-max-credit" value="${MOCK_SETTINGS.maxWeeklyCreditPerTeacher}" class="w-24 p-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-amber-400 font-bold text-slate-800 text-center">
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-slate-700">Bônus Semanal (Alunos AEE)</label>
+                                                <p class="text-[10px] text-slate-500">Valor extra creditado automaticamente para alunos AEE.</p>
+                                            </div>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                <span class="text-sm font-bold text-amber-500">M$</span>
+                                                <input type="number" id="config-aee-bonus" value="${MOCK_SETTINGS.aeeWeeklyBonus}" class="w-24 p-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-amber-400 font-bold text-slate-800 text-center">
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-slate-700">Data da Feira Escolar</label>
+                                                <p class="text-[10px] text-slate-500">Define o dia em que a lojinha será liberada para os alunos.</p>
+                                            </div>
+                                            <input type="date" id="config-feira-date" value="${MOCK_SETTINGS.feiraDate}" class="w-full md:w-auto p-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-amber-400 font-bold text-slate-800 shrink-0">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 flex justify-end">
+                                        <button onclick="saveSettings()" class="py-3 px-8 bg-slate-900 text-white font-bold rounded-xl btn-bounce flex items-center gap-2 shadow-lg">
+                                            <i data-lucide="save" class="w-4 h-4"></i> Salvar Parâmetros
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sistema e Backup -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mt-4">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <i data-lucide="palette" class="w-4 h-4 text-indigo-500"></i> Aparência
+                                </h4>
+                                <div class="space-y-3">
+                                    <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:border-indigo-500 transition">
+                                        <input type="radio" name="theme" value="auto" ${THEME_SETTINGS.current === 'auto' ? 'checked' : ''} onchange="setTheme('auto')" class="w-5 h-5 accent-indigo-500">
+                                        <span class="flex-1 font-bold text-slate-700">Automático (Padrão do Dispositivo)</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:border-indigo-500 transition">
+                                        <input type="radio" name="theme" value="dark" ${THEME_SETTINGS.current === 'dark' ? 'checked' : ''} onchange="setTheme('dark')" class="w-5 h-5 accent-indigo-500">
+                                        <i data-lucide="moon" class="w-5 h-5 text-indigo-600"></i>
+                                        <span class="flex-1 font-bold text-slate-700">Tema Escuro</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:border-indigo-500 transition">
+                                        <input type="radio" name="theme" value="light" ${THEME_SETTINGS.current === 'light' ? 'checked' : ''} onchange="setTheme('light')" class="w-5 h-5 accent-indigo-500">
+                                        <i data-lucide="sun" class="w-5 h-5 text-yellow-500"></i>
+                                        <span class="flex-1 font-bold text-slate-700">Tema Claro</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Sistema e Backup -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mt-4">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <i data-lucide="database" class="w-4 h-4 text-blue-500"></i> Backup e Banco de Dados
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <button onclick="exportBackup()" class="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition btn-bounce">
+                                        <i data-lucide="download-cloud" class="w-8 h-8 text-blue-500"></i>
+                                        <span class="font-bold text-slate-700">Exportar JSON</span>
+                                        <span class="text-[10px] text-slate-500 text-center">Guarda o estado atual num ficheiro JSON.</span>
+                                    </button>
+                                    
+                                    <button onclick="triggerImport()" class="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition btn-bounce">
+                                        <i data-lucide="upload-cloud" class="w-8 h-8 text-amber-500"></i>
+                                        <span class="font-bold text-slate-700">Importar JSON</span>
+                                        <span class="text-[10px] text-slate-500 text-center">Restaura dados a partir de um ficheiro JSON.</span>
+                                    </button>
+
+                                    <button onclick="exportExcel()" class="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-green-500 hover:bg-green-50 transition btn-bounce">
+                                        <i data-lucide="file-spreadsheet" class="w-8 h-8 text-green-500"></i>
+                                        <span class="font-bold text-slate-700">Exportar Excel</span>
+                                        <span class="text-[10px] text-slate-500 text-center">Guarda dados em planilha Excel (.xlsx).</span>
+                                    </button>
+                                    
+                                    <button onclick="importExcel()" class="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-green-600 hover:bg-green-50 transition btn-bounce">
+                                        <i data-lucide="file-spreadsheet" class="w-8 h-8 text-green-600"></i>
+                                        <span class="font-bold text-slate-700">Importar Excel</span>
+                                        <span class="text-[10px] text-slate-500 text-center">Restaura dados a partir de Excel (.xlsx).</span>
+                                    </button>
+                                    <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackup(event)">
+                                    <input type="file" id="import-excel-file" accept=".xlsx" class="hidden" onchange="importExcelFile(event)">
+                                </div>
+                            </div>
+
+                            <!-- ZONA DE PERIGO -->
+                            <div class="bg-red-50 p-6 rounded-[2rem] border border-red-200 shadow-sm mt-4">
+                                <h4 class="text-xs font-bold text-red-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Zona de Perigo
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <!-- Apagar Histórico -->
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-red-100">
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-sm">Limpar Histórico</p>
+                                            <p class="text-[10px] text-slate-500">Apaga permanentemente todos os registos do histórico de atividades.</p>
+                                        </div>
+                                        <button onclick="promptClearHistory()" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-bold text-xs hover:bg-red-200 transition btn-bounce shrink-0">Apagar Histórico</button>
+                                    </div>
+
+                                    <!-- Apagar Alunos -->
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-red-100">
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-sm">Apagar Alunos</p>
+                                            <p class="text-[10px] text-slate-500">Selecione uma turma para apagar ou todos os alunos.</p>
+                                        </div>
+                                        <div class="flex gap-2 shrink-0">
+                                            <select id="danger-class-select" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none">
+                                                <option value="all">TODAS AS TURMAS</option>
+                                                ${FIXED_CLASSES.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                            </select>
+                                            <button onclick="promptDeleteStudents()" class="px-4 py-2 bg-red-600 text-white rounded-lg font-bold text-xs hover:bg-red-700 transition btn-bounce shadow-md">Executar</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Formatar Sistema -->
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 bg-red-100 rounded-2xl border border-red-300">
+                                        <div>
+                                            <p class="font-black text-red-800 text-sm uppercase tracking-tight">Formatação Total</p>
+                                            <p class="text-[10px] text-red-600">Apaga alunos, professores (exceto DEV) e histórico.</p>
+                                        </div>
+                                        <button onclick="promptFactoryReset()" class="px-4 py-2 bg-red-700 text-white rounded-lg font-black text-xs hover:bg-red-800 transition btn-bounce shadow-lg uppercase tracking-wider shrink-0 flex items-center gap-2">
+                                            <i data-lucide="skull" class="w-4 h-4"></i> Formatar Sistema
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'notices':
+                    // Calcular estatísticas de avisos
+                    const totalNotices = MOCK_NOTICES.length;
+                    const activeNotices = MOCK_NOTICES.filter(n => n.active).length;
+                    const inactiveNotices = MOCK_NOTICES.filter(n => !n.active).length;
+
+                    const noticesHtml = MOCK_NOTICES.map(notice => {
+                        const canManage = MOCK_USER.email === notice.author || MOCK_USER.roleType === 'dev';
+                        return `
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-3 transition hover:border-slate-300">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h4 class="font-black text-slate-800 text-sm uppercase tracking-tight">${notice.title}</h4>
+                                            <label class="relative inline-flex items-center cursor-pointer shrink-0" title="${notice.active ? 'Desativar' : 'Ativar'}">
+                                                <input type="checkbox" class="sr-only peer" ${notice.active ? 'checked' : ''} onchange="toggleNoticeActive(${notice.id})" ${!canManage ? 'disabled' : ''}>
+                                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed mb-2">${notice.message}</p>
+                        <p class="text-[9px] text-slate-400 flex items-center gap-1">
+                            <i data-lucide="user" class="w-3 h-3"></i> ${notice.authorName} • ${notice.createdAt}
+                        </p>
+                    </div>
+                    ${canManage ? `
+                        <div class="flex items-center gap-1 shrink-0 ml-2">
+                            <button onclick="openEditNoticeModal(${notice.id})" class="p-2 text-slate-400 hover:text-blue-500 transition btn-bounce" title="Editar">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="handleDeleteNotice(${notice.id})" class="p-2 text-slate-400 hover:text-red-600 transition btn-bounce" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                    </div>
+                `;
+                    }).join('');
+
+                    content = `
+                        <div class="space-y-4 animate-in">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Avisos e Notificações</h3>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Comunicações Importantes</p>
+                                </div>
+                                <button onclick="openCreateNoticeModal()" class="text-[10px] font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 btn-bounce hover:scale-105 active:scale-95">
+                                    <i data-lucide="plus" class="w-3 h-3"></i> NOVO AVISO
+                                </button>
+                            </div>
+
+                            <!-- Estatísticas de Avisos -->
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center hover:border-slate-300 transition">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="bell" class="w-3 h-3 text-slate-500"></i> Total</span>
+                                    <span class="text-2xl font-black text-slate-800">${totalNotices}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center hover:border-green-300 transition">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3 text-green-500"></i> Ativos</span>
+                                    <span class="text-2xl font-black text-green-600">${activeNotices}</span>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center hover:border-red-300 transition">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="x-circle" class="w-3 h-3 text-red-500"></i> Inativos</span>
+                                    <span class="text-2xl font-black text-red-600">${inactiveNotices}</span>
+                                </div>
+                            </div>
+
+                            <div class="pb-8">
+                                ${noticesHtml || '<div class="text-center py-10 opacity-50"><p class="text-[10px] font-bold uppercase">Nenhum aviso cadastrado</p></div>'}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'account':
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="font-black text-slate-800 uppercase tracking-tighter text-lg">Minha Conta</h3>
+                            
+                            <!-- Informações da Conta -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <i data-lucide="user" class="w-4 h-4 text-amber-500"></i> Informações Pessoais
+                                        </h4>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4 mb-6">
+                                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nome</p>
+                                            <p class="text-sm font-black text-slate-800 mt-1">${MOCK_USER.name}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">E-mail</p>
+                                            <p class="text-sm font-black text-slate-800 mt-1">${MOCK_USER.email}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cargo</p>
+                                            <p class="text-sm font-black text-slate-800 mt-1">${MOCK_USER.role}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="openEditAccountModal()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-2">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i> Editar Dados Pessoais
+                                </button>
+                            </div>
+
+                            <!-- Informações de Segurança -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <i data-lucide="lock" class="w-4 h-4 text-red-500"></i> Segurança
+                                </h4>
+                                
+                                <div class="bg-slate-50 p-4 rounded-2xl mb-4">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Status da Senha</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <p class="text-sm font-bold text-slate-700">Protegida</p>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-[10px] text-slate-500 mb-4">Você pode alterar sua senha na seção de edição de dados pessoais.</p>
+                                <button onclick="openEditAccountModal()" class="w-full py-3 bg-blue-50 text-blue-600 border border-blue-100 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest hover:bg-blue-100 transition flex items-center justify-center gap-2">
+                                    <i data-lucide="key" class="w-4 h-4"></i> Alterar Senha
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    content = `<div class="py-20 text-center"><i data-lucide="construction" class="w-12 h-12 text-slate-300 mx-auto mb-4"></i><p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Módulo em Construção</p></div>`;
+            }
+            container.innerHTML = content;
+            initIcons();
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-2xl shadow-2xl text-white font-bold text-[11px] animate-in flex items-center gap-3 border-b-4 ${type === 'success' ? 'bg-slate-900 border-green-500' : 'bg-red-500 border-red-800'}`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+</html>
