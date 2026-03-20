@@ -845,6 +845,7 @@
         let firebaseInitialized = false;
         let firebaseUser = null;
         let db = null;
+        let firebaseListeners = {}; // Armazenar listeners ativos para limpeza
 
         function normalizeFirebasePathSegment(segment) {
             if (!segment || typeof segment !== 'string') return 'local';
@@ -979,8 +980,10 @@
 
         // Carregar dados do Firebase ao inicializar
         async function loadFromFirebaseOnStartup() {
+            console.log('🔍 loadFromFirebaseOnStartup() chamado | Firebase:', firebaseInitialized, '| DB:', !!db);
+            
             if (!firebaseInitialized || !db) {
-                console.log('⚠️ Firebase não inicializado, pulando carregamento');
+                console.warn('⚠️ Firebase não inicializado (firebaseInitialized:', firebaseInitialized, ', db:', !!db, '), pulando carregamento');
                 return;
             }
 
@@ -1018,8 +1021,11 @@
                 setupRealtimeSync();
             }
         }
-        function syncAllDataToFirebase() {
-            if (!firebaseInitialized) return;
+        async function syncAllDataToFirebase() {
+            if (!firebaseInitialized) {
+                console.warn('⚠️ Firebase não inicializado, pulando syncAllDataToFirebase');
+                return;
+            }
 
             const allData = {
                 settings: MOCK_SETTINGS,
@@ -1037,18 +1043,50 @@
             const currentTime = new Date().toISOString();
             localStorage.setItem('last_sync_timestamp', currentTime);
 
-            saveToFirebase('all_data', allData);
+            console.log('📤 Enviando dados para Firebase:', {
+                alunos: allData.students?.length,
+                professores: allData.teachers?.length,
+                registros: allData.history?.length,
+                timestamp: currentTime
+            });
+            
+            try {
+                await saveToFirebase('all_data', allData);
+                console.log('✅ Dados enviados com sucesso para Firebase');
+            } catch (err) {
+                console.error('❌ Erro ao sincronizar com Firebase:', err.message);
+            }
         }
 
-        let firebaseListeners = {}; // Armazenar listeners ativos para limpeza
+        function checkFirebaseConnection() {
+            console.log('=== DIAGNÓSTICO FIREBASE ===');
+            console.log('firebaseInitialized:', firebaseInitialized);
+            console.log('db exists:', !!db);
+            console.log('firebaseUser:', firebaseUser);
+            console.log('Active listeners:', Object.keys(firebaseListeners).length);
+            console.log('Listeners:', firebaseListeners);
+            console.log('MOCK_SETTINGS:', MOCK_SETTINGS);
+            console.log('MOCK_STUDENTS:', MOCK_STUDENTS.length);
+            console.log('MOCK_HISTORY:', MOCK_HISTORY.length);
+            console.log('===========================');
+        }
+
+        // Expor função global para debug
+        window.checkFirebaseConnection = checkFirebaseConnection;
 
         // Configurar sincronização em tempo real com Firebase
         function setupRealtimeSync() {
-            if (!firebaseInitialized || !db) return;
+            console.log('🔌 setupRealtimeSync() chamado | Firebase:', firebaseInitialized, '| DB:', !!db);
+            
+            if (!firebaseInitialized || !db) {
+                console.warn('⚠️ Firebase não inicializado, não configurando listener');
+                return;
+            }
 
             try {
                 const listenerKey = 'shared';
                 const path = `marimbondos/shared/all_data`;
+                console.log('📡 Configurando listener em:', path);
 
                 // Limpar listener anterior se existir
                 if (firebaseListeners[listenerKey]) {
@@ -1066,9 +1104,24 @@
                                 const remoteTimestamp = new Date(remoteData.timestamp);
                                 const localTimestamp = new Date(localStorage.getItem('last_sync_timestamp') || 0);
 
-                                // Só sincronizar se os dados remotos forem mais recentes
-                                if (remoteTimestamp > localTimestamp) {
-                                    console.log('🔄 Sincronizando dados remotos mais recentes...');
+                                console.log('📥 Dados remotos recebidos:', {
+                                    remoteTime: remoteTimestamp.toISOString(),
+                                    localTime: localTimestamp.toISOString(),
+                                    alunos: remoteData.data.students?.length || 0
+                                });
+
+                                // Sincronizar se dados remotos forem mais recentes OU se for diferente dos locais
+                                const localData = {
+                                    settings: MOCK_SETTINGS,
+                                    students: MOCK_STUDENTS,
+                                    teachers: MOCK_TEACHERS,
+                                    history: MOCK_HISTORY,
+                                    notices: MOCK_NOTICES
+                                };
+                                const dataChanged = JSON.stringify(remoteData.data) !== JSON.stringify(localData);
+
+                                if (remoteTimestamp > localTimestamp || dataChanged) {
+                                    console.log('🔄 Sincronizando dados remotos (mais recentes ou alterados)...');
 
                                     // Aplicar dados remotos
                                     const allData = remoteData.data;
@@ -1115,7 +1168,7 @@
                     }
                 });
 
-                console.log('✓ Sincronização em tempo real configurada');
+                console.log('✓ Sincronização em tempo real configurada para path:', path);
             } catch (err) {
                 console.error('Erro ao configurar sincronização em tempo real:', err);
             }
@@ -1330,8 +1383,11 @@
 
             // Sincronizar com Firebase se disponível
             if (firebaseInitialized) {
-                syncAllDataToFirebase();
+                console.log('💾 Firebase está inicializado, iniciando sync...');
+                syncAllDataToFirebase().catch(err => console.error('Erro em syncAllDataToFirebase:', err));
                 setupRealtimeSync();
+            } else {
+                console.log('⚠️ Firebase NÃO inicializado, dados não sincronizarão');
             }
             
             // Atualizar UI para refletir mudanças imediatas
