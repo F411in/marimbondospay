@@ -3203,8 +3203,26 @@
                     || inputMode === 'numeric'
                     || /pin|password|senha|email/.test(fieldId)
                     || /pin|password|senha|email/.test(fieldName);
+                const isLoginAutofillField = fieldId === 'login-email' || fieldId === 'login-pin';
 
                 if (!isSensitiveField) return;
+
+                if (isLoginAutofillField) {
+                    field.removeAttribute('data-lpignore');
+                    field.removeAttribute('data-1p-ignore');
+                    field.removeAttribute('data-bwignore');
+                    field.removeAttribute('data-form-type');
+                    field.setAttribute('autocapitalize', 'none');
+                    field.setAttribute('autocorrect', 'off');
+                    field.setAttribute('spellcheck', 'false');
+                    field.setAttribute('autocomplete', fieldId === 'login-email' ? 'username' : 'current-password');
+                    if (fieldId === 'login-email') {
+                        field.setAttribute('name', 'username');
+                    } else {
+                        field.setAttribute('name', 'current-password');
+                    }
+                    return;
+                }
 
                 field.setAttribute('data-lpignore', 'true');
                 field.setAttribute('data-1p-ignore', 'true');
