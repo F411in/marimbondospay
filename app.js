@@ -2928,7 +2928,7 @@
             { id: 'students', icon: 'users', label: 'Alunos', roles: ['teacher', 'admin', 'dev'] },
             { id: 'teachers', icon: 'shield-alert', label: 'Professores', roles: ['admin', 'dev'] },
             { id: 'notices', icon: 'bell-ring', label: 'Avisos', roles: ['teacher', 'admin', 'dev'] },
-            { id: 'account', icon: 'user-cog', label: 'Minha Conta', roles: ['teacher', 'admin', 'dev', 'viewer'] },
+            { id: 'account', icon: 'user-cog', label: 'Minha Conta', roles: ['teacher', 'admin', 'dev'] },
             { id: 'settings', icon: 'settings', label: 'Configurações', roles: ['teacher', 'admin', 'dev', 'viewer'] }
 
         ];
@@ -2997,7 +2997,7 @@
 
             MOCK_STUDENTS.forEach(student => {
                 const studentFairReference = String(student.banRelatedToFairDate || '').trim();
-                const shouldAutoUnban = student.banned && (
+                const shouldAutoUnban = student.banned && Number(student.banCount || 0) < 3 && (
                     !studentFairReference ||
                     studentFairReference <= feiraDate
                 );
@@ -4677,11 +4677,12 @@
                 student.banCount = (Number(student.banCount) || 0) + 1;
             }
             student.banned = !student.banned;
-            student.banRelatedToFairDate = student.banned ? (MOCK_SETTINGS.feiraDate || getLocalDateKey(new Date())) : '';
+            const autoUnbanEligible = Number(student.banCount) < 3;
+            student.banRelatedToFairDate = student.banned && autoUnbanEligible ? (MOCK_SETTINGS.feiraDate || getLocalDateKey(new Date())) : '';
             const status = student.banned ? "Banido" : "Desbanido";
             showToast(`Aluno ${status.toLowerCase()}!`, student.banned ? "error" : "success");
             const description = student.banned
-                ? `${student.name} foi banido pela ${student.banCount}ª vez. Motivo: ${reason}${MOCK_SETTINGS.feiraDate ? `. Liberação automática prevista para o dia seguinte à feira (${MOCK_SETTINGS.feiraDate}).` : ''}`
+                ? `${student.name} foi banido pela ${student.banCount}ª vez. Motivo: ${reason}${student.banRelatedToFairDate ? `. Liberação automática prevista para o dia seguinte à feira (${student.banRelatedToFairDate}).` : (Number(student.banCount) >= 3 ? '. A partir do 3º banimento, a liberação automática após a feira é desativada.' : '')}`
                 : `${student.name} foi desbanido.`;
             addHistory(student.banned ? 'Banimento de Aluno' : 'Desbanimento de Aluno', description, 'edit', student.id);
             saveAllData();
