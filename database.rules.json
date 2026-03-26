@@ -1,0 +1,173 @@
+{
+  "rules": {
+    // Sincronização de dados compartilhados - PÚBLICO para todos os dispositivos
+    "marimbondos": {
+      "shared": {
+        // Todos podem ler e escrever para sincronização em tempo real
+        ".read": true,
+        ".write": true,
+        
+        // Índices para melhor performance de queries
+        ".indexOn": ["timestamp", "date", "studentId", "name", "email"],
+        
+        "$key": {
+          ".read": true,
+          ".write": true,
+          
+          // Dados dos estudantes
+          "data": {
+            "students": {
+              ".indexOn": ["name", "class", "balance", "aee", "banned"],
+              "$studentId": {
+                ".read": true,
+                ".write": true,
+                "name": { ".write": true },
+                "email": { ".write": true },
+                "class": { ".write": true },
+                "balance": { ".write": true },
+                "aee": { ".write": true },
+                "banned": { ".write": true },
+                "banReason": { ".write": true },
+                "created": { ".write": true },
+                "lastModified": { ".write": true },
+                "weekCredits": { ".write": true }
+              }
+            },
+            
+            // Dados dos professores
+            "teachers": {
+              ".indexOn": ["name", "email", "role"],
+              "$teacherId": {
+                ".read": true,
+                ".write": true,
+                "name": { ".write": true },
+                "email": { ".write": true },
+                "role": { ".write": true },
+                "presence": { ".write": true },
+                "badges": { ".write": true }
+              }
+            },
+            
+            // Histórico de transações
+            "history": {
+              ".indexOn": ["date", "studentId", "studentName", "type"],
+              "$historyId": {
+                ".read": true,
+                ".write": true,
+                "id": { ".write": true },
+                "type": { ".write": true },
+                "description": { ".write": true },
+                "studentId": { ".write": true },
+                "studentName": { ".write": true },
+                "value": { ".write": true },
+                "date": { ".write": true },
+                "teacher": { ".write": true },
+                "metadata": { ".write": true }
+              }
+            },
+            
+            // Arquivo de histórico de alunos
+            "studentHistoryArchive": {
+              ".read": true,
+              ".write": true,
+              ".indexOn": ["studentId"],
+              "$studentId": {
+                ".read": true,
+                ".write": true
+              }
+            },
+            
+            // Atividade de login
+            "loginActivity": {
+              ".read": true,
+              ".write": true,
+              ".indexOn": ["date", "teacherEmail"],
+              "$activityId": {
+                ".read": true,
+                ".write": true,
+                "teacherName": { ".write": true },
+                "teacherEmail": { ".write": true },
+                "role": { ".write": true },
+                "loggedInAt": { ".write": true },
+                "isOnline": { ".write": true },
+                "lastPosited": { ".write": true }
+              }
+            },
+            
+            // Avisos e notificações do sistema
+            "notices": {
+              ".read": true,
+              ".write": true,
+              ".indexOn": ["date", "type"],
+              "$noticeId": {
+                ".read": true,
+                ".write": true,
+                "id": { ".write": true },
+                "title": { ".write": true },
+                "description": { ".write": true },
+                "type": { ".write": true },
+                "date": { ".write": true },
+                "icon": { ".write": true }
+              }
+            },
+            
+            // Itens da loja
+            "storeItems": {
+              ".read": true,
+              ".write": true,
+              ".indexOn": ["name", "price"],
+              "$itemId": {
+                ".read": true,
+                ".write": true,
+                "id": { ".write": true },
+                "name": { ".write": true },
+                "price": { ".write": true },
+                "imageData": { ".write": true },
+                "created": { ".write": true },
+                "quantity": { ".write": true }
+              }
+            },
+            
+            // Nomes de importação aprendidos
+            "learnedImportNames": {
+              ".read": true,
+              ".write": true,
+              ".indexOn": ["name"],
+              "$nameId": {
+                ".read": true,
+                ".write": true
+              }
+            },
+            
+            // Configurações do sistema
+            "settings": {
+              ".read": true,
+              ".write": true,
+              "maxWeeklyCreditPerTeacher": { ".write": true },
+              "aeeWeeklyBonus": { ".write": true },
+              "aeeCreditDay": { ".write": true },
+              "nextAEECreditDate": { ".write": true },
+              "feiraDate": { ".write": true },
+              "creditsFrozen": { ".write": true },
+              "storeEnabledForUsers": { ".write": true },
+              "storeEnabledForDev": { ".write": true },
+              "themeMode": { ".write": true }
+            },
+            
+            // Contadores
+            "counters": {
+              ".read": true,
+              ".write": true,
+              "history": { ".write": true },
+              "notices": { ".write": true },
+              "storeItems": { ".write": true }
+            }
+          },
+          
+          "timestamp": { ".write": true }
+        }
+      }
+    }
+  }
+}
+

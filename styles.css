@@ -77,6 +77,14 @@
             overscroll-behavior-y: auto;
             text-rendering: optimizeLegibility;
             min-height: var(--app-height);
+            /* Ocultar scrollbar do body (scrolling é em #tab-content) */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+
+        /* Ocultar scrollbar do body no Chrome/Safari */
+        body::-webkit-scrollbar {
+            display: none;
         }
 
         .database-danger-soft-btn {
@@ -106,8 +114,7 @@
         }
         
         html, body {
-            touch-action: manipulation;
-            scroll-behavior: auto;
+            touch-action: auto;
         }
 
         .fast-scroll {
@@ -793,6 +800,32 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+        #nav-container {
+            transition: all 0.3s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        #nav-container {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            max-height: 100px;
+        }
+
+        #nav-container.hidden-nav {
+            opacity: 0;
+            transform: translateY(-100%);
+            visibility: hidden;
+            pointer-events: none;
+            margin-bottom: 0 !important;
+            max-height: 0;
+        }
+
+        /* Adaptar #tab-content quando navbar oculta/visível */
+        #tab-content {
+            transition: max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         /* ===== ANIMAÇÕES MARIMBONDOS ===== */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -871,6 +904,29 @@
         .animate-slideUp { animation: slideUp 0.7s ease-out forwards; }
         .animate-honeycomb { animation: honeycomb 20s linear infinite; }
         .animate-soft-rise { animation: softRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+        /* GARANTIR SCROLL VERTICAL EM #tab-content COM SCROLLBAR OCULTO */
+        #tab-content {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            scroll-behavior: smooth;
+            /* Força altura não ser restringida */
+            max-height: 100% !important;
+            height: 100% !important;
+            position: relative;
+            /* Garante que todos os filhos respeitam o scroll */
+            contain: strict;
+            /* ===== OCULTAR SCROLLBAR ===== */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        /* Ocultar scrollbar no Chrome/Safari */
+        #tab-content::-webkit-scrollbar {
+            display: none;
+        }
 
         .tab-content-shell {
             position: relative;
@@ -1814,6 +1870,11 @@
             #tab-content {
                 min-height: auto;
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+                overflow-y: auto;
+                overflow-x: hidden;
+                touch-action: pan-y;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
             }
 
             .tab-content-shell {

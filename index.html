@@ -136,14 +136,14 @@
             </div>
         </header>
 
-        <main class="p-3 sm:p-4 max-w-5xl mx-auto space-y-4 w-full flex-1 min-h-0 flex flex-col">
+        <main class="p-3 sm:p-4 max-w-5xl mx-auto space-y-4 w-full flex-1 flex flex-col">
             <!-- NAVEGAÇÃO DINÂMICA (Renderizada via JS) -->
             <div id="nav-container" class="fast-scroll flex bg-slate-100/80 dark:bg-slate-700/50 backdrop-blur-md p-1.5 sm:p-2 rounded-xl sm:rounded-2xl gap-1 overflow-x-auto no-scrollbar shrink-0 shadow-sm border border-amber-200/50 dark:border-amber-500/20 snap-x snap-proximity">
                 <!-- Botões gerados aqui -->
             </div>
 
             <!-- ÁREA DE CONTEÚDO -->
-            <div id="tab-content" class="animate-in flex-1 min-h-0">
+            <div id="tab-content" class="animate-in flex-1 overflow-y-auto overflow-x-hidden" style="overflow-y: auto !important; touch-action: pan-y;">
                 <!-- Conteúdo -->
             </div>
         </main>

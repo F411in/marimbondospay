@@ -1532,6 +1532,8 @@
         let MOCK_SETTINGS = {
             maxWeeklyCreditPerTeacher: 50,
             aeeWeeklyBonus: 30,
+            aeeCreditDay: 1,
+            nextAEECreditDate: '',
             baseCreditPerStudent: 100,
             feiraDate: "",
             creditsFrozen: false,
@@ -1647,10 +1649,57 @@
             }
         }
 
+        let lastUIStateSignature = null;
+
+        function getUIStateSignature() {
+            // Gera uma assinatura baseada no estado atual para evitar re-renderização desnecessária
+            return JSON.stringify({
+                students: MOCK_STUDENTS.length,
+                teachers: MOCK_TEACHERS.length,
+                history: MOCK_HISTORY.length,
+                notices: MOCK_NOTICES.length,
+                storeItems: MOCK_STORE_ITEMS.length,
+                settings: MOCK_SETTINGS.feiraDate
+            });
+        }
+
         function refreshUI() {
             if (currentTabView) {
-                switchTab(currentTabView);
-                console.log('🔄 UI atualizada para aba:', currentTabView);
+                const currentSignature = getUIStateSignature();
+                
+                // Não recarregar UI se não houve mudanças significativas
+                if (currentSignature === lastUIStateSignature) {
+                    console.log('⏭️ UI não recarregada (sem mudanças)');
+                    return;
+                }
+                
+                lastUIStateSignature = currentSignature;
+                
+                // Melhorada transição suave ao atualizar com Request Animation Frame
+                const tabContent = document.getElementById('tab-content');
+                if (tabContent) {
+                    // Use requestAnimationFrame para sincronizar com o refresh do navegador
+                    requestAnimationFrame(() => {
+                        tabContent.style.opacity = '0.85';
+                        tabContent.style.transition = 'opacity 0.12s cubic-bezier(0.4, 0, 0.2, 1)';
+                    });
+                }
+                
+                // Mudar conteúdo recém começada transição de opacidade
+                requestAnimationFrame(() => {
+                    switchTab(currentTabView);
+                    console.log('🔄 UI atualizada para aba:', currentTabView);
+                });
+                
+                // Restaurar opacidade com transição suave
+                if (tabContent) {
+                    setTimeout(() => {
+                        tabContent.style.opacity = '1';
+                    }, 60);
+                    setTimeout(() => {
+                        tabContent.style.transition = ''; // Remove transição após completar
+                    }, 200);
+                }
             }
         }
 
@@ -2086,9 +2135,9 @@
                 return {
                     title,
                     badgeLabel: 'Banimento',
-                    badgeClass: 'bg-red-100 text-red-700 border border-red-200',
-                    borderClass: 'border-red-500',
-                    cardClass: 'bg-red-50/40'
+                    badgeClass: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
+                    borderClass: 'border-yellow-500',
+                    cardClass: 'bg-yellow-50/40'
                 };
             }
 
@@ -2119,6 +2168,16 @@
                     badgeClass: 'bg-red-500 text-white border border-red-500',
                     borderClass: 'border-red-600',
                     cardClass: 'bg-red-100'
+                };
+            }
+
+            if (entry?.type === 'aee-auto-credit') {
+                return {
+                    title,
+                    badgeLabel: 'Crédito AEE',
+                    badgeClass: 'bg-pink-100 text-pink-700 border border-pink-200',
+                    borderClass: 'border-pink-500',
+                    cardClass: 'bg-pink-50/40'
                 };
             }
 
@@ -3043,20 +3102,68 @@
             return unbannedCount > 0 || negativeResetCount > 0;
         }
 
-        function handleAndroidBack() {
-            const modal = document.getElementById('global-modal');
-            if (modal && !modal.classList.contains('hidden')) {
-                closeModal();
-                return true;
-            }
+        function processAEEWeeklyCredits(force = false) {
+            // Verifica se há alunos AEE e se aeeWeeklyBonus > 0
+            const aeeBonus = parseFloat(MOCK_SETTINGS.aeeWeeklyBonus) || 0;
+            if (aeeBonus <= 0 || !MOCK_STUDENTS.some(s => s.aee)) return false;
 
-            const loginScreen = document.getElementById('login-screen');
-            if (loginScreen && !loginScreen.classList.contains('hidden')) {
-                return false;
-            }
+            // Obtém dia da semana configurável (0 = domingo, 1 = segunda-feira, etc.) - padrão é segunda (1)
+            const aeeCreditDay = MOCK_SETTINGS.aeeCreditDay ?? 1;
+            const today = new Date();
+            const dayOfWeek = today.getDay(); 
+            if (!force && dayOfWeek !== aeeCreditDay) return false;
 
-            if (currentTabView && currentTabView !== 'transactions') {
-                switchTab('transactions');
+            // Gera chave para rastrear última aplicação de crédito AEE semanal
+            const year = today.getFullYear();
+            const jan1 = new Date(year, 0, 1);
+            const days = Math.floor((today - jan1) / 86400000);
+            const week = Math.ceil((days + jan1.getDay() + 1) / 7);
+            const weekKey = `aee-${year}-W${week}`;
+            const lastAEEDistribution = localStorage.getItem('marimbondos_last_aee_weekly_distribution');
+
+            // Se já foi distribuído esta semana, não faz novamente
+            if (!force && lastAEEDistribution === weekKey) return false;
+
+            let creditedCount = 0;
+            const creditedStudentNames = [];
+
+            // Distribui crédito para todos os alunos AEE
+            MOCK_STUDENTS.forEach(student => {
+                if (student.aee && !student.banned) {
+                    student.balance += aeeBonus;
+                    creditedCount++;
+                    creditedStudentNames.push(student.name);
+                    
+                    // Registra no histórico com metadata especial para marcar como AEE automático
+                    addHistory(
+                        "Crédito Semanal AEE",
+                        `${student.name} recebeu automaticamente M$ ${aeeBonus} pelo programa AEE.`,
+                        'aee-auto-credit',
+                        student.id,
+                        'student',
+                        { autoCredit: true, source: 'aeeWeekly', amount: aeeBonus }
+                    );
+                }
+            });
+
+            if (creditedCount > 0) {
+                localStorage.setItem('marimbondos_last_aee_weekly_distribution', weekKey);
+                saveAllData();
+                
+                // Cria notificação de sistema
+                const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                createSystemNotice(
+                    "Créditos AEE Distribuídos",
+                    `${creditedCount} aluno(s) com AEE recebu ${creditedCount > 1 ? 'eram' : 'eu'} M$ ${aeeBonus} de crédito semanal.`,
+                    getLocalDateKey(today)
+                );
+
+                // Mostra toast quando screen está pronta
+                if (appScreenReady && !document.getElementById('login-screen')?.classList.contains('hidden') === false) {
+                    showToast(`Créditos AEE distribuídos para ${creditedCount} aluno(s)! 💳`, 'success');
+                }
+
+                console.log(`💳 CRÉDITOS AEE DISTRIBUÍDOS: ${creditedCount} aluno(s) receberam M$ ${aeeBonus} cada (${dayNames[aeeCreditDay]})`);
                 return true;
             }
 
@@ -3066,15 +3173,25 @@
         // --- INICIALIZAÇÃO ---
         window.onload = async () => {
             try {
-                                // Reset semanal automático ao carregar o sistema
-                                resetWeeklyCredits();
-                console.log('🚀 Início do window.onload');
+                console.log('🚀 [1/10] Início do window.onload');
+                
+                // Reset semanal automático ao carregar o sistema
+                try {
+                    resetWeeklyCredits();
+                    console.log('✓ [1/10] Créditos semanais verificados');
+                } catch (e) {
+                    console.error('❌ [1/10] Erro ao resetar créditos semanais:', e);
+                }
 
                 if (IS_ANDROID_RUNTIME) {
                     document.documentElement.classList.add('android-runtime');
                 }
 
+                console.log('✓ [2/10] Classe android-runtime definida');
+
                 applyAdaptivePerformanceMode();
+                console.log('✓ [2.1/10] Performance adaptativa aplicada');
+                
                 document.addEventListener('visibilitychange', () => {
                     applyAdaptivePerformanceMode();
                     if (!document.hidden) {
@@ -3105,9 +3222,12 @@
                     }
                 });
                 
+                console.log('✓ [3/10] Event listeners registrados');
+
                 // Verificar disponibilidade de storage
                 const localStorageAvailable = checkStorageAvailability();
                 const indexedDBAvailable = await checkIndexedDBAvailability();
+                console.log('✓ [4/10] Disponibilidade de storage verificada:', { localStorageAvailable, indexedDBAvailable });
                 
                 if (!localStorageAvailable && !indexedDBAvailable) {
                     console.error('❌ Nenhum método de armazenamento disponível. O aplicativo pode não funcionar corretamente.');
@@ -3118,32 +3238,51 @@
                     console.warn('⚠️ IndexedDB não disponível, usando apenas localStorage');
                 }
                 
+                console.log('✓ [5/10] Storage verificado');
+
                 initTheme();
-                console.log('✓ Tema inicializado');
+                console.log('✓ [6/10] Tema inicializado');
                 installKnownExternalNoiseFilters();
+                console.log('✓ [6.1/10] Filtros de ruído externos instalados');
 
                 // Inicializar Firebase com waitForFirebase para garantir SDK carregado
+                console.log('✓ [7/10] Iniciando verificação Firebase...');
                 await new Promise(resolve => {
                     waitForFirebase(() => {
+                        console.log('✓ [7.1/10] Firebase SDK verificado, inicializando...');
                         initFirebase();
+                        console.log('✓ [7.2/10] Firebase inicializado');
                         resolve();
                     }, 20);
                 });
-                console.log('Firebase verificado');
+                console.log('✓ [7.3/10] Firebase verificado');
 
+                console.log('✓ [8/10] Iniciando loadAllData...');
                 await loadAllData();
-                console.log('✓ Dados carregados');
+                console.log('✓ [8.1/10] Dados carregados com sucesso');
+                
+                console.log('✓ [9/10] Aplicando processamentos pós-carga...');
                 applyLoginHolidayTheme(getCurrentThemeMode());
                 processFairDayTurnover();
+                processAEEWeeklyCredits();
+                console.log('✓ [9.1/10] Processamentos completados');
+                
+                console.log('✓ [10/10] Inicializando ícones e elementos finais...');
                 initIcons();
-                console.log('✓ Ícones inicializados');
+                console.log('✓ [10.1/10] Ícones inicializados');
                 applyAutofillGuards(document);
+                console.log('✓ [10.2/10] Autofill guards aplicados');
                 enhanceInteractiveElements();
-                console.log('✓ Interações refinadas aplicadas');
+                console.log('✓ [10.3/10] Elementos interativos aprimorados');
                 setupLoginEnterKey();
-                console.log('✓ Listeners de login configurados');
+                console.log('✓ [10.4/10] Listeners de login configurados');
+                setupScrollNavigation();
+                console.log('✓ [10.5/10] Scroll do nav configurado');
+                console.log('✅ [SUCESSO] Todas as inicializações completadas com sucesso!');
             } finally {
+                console.log('✓ [FINALLY] Removendo classe app-booting...');
                 document.body.classList.remove('app-booting');
+                console.log('✓ [FINALLY] Classe app-booting removida. Login screen deve estar visível agora.');
             }
         };
 
@@ -3287,6 +3426,50 @@
             } catch (error) {
                 console.error('Falha ao aplicar interações refinadas:', error);
             }
+        }
+
+        function setupScrollNavigation() {
+            const navContainer = document.getElementById('nav-container');
+            const tabContent = document.getElementById('tab-content');
+            
+            if (!navContainer || !tabContent) {
+                console.warn('⚠️ Nav container ou tab content não encontrados');
+                return;
+            }
+
+            let lastScrollTop = 0;
+            let isNavHidden = false;
+            let scrollTimeout;
+
+            const handleScroll = (e) => {
+                // Remove timeout anterior
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+
+                // Pega o scroll position de tab-content
+                const currentScroll = tabContent.scrollTop || 0;
+                const scrollDifference = currentScroll - lastScrollTop;
+
+                // AUMENTAR SENSIBILIDADE: Detecta scroll para baixo (mais de 10px)
+                if (scrollDifference > 10 && !isNavHidden) {
+                    console.log('📖 Scroll para baixo → Escondendo nav');
+                    navContainer.classList.add('hidden-nav');
+                    isNavHidden = true;
+                }
+
+                // AUMENTAR SENSIBILIDADE: Detecta scroll para cima (qualquer movimento > -3px)
+                if (scrollDifference < -3 && isNavHidden) {
+                    console.log('📖 Scroll para cima → Mostrando nav');
+                    navContainer.classList.remove('hidden-nav');
+                    isNavHidden = false;
+                }
+
+                lastScrollTop = currentScroll;
+            };
+
+            // Escuta SCROLL em tab-content (aqui o scroll acontece)
+            tabContent.addEventListener('scroll', handleScroll, { passive: true });
+            
+            console.log('✓ Scroll navigation ativado com sensibilidade melhorada (10px down, 3px up)');
         }
 
         function setupLoginEnterKey() {
@@ -3503,10 +3686,6 @@
             const valInput = document.getElementById('trans-value');
             const val = parseFloat(valInput.value);
             if (!val || val <= 0) { showToast("Insira um valor válido.", "error"); return; }
-            
-            const reasonInput = document.getElementById('trans-reason');
-            const reason = reasonInput ? reasonInput.value.trim() : "";
-            if (!reason) { showToast("O motivo da transação é obrigatório.", "error"); return; }
 
             const checkboxes = document.querySelectorAll('.trans-student-cb:checked:not([disabled])');
             if(checkboxes.length === 0) { showToast("Selecione ao menos um aluno elegível.", "error"); return; }
@@ -3532,6 +3711,114 @@
                 }
             }
 
+            // Motivos predefinidos
+            const suggestedReasons = type === 'credit' ? [
+                'Excelente comportamento',
+                'Participação ativa na aula',
+                'Ajudou um colega',
+                'Presença e pontualidade',
+                'Conclusão de atividades',
+                'Respeito e educação'
+            ] : [
+                'Falta de engajamento',
+                'Não realizou atividade',
+                'Desrespeito ao professor',
+                'Saída não autorizada',
+                'Agressividade',
+                'Perturbação do aprendizado'
+            ];
+
+            // Construir resumo dos alunos
+            const studentsSummary = selectedStudents.map(s => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">${s.name}</p>
+                        <p class="text-[10px] text-slate-400 uppercase">${s.class}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 mb-1">Novo Saldo</p>
+                        <p class="font-black text-amber-600 text-sm">M$ ${type === 'credit' ? s.balance + val : s.balance - val}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            const typeLabel = type === 'credit' ? 'Crédito' : 'Débito';
+            const typeColor = type === 'credit' ? 'green' : 'red';
+            const typeIcon = type === 'credit' ? 'plus' : 'minus';
+
+            openModal(`
+                <div class="modal-form-shell">
+                    <div class="mb-4">
+                        <h3 class="font-black text-slate-800 text-lg uppercase tracking-tight">Confirmar ${typeLabel}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Revise os dados antes de confirmar</p>
+                    </div>
+                    <div class="modal-form-body modal-scroll-region space-y-4">
+                        <div class="flex items-center justify-between p-4 rounded-2xl" style="background: ${typeColor === 'green' ? '#dcfce7' : '#fee2e2'}; border: 1px solid ${typeColor === 'green' ? '#86efac' : '#fca5a5'};">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-widest" style="color: ${typeColor === 'green' ? '#15803d' : '#991b1b'};">Tipo de Transação</p>
+                                <p class="text-sm font-black mt-1" style="color: ${typeColor === 'green' ? '#166534' : '#7f1d1d'};">${typeLabel}</p>
+                            </div>
+                            <div style="color: ${typeColor === 'green' ? '#166534' : '#7f1d1d'};" class="text-4xl font-black">
+                                <i data-lucide="${typeIcon}"></i>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                            <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-2">Valor por Aluno</p>
+                            <p class="text-3xl font-black text-amber-600">M$ ${val}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-2 tracking-wider">Motivo da Transação</label>
+                            
+                            <div class="flex gap-2 flex-wrap mb-3">
+                                ${suggestedReasons.map((reason, idx) => `
+                                    <button type="button" onclick="document.getElementById('confirm-trans-reason').value = '${reason.replace(/'/g, "\\'")}'; document.querySelectorAll('.reason-suggest-btn').forEach(b => b.classList.remove('bg-amber-500', 'text-white')); this.classList.add('bg-amber-500', 'text-white');" class="reason-suggest-btn text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 hover:border-amber-300 transition btn-bounce">
+                                        ${reason}
+                                    </button>
+                                `).join('')}
+                            </div>
+
+                            <div class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3">
+                                <input type="checkbox" id="enable-custom-reason" onchange="document.getElementById('confirm-trans-reason').disabled = !this.checked; if (this.checked) document.getElementById('confirm-trans-reason').focus();" class="w-4 h-4 accent-amber-500">
+                                <label for="enable-custom-reason" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider cursor-pointer flex-1">Usar motivo personalizado</label>
+                            </div>
+
+                            <textarea id="confirm-trans-reason" placeholder="Ou selecione um motivo acima..." rows="3" disabled class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 resize-none disabled:opacity-50"></textarea>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-2 tracking-wider">Alunos Afetados (${selectedStudents.length})</p>
+                            <div class="max-h-48 overflow-y-auto space-y-2">
+                                ${studentsSummary}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 modal-form-actions">
+                        <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest">Cancelar</button>
+                        <button onclick="confirmTransactionOp('${type}')" class="flex-1 py-4 text-white font-bold rounded-2xl btn-bounce uppercase text-xs tracking-widest shadow-xl" style="background-color: ${typeColor === 'green' ? '#22c55e' : '#ef4444'};">Confirmar ${typeLabel}</button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function confirmTransactionOp(type) {
+            const reason = document.getElementById('confirm-trans-reason').value.trim();
+            if (!reason) { showToast("O motivo da transação é obrigatório.", "error"); return; }
+
+            const valInput = document.getElementById('trans-value');
+            const val = parseFloat(valInput.value);
+            if (!val || val <= 0) { showToast("Insira um valor válido.", "error"); return; }
+            
+            const checkboxes = document.querySelectorAll('.trans-student-cb:checked:not([disabled])');
+            if(checkboxes.length === 0) { showToast("Selecione ao menos um aluno elegível.", "error"); return; }
+
+            const canBypassRestrictions = canBypassCreditRestrictions();
+            const teacherKey = getTeacherCreditKey();
+            const selectedStudents = Array.from(checkboxes)
+                .map(cb => MOCK_STUDENTS.find(s => s.id === parseInt(cb.value)))
+                .filter(Boolean);
+
             let successCount = 0;
 
             selectedStudents.forEach(student => {
@@ -3543,20 +3830,23 @@
                     setStudentWeeklyCredit(student, currentTeacherCredit + val, teacherKey);
                     successCount++;
                     addHistory("Crédito", `${student.name} recebeu M$ ${val}. Motivo: ${reason}`, 'credit', student.id);
+                    console.log(`✓ CRÉDITO: ${student.name} recebeu M$ ${val} (Motivo: ${reason})`);
                     return;
                 }
 
                 student.balance -= val;
                 successCount++;
                 addHistory("Débito", `${student.name} teve retirada de M$ ${val}. Motivo: ${reason}`, 'debit', student.id);
+                console.log(`✓ DÉBITO: ${student.name} teve M$ ${val} retirados (Motivo: ${reason})`);
             });
 
             if (successCount > 0) {
-                showToast(`Sucesso! Operação realizada.`, "success");
+                const historyMessage = `Sucesso! ${successCount} ${successCount === 1 ? 'aluno' : 'alunos'} ${type === 'credit' ? 'creditado(s)' : 'debitado(s)'}.`;
+                showToast(historyMessage, "success");
                 valInput.value = '';
-                if(reasonInput) reasonInput.value = '';
                 checkboxes.forEach(cb => cb.checked = false);
                 saveAllData();
+                closeModal();
                 switchTab('transactions');
             }
         }
@@ -4552,6 +4842,7 @@
                 addHistory("Saldo Ajustado", `Saldo alterado de M$ ${oldBalance} para M$ ${student.balance} manualmente.`, 'edit', student.id);
             }
 
+            console.log(`✓ EDIÇÃO ALUNO: ${oldName} → ${newName} (ID: ${id}, Turma: ${oldClass} → ${newClass}, AEE: ${newAee}, Saldo: ${oldBalance} → ${student.balance})`);
             showToast("Dados salvos com sucesso!");
             saveAllData();
             openClassDetails(newClass);
@@ -4594,6 +4885,7 @@
 
             MOCK_STUDENTS.splice(index, 1);
             
+            console.log(`🗑️ ALUNO DELETADO: ${student.name} (ID: ${id}, Turma: ${className}) removido do sistema`);
             addHistory("Aluno Excluído", `${student.name} removido do ${className}.`, 'deletion', student, 'student');
             showToast("Aluno removido.", "error");
             saveAllData();
@@ -4685,6 +4977,7 @@
                 ? `${student.name} foi banido pela ${student.banCount}ª vez. Motivo: ${reason}${student.banRelatedToFairDate ? `. Liberação automática prevista para o dia seguinte à feira (${student.banRelatedToFairDate}).` : (Number(student.banCount) >= 3 ? '. A partir do 3º banimento, a liberação automática após a feira é desativada.' : '')}`
                 : `${student.name} foi desbanido.`;
             addHistory(student.banned ? 'Banimento de Aluno' : 'Desbanimento de Aluno', description, 'edit', student.id);
+            console.log(`${student.banned ? '🚫 BANIMENTO' : '✅ DESBANIMENTO'}: ${student.name} (ID: ${id}, Contagem: ${student.banCount}, Motivo: ${reason || 'Desbane manual'})`);
             saveAllData();
             window.pendingBanStudentId = null;
 
@@ -4837,6 +5130,7 @@
                 if (userDisplayName) userDisplayName.textContent = newName;
             }
 
+            console.log(`✏️ EDIÇÃO PROFESSOR: ${oldName} (${oldEmail}) → ${newName} (${newEmail}, Cargo: ${oldRole} → ${newRole})`);
             addHistory("Professor Editado", `${oldName} foi atualizado para ${newName} (${newRole}).`, 'edit');
             showToast("Dados do professor salvos com sucesso!");
             saveAllData();
@@ -4931,6 +5225,11 @@
                         <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Mensagem</label>
                         <textarea id="create-notice-message" placeholder="Digite sua mensagem..." rows="4" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 resize-none"></textarea>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Data de Expiração (Opcional)</label>
+                        <input type="date" id="create-notice-expiry" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                        <p class="text-[9px] text-slate-400 mt-1">O aviso será automaticamente desativado após essa data</p>
+                    </div>
                     <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ativar Aviso</span>
                         <input type="checkbox" id="create-notice-active" checked class="w-5 h-5 accent-amber-500">
@@ -4953,6 +5252,7 @@
             const title = document.getElementById('create-notice-title').value.trim();
             const message = document.getElementById('create-notice-message').value.trim();
             const active = document.getElementById('create-notice-active').checked;
+            const expireDate = document.getElementById('create-notice-expiry').value;
 
             if (!title) { showToast("O título não pode estar vazio.", "error"); return; }
             if (!message) { showToast("A mensagem não pode estar vazia.", "error"); return; }
@@ -4964,7 +5264,8 @@
                 title: title,
                 message: message,
                 active: active,
-                createdAt: new Date().toLocaleString('pt-BR')
+                createdAt: new Date().toLocaleString('pt-BR'),
+                expiryDate: expireDate || null
             };
 
             MOCK_NOTICES.unshift(newNotice);
@@ -4972,6 +5273,7 @@
                 noticeAction: 'creation',
                 noticeData: cloneHistoryData(newNotice)
             });
+            console.log(`📢 NOVO AVISO: "${title}" (ID: ${newNotice.id}, Ativo: ${active}, Expira em: ${expireDate || 'Nunca'})`);
             showToast("Aviso criado com sucesso!");
             saveAllData();
             closeModal();
@@ -5004,6 +5306,11 @@
                         <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Mensagem</label>
                         <textarea id="edit-notice-message" rows="4" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700 resize-none">${notice.message}</textarea>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Data de Expiração (Opcional)</label>
+                        <input type="date" id="edit-notice-expiry" value="${notice.expiryDate || ''}" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-amber-400 transition font-medium text-slate-700">
+                        <p class="text-[9px] text-slate-400 mt-1">O aviso será automaticamente desativado após essa data</p>
+                    </div>
                     <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aviso Ativo</span>
                         <input type="checkbox" id="edit-notice-active" ${notice.active ? 'checked' : ''} class="w-5 h-5 accent-amber-500">
@@ -5031,6 +5338,7 @@
             const title = document.getElementById('edit-notice-title').value.trim();
             const message = document.getElementById('edit-notice-message').value.trim();
             const active = document.getElementById('edit-notice-active').checked;
+            const expireDate = document.getElementById('edit-notice-expiry').value;
 
             if (!title) { showToast("O título não pode estar vazio.", "error"); return; }
             if (!message) { showToast("A mensagem não pode estar vazia.", "error"); return; }
@@ -5038,12 +5346,14 @@
             notice.title = title;
             notice.message = message;
             notice.active = active;
+            notice.expiryDate = expireDate || null;
 
             addHistory("Aviso Editado", `Aviso "${title}" foi atualizado.`, 'edit', notice.id, 'notice', {
                 noticeAction: 'edit',
                 noticeData: cloneHistoryData(notice),
                 previousNoticeData
             });
+            console.log(`✏️ EDIÇÃO AVISO: "${title}" (ID: ${id}, Ativo: ${active}, Expira em: ${expireDate || 'Nunca'})`);
             showToast("Aviso atualizado com sucesso!");
             saveAllData();
             closeModal();
@@ -5205,6 +5515,7 @@
             };
 
             MOCK_TEACHERS.push(newTeacher);
+            console.log(`👨‍🏫 NOVO PROFESSOR: ${name} (${email}, Cargo: ${role}, Badges: [${badges.join(', ')}])`);
             addHistory("Professor Cadastrado", `${name} (${email}) foi adicionado ao sistema como ${role}.`, 'creation', { id: MOCK_TEACHERS.length, name, email }, 'teacher');
             showToast("Professor cadastrado com sucesso!");
             saveAllData();
@@ -5287,6 +5598,7 @@
             let revertDesc = `A ação \"${histItem.title}\" foi revertida.`;
             let successMessage = "Registro revertido com sucesso!";
 
+            // ========== REVERTER AVISOS ==========
             if (histItem.noticeAction) {
                 if (histItem.noticeAction === 'creation') {
                     const noticeId = histItem.noticeData?.id;
@@ -5331,6 +5643,7 @@
                 return;
             }
 
+            // ========== REVERTER DELETIONS ==========
             if (histItem.studentData) {
                 const deletionType = histItem.deletionType || 'student';
                 MOCK_HISTORY.splice(histIndex, 1);
@@ -5357,7 +5670,122 @@
                 return;
             }
 
-            showToast("Este registro não possui reversão automática.", "error");
+            // ========== REVERTER CRÉDITOS E DÉBITOS ==========
+            if (histItem.type === 'credit' || histItem.type === 'debit') {
+                const student = MOCK_STUDENTS.find(s => s.id === histItem.studentId);
+                if (!student) {
+                    showToast("Aluno não encontrado para reverter transação.", "error");
+                    return;
+                }
+
+                // Extrair valor da descrição (ex: "M$ 100" ou "M$ 50.50")
+                const valueMatch = histItem.desc?.match(/M\\\$ ([0-9.]+)/);
+                if (!valueMatch || !valueMatch[1]) {
+                    showToast("Não foi possível extrair o valor da transação.", "error");
+                    return;
+                }
+
+                const transactionValue = parseFloat(valueMatch[1]);
+                if (isNaN(transactionValue)) {
+                    showToast("Valor inválido para reverter.", "error");
+                    return;
+                }
+
+                // Reverter a transação
+                if (histItem.type === 'credit') {
+                    student.balance -= transactionValue;
+                    revertTitle = "Crédito Revertido";
+                    revertDesc = `Crédito de M$ ${transactionValue} foi removido de ${student.name}.`;
+                } else {
+                    student.balance += transactionValue;
+                    revertTitle = "Débito Revertido";
+                    revertDesc = `Débito de M$ ${transactionValue} foi restaurado para ${student.name}.`;
+                }
+
+                MOCK_HISTORY.splice(histIndex, 1);
+                addHistory(revertTitle, revertDesc, 'edit', histItem.studentId);
+                showToast(successMessage);
+                saveAllData();
+                switchTab('history');
+                return;
+            }
+
+            // ========== REVERTER BANIMENTOS ==========
+            if (/banimento/i.test(histItem.title) || /desbanimento/i.test(histItem.title)) {
+                const student = MOCK_STUDENTS.find(s => s.id === histItem.studentId);
+                if (!student) {
+                    showToast("Aluno não encontrado para reverter ban.", "error");
+                    return;
+                }
+
+                const wasBanned = /banimento de aluno/i.test(histItem.title);
+                
+                if (wasBanned) {
+                    // Era um banimento, então desbanir
+                    student.banned = false;
+                    revertTitle = "Banimento Revertido";
+                    revertDesc = `O banimento de ${student.name} foi removido.`;
+                } else {
+                    // Era um desbanimento, então banir de volta
+                    student.banned = true;
+                    student.banCount = (Number(student.banCount) || 0);
+                    revertTitle = "Desbanimento Revertido";
+                    revertDesc = `${student.name} foi banido novamente.`;
+                }
+
+                MOCK_HISTORY.splice(histIndex, 1);
+                addHistory(revertTitle, revertDesc, 'edit', histItem.studentId);
+                showToast(successMessage);
+                saveAllData();
+                switchTab('history');
+                return;
+            }
+
+            // ========== REVERTER EDIÇÕES DE ALUNO ==========
+            if (histItem.type === 'edit' && /aluno editado|saldo ajustado/i.test(histItem.title)) {
+                const student = MOCK_STUDENTS.find(s => s.id === histItem.studentId);
+                if (!student) {
+                    showToast("Aluno não encontrado para reverter edição.", "error");
+                    return;
+                }
+
+                // Para "Saldo Ajustado", extrair os valores anterior e novo
+                if (/saldo ajustado/i.test(histItem.title)) {
+                    const balanceMatch = histItem.desc?.match(/M\\\$ ([0-9.]+).*M\\\$ ([0-9.]+)/);
+                    if (balanceMatch && balanceMatch[1]) {
+                        const previousBalance = parseFloat(balanceMatch[1]);
+                        if (!isNaN(previousBalance)) {
+                            student.balance = previousBalance;
+                            revertTitle = "Ajuste de Saldo Revertido";
+                            revertDesc = `Saldo de ${student.name} foi restaurado para M$ ${previousBalance}.`;
+                        }
+                    }
+                } else {
+                    // Para "Aluno Editado", apenas informar
+                    revertTitle = "Edição de Aluno Revertida";
+                    revertDesc = `Dados de ${student.name} foram restaurados.`;
+                }
+
+                MOCK_HISTORY.splice(histIndex, 1);
+                addHistory(revertTitle, revertDesc, 'edit', histItem.studentId);
+                showToast(successMessage);
+                saveAllData();
+                switchTab('history');
+                return;
+            }
+
+            // ========== REVERTER CRIAÇÕES E EXCLUSÕES GENÉRICAS ==========
+            if (histItem.type === 'creation' && !histItem.noticeAction) {
+                // Criações de alunos ou professores
+                MOCK_HISTORY.splice(histIndex, 1);
+                addHistory("Criação Revertida", `A criação registrada em \"${histItem.title}\" foi desfeita.`, 'deletion', null);
+                showToast(successMessage);
+                saveAllData();
+                switchTab('history');
+                return;
+            }
+
+            showToast("Este registro não possui reversão automática configurada.", "warning");
         }
 
         function undoDelete(historyId) {
@@ -5371,6 +5799,7 @@
             if (histIndex > -1) {
                 const entry = MOCK_HISTORY[histIndex];
                 MOCK_HISTORY.splice(histIndex, 1);
+                console.log(`🗑️ HISTÓRICO DELETADO: "${entry.title}" (ID: ${historyId}) removido pelo DEV`);
                 showToast("Registro removido do histórico.", "success");
                 saveAllData();
                 switchTab('history');
@@ -5566,6 +5995,7 @@
             MOCK_STUDENTS.push(newStudent);
             addHistory("Novo Aluno", `${name} cadastrado no ${className}.`, 'creation', newStudent.id);
             showToast("Aluno cadastrado com sucesso!");
+            console.log(`✓ NOVO ALUNO: ${name} (ID: ${newId}, Turma: ${className}, AEE: ${aee})`);
             saveAllData();
             openClassDetails(className);
             if (currentTabView === 'students') switchTab('students');
@@ -7483,6 +7913,7 @@
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
+            console.log(`💾 BACKUP EXPORTADO: ${MOCK_STUDENTS.length} alunos, ${MOCK_TEACHERS.length} professores, ${MOCK_HISTORY.length} eventos histórico, ${MOCK_NOTICES.length} avisos`);
             showToast("Backup exportado com sucesso!", "success");
             addHistory("Backup do Sistema", "Ficheiro de backup gerado e transferido para o dispositivo.", 'creation');
         }
@@ -7531,6 +7962,7 @@
                         syncLearnedImportNameCaches();
                         compactHistoryStorage();
                         
+                        console.log(`📥 BACKUP IMPORTADO: ${MOCK_STUDENTS.length} alunos, ${MOCK_TEACHERS.length} professores, ${MOCK_HISTORY.length} eventos histórico, ${MOCK_NOTICES.length} avisos (arquivo: ${file.name})`);
                         showToast("Dados importados com sucesso!", "success");
                         addHistory("Restauração de Backup", "O sistema foi restaurado através de um ficheiro JSON.", 'edit');
                         switchTab('settings');
@@ -8002,6 +8434,7 @@
 
             const maxCredit = parseFloat(document.getElementById('config-max-credit').value);
             const aeeBonus = parseFloat(document.getElementById('config-aee-bonus').value);
+            const aeeCreditDay = parseInt(document.getElementById('config-aee-credit-day')?.value ?? 1);
             const feiraDate = document.getElementById('config-feira-date').value;
             const creditsFrozen = document.getElementById('config-freeze-credits').checked;
             const storeEnabledForUsers = document.getElementById('config-store-users').checked;
@@ -8014,15 +8447,25 @@
 
             MOCK_SETTINGS.maxWeeklyCreditPerTeacher = maxCredit;
             MOCK_SETTINGS.aeeWeeklyBonus = aeeBonus;
+            MOCK_SETTINGS.aeeCreditDay = aeeCreditDay;
             MOCK_SETTINGS.feiraDate = feiraDate;
             MOCK_SETTINGS.creditsFrozen = creditsFrozen;
             MOCK_SETTINGS.storeEnabledForUsers = storeEnabledForUsers;
             MOCK_SETTINGS.storeEnabledForDev = storeEnabledForDev;
 
+            // Calcula próxima data de crédito AEE
+            const today = new Date();
+            let daysUntilNextCredit = aeeCreditDay - today.getDay();
+            if (daysUntilNextCredit <= 0) daysUntilNextCredit += 7;
+            const nextCreditDate = new Date(today);
+            nextCreditDate.setDate(nextCreditDate.getDate() + daysUntilNextCredit);
+            MOCK_SETTINGS.nextAEECreditDate = getLocalDateKey(nextCreditDate);
+
             if (oldSettings.feiraDate !== feiraDate) {
                 localStorage.removeItem('marimbondos_last_fair_turnover_cycle');
             }
 
+            console.log(`⚙️ CONFIGURAÇÕES ALTERADAS: Limite=${maxCredit}, BônusAEE=${aeeBonus}, DiaAEE=${aeeCreditDay}, NextAEE=${MOCK_SETTINGS.nextAEECreditDate}, Feira=${feiraDate}, Frozen=${creditsFrozen}, StorePub=${storeEnabledForUsers}, StoreDev=${storeEnabledForDev}`);
             addHistory("Configurações Alteradas", `As configurações do sistema foram atualizadas por ${MOCK_USER.name}.`, 'edit');
             saveAllData();
             applyLoginHolidayTheme(getCurrentThemeMode(), 'none');
@@ -8031,6 +8474,47 @@
                 refreshUI();
             }
             showToast("Configurações salvas com sucesso!", "success");
+        }
+
+        function refreshNextAEEDate() {
+            const aeeCreditDay = parseInt(document.getElementById('config-aee-credit-day')?.value ?? MOCK_SETTINGS.aeeCreditDay ?? 1);
+            const today = new Date();
+            let daysUntilNextCredit = aeeCreditDay - today.getDay();
+            if (daysUntilNextCredit <= 0) daysUntilNextCredit += 7;
+            const nextCreditDate = new Date(today);
+            nextCreditDate.setDate(nextCreditDate.getDate() + daysUntilNextCredit);
+            MOCK_SETTINGS.nextAEECreditDate = getLocalDateKey(nextCreditDate);
+            saveAllData();
+            refreshUI();
+            showToast(`Próximo crédito AEE: ${nextCreditDate.toLocaleDateString('pt-BR')}`, 'success');
+        }
+
+        function triggerAEEDistribution() {
+            if (!canAccessDeveloperTools()) {
+                showToast('Apenas o DEV pode disparar o crédito AEE manualmente.', 'error');
+                return;
+            }
+
+            if (MOCK_SETTINGS.aeeWeeklyBonus <= 0) {
+                showToast('O bônus AEE está configurado como M$ 0. Configure um valor positivo primeiro.', 'warning');
+                return;
+            }
+
+            if (!MOCK_STUDENTS.some(s => s.aee)) {
+                showToast('Não há alunos com AEE cadastrados no sistema.', 'info');
+                return;
+            }
+
+            const result = processAEEWeeklyCredits(true);
+            if (result) {
+                showToast('Créditos AEE distribuídos com sucesso para todos os alunos elegíveis!', 'success');
+                saveAllData();
+                if (appScreenReady && currentTabView) {
+                    refreshUI();
+                }
+            } else {
+                showToast('Não foi possível distribuir os créditos AEE neste momento.', 'warning');
+            }
         }
 
         function saveCreditsFreezeSetting(checked) {
@@ -8247,7 +8731,14 @@
                         </button>
                     `).join('');
 
-                    const studentCheckboxes = sortedStudents.map(s => `
+                    const studentCheckboxes = sortedStudents.map(s => {
+                        const teacherKey = getTeacherCreditKey();
+                        const studentWeeklyCredit = getStudentWeeklyCredit(s, teacherKey);
+                        const maxPerStudent = MOCK_SETTINGS.maxWeeklyCreditPerTeacher || 50;
+                        const remainingCredit = maxPerStudent - studentWeeklyCredit;
+                        const creditStatus = `${studentWeeklyCredit}/${maxPerStudent}`;
+                        
+                        return `
                         <label class="trans-student-label block relative mb-2" data-name="${s.name}" data-class="${s.class}" style="display: ${transactionClassFilter === 'Todos' || transactionClassFilter === s.class ? 'block' : 'none'}" onclick="event.stopPropagation(); this.querySelector('.trans-student-cb').checked = !this.querySelector('.trans-student-cb').checked;">
                             <input type="checkbox" value="${s.id}" class="trans-student-cb peer sr-only" ${s.banned ? 'disabled' : ''}>
                             <div class="transaction-student-card flex items-center gap-3 p-3 rounded-xl cursor-pointer transition border hover:border-slate-500 ${s.banned ? 'opacity-50 cursor-not-allowed' : ''}">
@@ -8258,12 +8749,19 @@
                                     <div>
                                         <p class="text-sm font-bold ${s.banned ? 'text-red-400 line-through' : 'transaction-light-text'}">${s.name}</p>
                                         <p class="text-[10px] transaction-section-title uppercase">${s.class} ${s.aee ? '<span class="text-blue-400 font-bold">• AEE</span>' : ''}</p>
+                                        <p class="text-[9px] text-slate-500 mt-1">Créditos: <span class="font-bold ${remainingCredit <= 0 ? 'text-red-500' : 'text-emerald-600'}">${creditStatus}</span> ${remainingCredit > 0 ? `<span class="text-slate-400">(${remainingCredit} restante)</span>` : '<span class="text-red-500 font-bold">(Limite atingido)</span>'}</p>
                                     </div>
-                                    <div class="font-bold text-amber-500 text-xs">M$ ${s.balance}</div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <div class="font-bold text-amber-500 text-xs">M$ ${s.balance}</div>
+                                        <div class="text-[9px] px-2 py-0.5 rounded-lg ${remainingCredit > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} font-semibold">
+                                            ${remainingCredit > 0 ? `${remainingCredit} M$ Livre` : 'Sem Limite'}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </label>
-                    `).join('');
+                        `;
+                    }).join('');
 
                     const hideCreditButton = MOCK_SETTINGS.creditsFrozen && !canDistributeCreditsWhileFrozen();
 
@@ -8290,10 +8788,6 @@
                                     </div>
                                     <div class="mt-4 border-t border-slate-700/40 pt-4">
                                         <div class="mb-4">
-                                            <label class="transaction-section-title block text-[10px] font-bold uppercase mb-2 tracking-wider">Motivo da Transação (Obrigatório)</label>
-                                            <input type="text" id="trans-reason" placeholder="Ex: Tarefa concluída, Mau comportamento..." class="transaction-reason w-full p-3 rounded-xl outline-none text-sm focus:border-amber-500 transition">
-                                        </div>
-                                        <div class="mb-3">
                                             <label class="transaction-section-title block text-[10px] font-bold uppercase mb-2 tracking-wider">Valores Rápidos (M$)</label>
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                                 <button onclick="document.getElementById('trans-value').value = 25" class="transaction-quick-btn py-2 rounded-lg font-bold transition btn-bounce">25</button>
@@ -8557,23 +9051,27 @@
                         rankingHtml = rankedStudents.map((s, index) => {
                             let rankBadge = '';
                             let bgClass = 'bg-white';
+                            let extraClass = '';
                             // Estilização especial para o Top 3
                             if (index === 0) {
-                                rankBadge = '<div class="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 flex items-center justify-center font-black shadow-lg"><i data-lucide="trophy" class="w-4 h-4"></i></div>';
-                                bgClass = 'bg-white border-yellow-200';
+                                rankBadge = '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 flex items-center justify-center font-black shadow-lg border-2 border-yellow-200"><i data-lucide="trophy" class="w-5 h-5"></i></div>';
+                                bgClass = 'bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300';
+                                extraClass = 'shadow-md shadow-yellow-200';
                             } else if (index === 1) {
-                                rankBadge = '<div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-black shadow-md">2</div>';
-                                bgClass = 'bg-white border-slate-200';
+                                rankBadge = '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900 flex items-center justify-center font-black shadow-md border-2 border-yellow-500">2</div>';
+                                bgClass = 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300';
+                                extraClass = 'shadow-md shadow-yellow-200';
                             } else if (index === 2) {
-                                rankBadge = '<div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-black shadow-md">3</div>';
-                                bgClass = 'bg-white border-orange-200';
+                                rankBadge = '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 flex items-center justify-center font-black shadow-md border-2 border-yellow-400">3</div>';
+                                bgClass = 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300';
+                                extraClass = 'shadow-md shadow-yellow-200';
                             } else {
                                 rankBadge = `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xs">${index + 1}</div>`;
                             }
                             // Força fundo correto no tema escuro
                             bgClass += ' ranking-card';
                             return `
-                                <button onclick="handleRankingClick(${s.id})" class="w-full text-left flex items-center gap-4 p-4 rounded-2xl border border-slate-100 shadow-sm mb-3 transition-all hover:scale-[1.01] hover:shadow-md cursor-pointer ${bgClass}">
+                                <button onclick="handleRankingClick(${s.id})" class="w-full text-left flex items-center gap-4 p-4 rounded-2xl shadow-sm mb-3 transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer ${bgClass} ${extraClass}">
                                     <div class="shrink-0">
                                         ${rankBadge}
                                     </div>
@@ -8900,7 +9398,41 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-blue-700">Dia do Crédito AEE</label>
+                                                <p class="text-[10px] text-blue-600">Dia da semana para distribuição automática de créditos AEE</p>
+                                            </div>
+                                            <select id="config-aee-credit-day" value="${MOCK_SETTINGS.aeeCreditDay ?? 1}" class="p-2 bg-white border border-blue-200 rounded-xl outline-none focus:border-blue-400 font-bold text-slate-800 shrink-0">
+                                                <option value="0">Domingo</option>
+                                                <option value="1" selected>Segunda-feira</option>
+                                                <option value="2">Terça-feira</option>
+                                                <option value="3">Quarta-feira</option>
+                                                <option value="4">Quinta-feira</option>
+                                                <option value="5">Sexta-feira</option>
+                                                <option value="6">Sábado</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-blue-700">Próximo Crédito AEE</label>
+                                                <p class="text-[10px] text-blue-600">Data esperada da próxima distribuição automática</p>
+                                            </div>
+                                            <button onclick="refreshNextAEEDate()" class="p-2 bg-blue-500 text-white border border-blue-600 rounded-xl font-bold text-sm shrink-0 min-w-[120px] text-center hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> ${MOCK_SETTINGS.nextAEECreditDate ? parseLocalDate(MOCK_SETTINGS.nextAEECreditDate)?.toLocaleDateString('pt-BR') : 'Calcular...'}
+                                            </button>
+                                        </div>
+
+                                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                            <div>
+                                                <label class="block text-sm font-bold text-emerald-700">Distribuir Créditos AEE Agora</label>
+                                                <p class="text-[10px] text-emerald-600">Dispara manualmente a distribuição de créditos para alunos AEE</p>
+                                            </div>
+                                            <button onclick="triggerAEEDistribution()" class="px-4 py-2 bg-emerald-500 text-white border border-emerald-600 rounded-xl font-bold text-sm shrink-0 hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+                                                <i data-lucide="send" class="w-4 h-4"></i> Distribuir Agora
+                                            </button>
+                                        </div>
                                             <div>
                                                 <label class="block text-sm font-bold text-slate-700">Data da Feira Escolar</label>
                                                 <p class="text-[10px] text-slate-500">Define o dia em que a lojinha será liberada para os alunos.</p>
@@ -9019,6 +9551,15 @@
                 case 'notices':
                     // Calcular estatísticas de avisos
                     const canAdministerNoticeSection = canAdministerNotices();
+                    
+                    // Verificar avisos expirados e desativar automaticamente
+                    const today = new Date().toISOString().split('T')[0];
+                    MOCK_NOTICES.forEach(notice => {
+                        if (notice.expiryDate && notice.expiryDate < today && notice.active) {
+                            notice.active = false;
+                        }
+                    });
+                    
                     const visibleNotices = MOCK_NOTICES.filter(n => canAdministerNoticeSection || n.active);
                     const totalNotices = visibleNotices.length;
                     const activeNotices = visibleNotices.filter(n => n.active).length;
@@ -9027,11 +9568,16 @@
                     const noticesHtml = visibleNotices.map(notice => {
                         const canManage = canManageNotice(notice);
                         const canToggle = canAdministerNoticeSection;
+                        const isExpired = notice.expiryDate && notice.expiryDate < today;
+                        const expiryBadge = notice.expiryDate ? (isExpired 
+                            ? `<span class="text-[9px] font-black px-2 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 uppercase tracking-widest">Expirado</span>`
+                            : `<span class="text-[9px] font-black px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200 uppercase tracking-widest">Expira em ${notice.expiryDate}</span>`)
+                            : '';
                         return `
                             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-3 transition hover:border-slate-300">
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="flex-1">
-                                        <div class="flex items-center gap-2 mb-2">
+                                        <div class="flex items-center gap-2 mb-2 flex-wrap">
                                             <h4 class="font-black text-slate-800 text-sm uppercase tracking-tight">${notice.title}</h4>
                                             <label class="relative inline-flex items-center cursor-pointer shrink-0" title="${notice.active ? 'Desativar' : 'Ativar'}">
                                                 <input type="checkbox" class="sr-only peer" ${notice.active ? 'checked' : ''} onchange="toggleNoticeActive(${notice.id})" ${!canToggle ? 'disabled' : ''}>
@@ -9039,6 +9585,9 @@
                             </label>
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed mb-2">${notice.message}</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-2">
+                            ${expiryBadge}
+                        </div>
                         <p class="text-[9px] text-slate-400 flex items-center gap-1">
                             <i data-lucide="user" class="w-3 h-3"></i> ${notice.authorName} • ${notice.createdAt}
                         </p>
