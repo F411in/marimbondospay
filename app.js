@@ -8,14 +8,6 @@
                 this.dbInitPromise = null; // inicialização adiada para melhorar tempo de boot
             }
 
-            // Garante inicialização lazy do IndexedDB quando necessário
-            ensureInit() {
-                if (!this.dbInitPromise) {
-                    this.dbInitPromise = this.initIndexedDB();
-                }
-                return this.dbInitPromise;
-            }
-
             initIndexedDB() {
                 if (!('indexedDB' in window)) {
                     console.warn('IndexedDB não disponível, usando localStorage');
@@ -175,6 +167,18 @@
                     console.error('Erro ao limpar localStorage:', err);
                 }
             }
+
+            ensureInit() {
+                if (this.dbInitPromise) return this.dbInitPromise;
+                this.dbInitPromise = this.initIndexedDB().then(db => {
+                    this.db = db || this.db;
+                    return this.db;
+                }).catch(err => {
+                    this.dbInitPromise = null;
+                    throw err;
+                });
+                return this.dbInitPromise;
+            }
         }
 
         const persistence = new DataPersistence();
@@ -239,6 +243,8 @@
         let firebaseSyncInFlight = false;
         let firebaseSyncRetryRequested = false;
         const FIREBASE_SYNC_DEBOUNCE_MS = 450;
+        // Limite aproximado para evitar 'Write too large' do RTDB (em chars do JSON)
+        const FIREBASE_WRITE_LIMIT = 230000; // ~230KB
         const FIREBASE_SAVE_TIMEOUT_MS = 12000;
         const FIREBASE_SYNC_MANIFEST_KEY = 'sync_manifest';
         const FIREBASE_STATE_SEGMENT_KEYS = ['settings', 'students', 'teachers', 'history', 'studentHistoryArchive', 'loginActivity', 'notices', 'storeItems', 'learnedImportNames', 'counters'];
@@ -251,6 +257,38 @@
             lastWarningAt: 0,
             hasPendingRecoveryNotice: false
         };
+
+// --- DEBUG: proteção contra loops de reload acidentais ---
+try {
+    (function installReloadGuard() {
+        if (!window || !window.location) return;
+        const originalReload = window.location.reload.bind(window.location);
+        let reloadCount = 0;
+        let firstReloadAt = 0;
+        const WINDOW_MS = 15000; // janela para contar reloads
+        window.location.reload = function guardedReload() {
+            try {
+                const now = Date.now();
+                if (!firstReloadAt || (now - firstReloadAt) > WINDOW_MS) {
+                    firstReloadAt = now;
+                    reloadCount = 0;
+                }
+                reloadCount++;
+                console.warn(`guardedReload: chamada de reload #${reloadCount} dentro de ${WINDOW_MS}ms`);
+                // se demasiadas recargas em curto período, abortar para evitar loop
+                if (reloadCount > 3) {
+                    console.error('guardedReload: bloqueando reload automático para evitar loop. Abra o console para diagnosticar.');
+                    // registrar stack para diagnóstico
+                    try { throw new Error('Reload blocked for diagnostics'); } catch (e) { console.error(e.stack); }
+                    return;
+                }
+                return originalReload();
+            } catch (e) {
+                console.error('guardedReload: falha ao executar reload original', e);
+            }
+        };
+    })();
+} catch (e) { console.warn('Não foi possível instalar reload guard:', e); }
 
         function normalizeFirebasePathSegment(segment) {
             if (!segment || typeof segment !== 'string') return 'local';
@@ -279,6 +317,107 @@
             });
         }
 
+        // Retry helper with exponential backoff and jitter
+        async function withRetry(fn, attempts = 4, baseDelayMs = 300) {
+            let lastErr = null;
+            for (let i = 0; i < attempts; i++) {
+                try {
+                    return await fn();
+                } catch (err) {
+                    lastErr = err;
+                    const backoff = Math.round(baseDelayMs * Math.pow(2, i) + Math.random() * 100);
+                    console.warn(`withRetry: attempt ${i + 1} failed, retrying in ${backoff}ms`, err && err.message ? err.message : err);
+                    await new Promise(res => setTimeout(res, backoff));
+                }
+            }
+            // todas as tentativas falharam
+            throw lastErr;
+        }
+
+            // Debug helper: log payload size (accepts object or string)
+            function debugLogPayload(context, payload) {
+                try {
+                    const s = typeof payload === 'string' ? payload : JSON.stringify(payload || {});
+                    console.debug(`payload-size | ${context} | bytes:${s.length}`);
+                    return s.length;
+                } catch (e) {
+                    console.debug(`payload-size | ${context} | unable to compute size`, e && e.message ? e.message : e);
+                    return -1;
+                }
+            }
+
+            // Safe DB set: if payload is too large, upload to Storage and write a reference instead
+            async function safeDbSet(path, obj, storageFolder = 'backups/auto') {
+                try {
+                    const serialized = JSON.stringify(obj || {});
+                    debugLogPayload(`safeDbSet:${path}`, serialized);
+                    if (serialized.length > FIREBASE_WRITE_LIMIT) {
+                        // upload to Storage and write reference
+                        const storageKey = `${storageFolder}/${path.replace(/[^a-zA-Z0-9_\-]/g,'_')}-${Date.now()}.json`;
+                        const uploaded = await uploadLargePayloadToStorage(storageKey, serialized);
+                        const refObj = { _storageRef: uploaded.path, _storageUrl: uploaded.url, _storageSize: serialized.length };
+                        await withRetry(() => withAsyncTimeout(db.ref(path).set(refObj), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                        console.log(`safeDbSet: uploaded large payload for ${path} to Storage (${serialized.length} bytes)`);
+                        return { storage: true, path: uploaded.path, url: uploaded.url };
+                    }
+                    await withRetry(() => withAsyncTimeout(db.ref(path).set(obj), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                    return { storage: false };
+                } catch (e) {
+                    console.warn('safeDbSet: erro ao gravar, tentando set direto', e && e.message ? e.message : e);
+                    // última tentativa: set direto (poderá falhar se for write too large)
+                    await withRetry(() => withAsyncTimeout(db.ref(path).set(obj), FIREBASE_SAVE_TIMEOUT_MS), 3, 500);
+                    return { storage: false, fallback: true };
+                }
+            }
+        // Upload large JSON string to Firebase Storage and return { path, url }
+        async function uploadLargePayloadToStorage(storagePath, jsonString) {
+                    // Prefer real Firebase Storage when available
+                    if (typeof firebase !== 'undefined' && firebase.storage) {
+                        try {
+                            const blob = new Blob([jsonString], { type: 'application/json' });
+                            const ref = firebase.storage().ref().child(storagePath);
+                            const uploadTask = () => ref.put(blob);
+                            const snap = await withRetry(() => uploadTask(), 3, 500);
+                            const url = await withRetry(() => snap.ref.getDownloadURL(), 3, 300);
+                            return { path: storagePath, url };
+                        } catch (e) {
+                            console.warn('uploadLargePayloadToStorage: Firebase Storage attempt failed, falling back to RTDB parts', e && e.message ? e.message : e);
+                            // fall through to RTDB fallback
+                        }
+                    } else {
+                        console.warn('uploadLargePayloadToStorage: Firebase Storage not available, using RTDB fallback');
+                    }
+
+                    // Fallback: save the JSON into the Realtime Database in parts so we don't rely on Storage
+                    if (!db) throw new Error('RTDB não disponível para fallback de storage');
+                    const sanitized = storagePath.replace(/[^a-zA-Z0-9_\-]/g, '_');
+                    const basePath = `marimbondos/storage_fallback/${sanitized}-${Date.now()}`;
+                    const MAX_PART = Math.max(50000, Math.floor(FIREBASE_WRITE_LIMIT * 0.45)); // be conservative per part
+                    const parts = Math.max(1, Math.ceil(jsonString.length / MAX_PART));
+                    const chunkSize = Math.ceil(jsonString.length / parts);
+                    // write meta
+                    await withRetry(() => withAsyncTimeout(db.ref(`${basePath}/meta`).set({ createdAt: new Date().toISOString(), parts }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                    for (let i = 0; i < parts; i++) {
+                        const part = jsonString.slice(i * chunkSize, (i + 1) * chunkSize);
+                        await withRetry(() => withAsyncTimeout(db.ref(`${basePath}/parts/${i}`).set(part), FIREBASE_SAVE_TIMEOUT_MS), 3, 500);
+                    }
+                    // return a reference-like object so callers can store it in RTDB
+                    return { path: basePath, url: null, parts };
+        }
+
+        // Fetch and parse JSON content from Firebase Storage path
+        async function fetchJsonFromStorage(storagePath) {
+            if (typeof firebase === 'undefined' || !firebase.storage) throw new Error('Firebase Storage não disponível');
+            const ref = firebase.storage().ref().child(storagePath);
+            const url = await withRetry(() => ref.getDownloadURL(), 3, 300);
+            const res = await withRetry(() => fetch(url).then(r => r.text()), 3, 300);
+            try {
+                return JSON.parse(res);
+            } catch (e) {
+                throw new Error('Falha ao parsear JSON baixado do Storage: ' + e.message);
+            }
+        }
+
         function notifyFirebaseSyncFailure(error) {
             firebaseSyncWarningState.hasPendingRecoveryNotice = true;
             const now = Date.now();
@@ -290,6 +429,29 @@
             firebaseSyncWarningState.lastWarningAt = now;
             showToast('Sem sincronizacao em nuvem no momento. Os dados continuam salvos neste dispositivo e serao reenviados quando a conexao voltar.', 'warning');
             console.warn('⚠️ Sincronização em nuvem degradada:', error?.message || error);
+        }
+
+        // Update in chunks: split a large updates object into multiple update() calls
+        async function updateInChunks(updatesObj, maxBytes = FIREBASE_WRITE_LIMIT, timeoutMs = FIREBASE_SAVE_TIMEOUT_MS) {
+            if (!updatesObj || typeof updatesObj !== 'object') return;
+            const entries = Object.entries(updatesObj);
+            let chunk = {};
+            for (const [key, value] of entries) {
+                chunk[key] = value;
+                const size = debugLogPayload('updateInChunks:accum', chunk);
+                if (size >= 0 && size >= maxBytes) {
+                    // remove last added and flush previous chunk
+                    delete chunk[key];
+                    if (Object.keys(chunk).length) {
+                        await withRetry(() => withAsyncTimeout(db.ref().update(chunk), timeoutMs), 3, 400);
+                    }
+                    // start new chunk with current key
+                    chunk = { [key]: value };
+                }
+            }
+            if (Object.keys(chunk).length) {
+                await withRetry(() => withAsyncTimeout(db.ref().update(chunk), timeoutMs), 3, 400);
+            }
         }
 
         function notifyFirebaseSyncRecovery() {
@@ -394,38 +556,67 @@
         async function localCreateBackup() {
             if (!firebaseInitialized || !db) return showToast('Firebase não configurado', 'error');
             try {
-                const rootSnap = await db.ref('marimbondos/shared').once('value');
-                const data = rootSnap.val() || {};
+                // Build a full application state snapshot to ensure backup contains all app data
+                // Prefer the in-memory snapshot which reflects merged/normalized data
+                let data = buildAppStateSnapshot();
+                // keep legacy root snapshot available under legacyRoot for compatibility
+                try {
+                    const rootSnap = await db.ref('marimbondos/shared').once('value');
+                    data.legacyRoot = rootSnap.val() || {};
+                } catch (e) {
+                    // ignore DB read errors here; snapshot is the primary source
+                }
                 const now = new Date();
                 const iso = now.toISOString();
                 const key = iso.replace(/[:.]/g, '-');
                 // serializar e decidir entre gravação direta ou chunked
                 const json = JSON.stringify(data);
-                const CHUNK_THRESHOLD = 500000; // se maior que isso, escrever em partes (500KB)
+                debugLogPayload(`localCreateBackup:${key}`, json);
+                // definir chunk size baseado no limite real do RTDB (usar margem)
+                const MAX_CHUNK = Math.max(100000, Math.floor(FIREBASE_WRITE_LIMIT * 0.9)); // margem de 10%
+                const CHUNK_THRESHOLD = MAX_CHUNK;
                 if (json.length > CHUNK_THRESHOLD) {
-                    console.log('localCreateBackup: payload grande (len=' + json.length + '), usando chunked (<=10 partes)');
-                    // Garantir no máximo 10 partes: calcular parts desejadas e ajustar chunkSize
-                    let parts = Math.ceil(json.length / 500000) || 1;
-                    parts = Math.min(10, parts);
-                    const chunkSize = Math.ceil(json.length / parts);
-                    // write metadata first
-                    await db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts });
-                    for (let i = 0; i < parts; i++) {
-                        const part = json.slice(i * chunkSize, (i + 1) * chunkSize);
-                        await db.ref(`marimbondos/backups/${key}/parts/${i}`).set(part);
-                        console.log('localCreateBackup: wrote part', i, 'for', key);
-                        const pct = Math.round(((i + 1) / parts) * 100);
-                        showToast(`Backup ${pct}% concluído`, 'info');
+                    // Chunk by logical segments to avoid creating very large part blobs.
+                    console.log('localCreateBackup: payload grande (len=' + json.length + '), chunking by segments');
+                    const segments = buildFirebaseStateSegments(data);
+                    const segmentsMeta = {};
+                    const PER_PART_LIMIT = Math.max(50000, Math.floor(FIREBASE_WRITE_LIMIT * 0.45));
+
+                    // write segment parts
+                    for (const segKey of Object.keys(segments)) {
+                        try {
+                            const segStr = JSON.stringify(segments[segKey] || {});
+                            debugLogPayload(`localCreateBackup:segment:${key}:${segKey}`, segStr);
+                            if (!segStr || segStr.length === 0) {
+                                segmentsMeta[segKey] = { partsCount: 0 };
+                                continue;
+                            }
+                            const parts = Math.max(1, Math.ceil(segStr.length / PER_PART_LIMIT));
+                            segmentsMeta[segKey] = { partsCount: parts };
+                            // write meta for this segment
+                            await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/segments/${segKey}/meta`).set({ partsCount: parts }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                            for (let p = 0; p < parts; p++) {
+                                const part = segStr.slice(p * Math.ceil(segStr.length / parts), (p + 1) * Math.ceil(segStr.length / parts));
+                                await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/segments/${segKey}/parts/${p}`).set(part), FIREBASE_SAVE_TIMEOUT_MS), 3, 500);
+                            }
+                        } catch (segErr) {
+                            console.warn('localCreateBackup: failed to write segment', segKey, segErr && segErr.message ? segErr.message : segErr);
+                            segmentsMeta[segKey] = { partsCount: 0, error: String(segErr && segErr.message ? segErr.message : segErr) };
+                        }
                     }
-                    await db.ref(`marimbondos/backups/${key}/_notified`).set(true);
-                    const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado (chunked): ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true, chunked: true } });
-                    console.log('localCreateBackup: chunked history entry pushed', histRef.key);
-                    try { addHistory('Backup manual criado', `Backup criado (chunked): ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true, chunked: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
+
+                    // write top-level meta including segments map
+                    await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), segments: Object.keys(segments), segmentsMeta }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+
+                    await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/_notified`).set(true), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                    const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado (segmented): ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true, segmented: true } });
+                    console.log('localCreateBackup: segmented history entry pushed', histRef.key);
+                    try { addHistory('Backup manual criado', `Backup criado (segmented): ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true, segmented: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
                     showToast('Backup concluído: ' + key, 'success');
                     return key;
                 } else {
                     // gravação direta para payloads menores
-                    await db.ref(`marimbondos/backups/${key}`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), data, _notified: true });
+                    await safeDbSet(`marimbondos/backups/${key}`, { createdAtIso: iso, createdAt: now.toLocaleString(), data, _notified: true }, 'backups');
                     console.log('localCreateBackup: backup saved to /marimbondos/backups/', key);
                     // escrever histórico
                     const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado: ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true } });
@@ -441,21 +632,21 @@
                 if (msg.includes('write too large') || msg.includes('write failed') || msg.includes('request entity too large') || msg.includes('payload too large')) {
                     try {
                         const json = JSON.stringify(data);
-                        // fallback: ensure max 10 parts and show progress
-                        let parts = Math.ceil(json.length / 500000) || 1;
-                        parts = Math.min(10, parts);
+                        // fallback: dividir em 20 partes
+                        const FIXED_PARTS = 20;
+                        const parts = FIXED_PARTS;
                         const chunkSize = Math.ceil(json.length / parts);
                         console.log('localCreateBackup: chunking backup into', parts, 'parts (fallback)');
                         // write metadata first
-                        await db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts });
+                        await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
                         for (let i = 0; i < parts; i++) {
                             const part = json.slice(i * chunkSize, (i + 1) * chunkSize);
-                            await db.ref(`marimbondos/backups/${key}/parts/${i}`).set(part);
+                            await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/parts/${i}`).set(part), FIREBASE_SAVE_TIMEOUT_MS), 3, 500);
                             console.log('localCreateBackup: wrote part', i, 'for', key);
                             const pct = Math.round(((i + 1) / parts) * 100);
                             showToast(`Backup ${pct}% concluído`, 'info');
                         }
-                        await db.ref(`marimbondos/backups/${key}/_notified`).set(true);
+                        await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${key}/_notified`).set(true), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
                         const histRef2 = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado (chunked): ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true, chunked: true } });
                         console.log('localCreateBackup: chunked history entry pushed', histRef2.key);
                         try { addHistory('Backup manual criado', `Backup criado (chunked): ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true, chunked: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
@@ -494,15 +685,46 @@
 
                 // Reconstruir backup chunked se necessário
                 let backupData = entry.data;
-                if ((!backupData || Object.keys(backupData).length === 0) && entry.meta && entry.meta.partsCount) {
-                    const partsSnap = await db.ref(`marimbondos/backups/${key}/parts`).once('value');
-                    const partsObj = partsSnap.val() || {};
-                    const ordered = Object.keys(partsObj).sort((a, b) => Number(a) - Number(b)).map(i => partsObj[i]).join('');
-                    try {
-                        backupData = JSON.parse(ordered);
-                    } catch (pe) {
-                        console.error('localRestoreBackup: falha ao montar backup chunked', pe);
-                        return showToast('Falha ao ler backup chunked', 'error');
+                if (!backupData || Object.keys(backupData || {}).length === 0) {
+                    // 1) Se entry._storageRef aponta para um fallback no RTDB (marimbondos/storage_fallback/...)
+                    if (entry._storageRef && typeof entry._storageRef === 'string' && entry._storageRef.includes('marimbondos/storage_fallback')) {
+                        try {
+                            const partsSnap = await db.ref(`${entry._storageRef}/parts`).once('value');
+                            const partsObj = partsSnap.val() || {};
+                            if (Object.keys(partsObj).length) {
+                                const ordered = Object.keys(partsObj).sort((a, b) => Number(a) - Number(b)).map(i => partsObj[i]).join('');
+                                backupData = JSON.parse(ordered);
+                            }
+                        } catch (pe) {
+                            console.warn('localRestoreBackup: falha ao montar backup desde storage_fallback', pe);
+                        }
+                    }
+
+                    // 2) Caso ainda sem dados, se meta.partsCount existir, ler de marimbondos/backups/${key}/parts
+                    if ((!backupData || Object.keys(backupData || {}).length === 0) && entry.meta && entry.meta.partsCount) {
+                        try {
+                            const partsSnap = await db.ref(`marimbondos/backups/${key}/parts`).once('value');
+                            const partsObj = partsSnap.val() || {};
+                            const ordered = Object.keys(partsObj).sort((a, b) => Number(a) - Number(b)).map(i => partsObj[i]).join('');
+                            backupData = JSON.parse(ordered);
+                        } catch (pe) {
+                            console.error('localRestoreBackup: falha ao montar backup chunked', pe);
+                            return showToast('Falha ao ler backup chunked', 'error');
+                        }
+                    }
+
+                    // 3) Tentativa de detecção automática: se houver filhos em /parts independentemente do meta
+                    if ((!backupData || Object.keys(backupData || {}).length === 0)) {
+                        try {
+                            const partsSnap = await db.ref(`marimbondos/backups/${key}/parts`).once('value');
+                            const partsObj = partsSnap.val() || {};
+                            if (Object.keys(partsObj).length) {
+                                const ordered = Object.keys(partsObj).sort((a, b) => Number(a) - Number(b)).map(i => partsObj[i]).join('');
+                                backupData = JSON.parse(ordered);
+                            }
+                        } catch (pe2) {
+                            console.warn('localRestoreBackup: detecção de parts falhou', pe2);
+                        }
                     }
                 }
 
@@ -510,10 +732,169 @@
                 const iso = now.toISOString();
                 const preKey = `pre-restore-${iso.replace(/[:.]/g, '-')}`;
                 const currentSnap = await db.ref('marimbondos/shared').once('value');
-                await db.ref(`marimbondos/backups/${preKey}`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), data: currentSnap.val() || {} });
+                const currentData = currentSnap.val() || {};
+                // Se o snapshot atual for muito grande, gravar como chunked pre-restore
+                const PRE_CHUNK_THRESHOLD = FIREBASE_WRITE_LIMIT;
+                    try {
+                    const currentJson = JSON.stringify(currentData);
+                        debugLogPayload(`localRestoreBackup:pre-snapshot:${preKey}`, currentJson);
+                        if (currentJson.length > PRE_CHUNK_THRESHOLD) {
+                        // criar meta e partes para pre-restore
+                        let parts = Math.ceil(currentJson.length / PRE_CHUNK_THRESHOLD) || 1;
+                        parts = Math.min(20, parts); // permitir mais partes para pre-restore
+                        const chunkSize = Math.ceil(currentJson.length / parts);
+                        await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${preKey}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                        for (let i = 0; i < parts; i++) {
+                            const part = currentJson.slice(i * chunkSize, (i + 1) * chunkSize);
+                            await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${preKey}/parts/${i}`).set(part), FIREBASE_SAVE_TIMEOUT_MS), 3, 500);
+                        }
+                        await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${preKey}/_notified`).set(true), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                    } else {
+                        // small snapshot: try set with retry and fallback to Storage if RTDB refuses
+                        try {
+                            await safeDbSet(`marimbondos/backups/${preKey}`, { createdAtIso: iso, createdAt: now.toLocaleString(), data: currentData }, 'backups');
+                        } catch (setErr) {
+                            console.warn('localRestoreBackup: set pre-restore failed, attempting Storage fallback', setErr && setErr.message ? setErr.message : setErr);
+                            try {
+                                const storageKey = `pre-restore/${preKey}.json`;
+                                const uploaded = await uploadLargePayloadToStorage(storageKey, currentJson);
+                                await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/backups/${preKey}`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), _storageRef: uploaded.path, _storageUrl: uploaded.url }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                            } catch (storageErr) {
+                                console.error('localRestoreBackup: fallback Storage para pre-restore falhou', storageErr && storageErr.message ? storageErr.message : storageErr);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('localRestoreBackup: falha ao salvar pre-restore chunked, tentando salvar diretamente', e);
+                    try {
+                        await safeDbSet(`marimbondos/backups/${preKey}`, { createdAtIso: iso, createdAt: now.toLocaleString(), data: currentData }, 'backups');
+                    } catch (e2) {
+                        console.error('localRestoreBackup: falha ao salvar pre-restore direto', e2);
+                    }
+                }
 
-                // aplicar restauração
-                await db.ref('marimbondos/shared').set(backupData);
+                // Aplicar restauração por segmentos reutilizando saveToFirebase(), que já implementa chunking seguro.
+                // Em caso de falha, fazemos fallback granular em batches para cada filho.
+                const CHUNK_THRESHOLD = FIREBASE_WRITE_LIMIT;
+                const backupJsonLen = JSON.stringify(backupData || {}).length;
+
+                // Se o backup veio em formato segmentado (nova implementação), montar os segmentos diretamente
+                let segments = null;
+                try {
+                    if (entry && entry.meta && Array.isArray(entry.meta.segments) && entry.meta.segments.length) {
+                        segments = {};
+                        for (const segKey of entry.meta.segments) {
+                            try {
+                                const partsSnap = await db.ref(`marimbondos/backups/${key}/segments/${segKey}/parts`).once('value');
+                                const partsObj = partsSnap.val() || {};
+                                if (Object.keys(partsObj).length) {
+                                    const ordered = Object.keys(partsObj).sort((a,b)=>Number(a)-Number(b)).map(i=>partsObj[i]).join('');
+                                    segments[segKey] = JSON.parse(ordered);
+                                    continue;
+                                }
+                                // fallback to single part key
+                                const singleSnap = await db.ref(`marimbondos/backups/${key}/segments/${segKey}/part0`).once('value');
+                                if (singleSnap && singleSnap.val()) {
+                                    segments[segKey] = JSON.parse(singleSnap.val());
+                                    continue;
+                                }
+                                segments[segKey] = null;
+                            } catch (segErr) {
+                                console.warn('localRestoreBackup: failed to read segmented part for', segKey, segErr);
+                                segments[segKey] = null;
+                            }
+                        }
+                    }
+                } catch (eSeg) {
+                    console.warn('localRestoreBackup: error while detecting segmented backup', eSeg);
+                    segments = null;
+                }
+
+                // if not segmented, build segments from the full backupData
+                if (!segments) {
+                    segments = buildFirebaseStateSegments(backupData || {});
+                }
+                const segKeys = Object.keys(segments || {});
+                let applied = 0;
+
+                for (const segKey of segKeys) {
+                    const segmentValue = segments[segKey];
+                    try {
+                        // saveToFirebase lida com chunking automaticamente
+                        await saveToFirebase(segKey, segmentValue, new Date().toISOString());
+                        applied++;
+                        showToast(`Restauração ${Math.round((applied / segKeys.length) * 100)}%`, 'info');
+                    } catch (saveErr) {
+                        console.warn('localRestoreBackup: saveToFirebase falhou para segmento', segKey, saveErr);
+                        // Fallback: escrever filhos em batches usando update()
+                        try {
+                            if (segmentValue && typeof segmentValue === 'object') {
+                                const childKeys = Array.isArray(segmentValue) ? segmentValue.map((_, i) => String(i)) : Object.keys(segmentValue || {});
+                                const BATCH_KEYS = 40;
+                                for (let i = 0; i < childKeys.length; i += BATCH_KEYS) {
+                                    const batch = childKeys.slice(i, i + BATCH_KEYS);
+                                    const updates = {};
+                                    for (const k of batch) {
+                                        updates[`marimbondos/shared/${segKey}/data/${k}`] = segmentValue[k];
+                                    }
+                                    const serializedUpdates = JSON.stringify(updates);
+                                    debugLogPayload(`localRestoreBackup:batch:${segKey}:${i / BATCH_KEYS + 1}`, updates);
+                                    if (serializedUpdates.length > FIREBASE_WRITE_LIMIT) {
+                                        // fallback: upload whole segment to Storage and reference it
+                                        console.warn(`localRestoreBackup: batch exceeds FIREBASE_WRITE_LIMIT (${serializedUpdates.length}). Using Storage fallback for segment ${segKey}`);
+                                        const segStr = JSON.stringify(segmentValue);
+                                        const storageKey = `restore_segments/${segKey}-${Date.now()}.json`;
+                                        const uploaded = await uploadLargePayloadToStorage(storageKey, segStr);
+                                        await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/shared/${segKey}`).set({ _storageRef: uploaded.path, _storageUrl: uploaded.url, timestamp: new Date().toISOString() }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                                        // mark applied and break batches for this segment
+                                        applied++;
+                                        showToast(`Restauração ${Math.round((applied / segKeys.length) * 100)}%`, 'info');
+                                        break;
+                                        } else {
+                                        await updateInChunks(updates, FIREBASE_WRITE_LIMIT, FIREBASE_SAVE_TIMEOUT_MS);
+                                    }
+                                }
+                                // marcar como chunked e adicionar meta
+                                await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/shared/${segKey}/_chunked`).set(true), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                                await withRetry(() => withAsyncTimeout(db.ref(`marimbondos/shared/${segKey}/_meta`).set({ restoredAt: new Date().toISOString() }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                                applied++;
+                                showToast(`Restauração ${Math.round((applied / segKeys.length) * 100)}%`, 'info');
+                            } else {
+                                // valor não-objeto ou falha: usar safeDbSet para proteger contra writes grandes
+                                try {
+                                    await safeDbSet(`marimbondos/shared/${segKey}`, segmentValue, 'segments');
+                                } catch (sErr) {
+                                    // última tentativa direta com timeout
+                                    await withAsyncTimeout(db.ref(`marimbondos/shared/${segKey}`).set(segmentValue), FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao gravar segmento simples');
+                                }
+                                applied++;
+                                showToast(`Restauração ${Math.round((applied / segKeys.length) * 100)}%`, 'info');
+                            }
+                        } catch (fallbackErr) {
+                            console.error('localRestoreBackup: fallback granular falhou para', segKey, fallbackErr);
+                            // última tentativa: armazenar partes de restauração para análise
+                            try {
+                                const segStr = JSON.stringify(segmentValue || '');
+                                const parts = Math.max(1, Math.ceil(segStr.length / CHUNK_THRESHOLD));
+                                const chunkSize = Math.ceil(segStr.length / parts);
+                                for (let p = 0; p < parts; p++) {
+                                    await db.ref(`marimbondos/backups/${preKey}/restore_parts/${segKey}/${p}`).set(segStr.slice(p * chunkSize, (p + 1) * chunkSize));
+                                }
+                            } catch (e3) {
+                                console.error('localRestoreBackup: falha ao gravar restore_parts para', segKey, e3);
+                            }
+                        }
+                    }
+                }
+
+                // Aplicar estado localmente para refletir a restauração
+                try {
+                    applyRemoteStateSegments(segments);
+                    persistence.save(buildAppStateSnapshot());
+                    scheduleRealtimeUiRefresh({ rebuildNavigation: true });
+                } catch (applyErr) {
+                    console.warn('localRestoreBackup: falha ao aplicar estado local após restauração', applyErr);
+                }
 
                 // histórico
                 const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Restauração de backup aplicada', desc: `Restaurado a partir do backup ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualRestore: true } });
@@ -630,11 +1011,35 @@
                 const okConfirm = await showConfirmModal('Restaurar backup ' + key + '? Isso substituirá o estado compartilhado.', 'Restaurar backup');
                 if (!okConfirm) return;
                 showToast('Iniciando restauração (RTDB)...', 'info');
-                await localRestoreBackup(key);
+                const result = await localRestoreBackup(key);
+                // registrar resultado resumido para diagnóstico fácil
+                try {
+                    if (firebaseInitialized && db) {
+                        await db.ref(`marimbondos/backups/${key}/_restore_status`).set({ success: !!result, at: new Date().toISOString(), by: getCurrentUserStorageKey() });
+                    }
+                } catch (metaErr) {
+                    console.warn('restoreBackup: falha ao gravar _restore_status', metaErr);
+                }
+
+                if (result) {
+                    console.log('restoreBackup: restauração concluída com sucesso for', key);
+                    showToast('Restauração concluída: ' + key, 'success');
+                } else {
+                    console.error('restoreBackup: restauração retornou falha para', key);
+                    showToast('Restauração falhou: ' + key, 'error');
+                }
+
                 await loadBackups();
-                return;
+                return result;
             } catch (err) {
-                console.error(err);
+                console.error('restoreBackup: erro inesperado', err);
+                try {
+                    if (firebaseInitialized && db) {
+                        await db.ref(`marimbondos/backups/${key}/_restore_status`).set({ success: false, at: new Date().toISOString(), error: String(err && err.message ? err.message : err), by: getCurrentUserStorageKey() });
+                    }
+                } catch (metaErr2) {
+                    console.warn('restoreBackup: falha ao gravar _restore_status após erro', metaErr2);
+                }
                 showToast('Erro ao restaurar backup', 'error');
             }
         }
@@ -713,21 +1118,98 @@
                 const safeDataKey = normalizeFirebasePathSegment(dataKey);
 
                 if (isListSegment(safeDataKey)) {
-                    // Para segmentos do tipo lista, gravamos em .../segment/data usando push()
+                    // Para segmentos do tipo lista, gravamos em .../segment/data usando push(),
+                    // mas se o item for muito grande, usamos Storage e pushamos uma referência.
                     const path = `marimbondos/shared/${safeDataKey}/data`;
-                    const pushPromise = db.ref(path).push(Object.assign({}, data, { createdAt: timestamp }));
-                    await withAsyncTimeout(pushPromise, FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao salvar no Firebase (push)');
-                    console.log(`✓ Item adicionado em Firebase: ${dataKey} (path: ${path})`);
-                    return timestamp;
+                    try {
+                        const serializedItem = JSON.stringify(data || {});
+                        debugLogPayload(`saveToFirebase:list:${safeDataKey}`, serializedItem);
+                        if (serializedItem.length > FIREBASE_WRITE_LIMIT) {
+                            console.warn(`saveToFirebase: list item too large (${serializedItem.length}), using Storage fallback for ${safeDataKey}`);
+                            const storageKey = `list_items/${safeDataKey}-${Date.now()}.json`;
+                            const uploaded = await uploadLargePayloadToStorage(storageKey, serializedItem);
+                            const refObj = Object.assign({ _storageRef: uploaded.path, _storageUrl: uploaded.url, createdAt: timestamp }, { metadata: { largeItem: true } });
+                            await withRetry(() => withAsyncTimeout(db.ref(path).push(refObj), FIREBASE_SAVE_TIMEOUT_MS), 3, 350);
+                            console.log(`✓ Large list item referenced in Storage for ${safeDataKey}`);
+                            return timestamp;
+                        } else {
+                            await withRetry(() => withAsyncTimeout(db.ref(path).push(Object.assign({}, data, { createdAt: timestamp })), FIREBASE_SAVE_TIMEOUT_MS), 3, 350);
+                            console.log(`✓ Item adicionado em Firebase: ${dataKey} (path: ${path})`);
+                            return timestamp;
+                        }
+                    } catch (e) {
+                        console.warn('saveToFirebase: failed to push list item, attempting Storage fallback', e);
+                        const serializedItem = JSON.stringify(data || {});
+                        const storageKey = `list_items/${safeDataKey}-${Date.now()}.json`;
+                        const uploaded = await uploadLargePayloadToStorage(storageKey, serializedItem);
+                        const refObj = Object.assign({ _storageRef: uploaded.path, _storageUrl: uploaded.url, createdAt: timestamp }, { metadata: { largeItem: true } });
+                        await withRetry(() => withAsyncTimeout(db.ref(path).push(refObj), FIREBASE_SAVE_TIMEOUT_MS), 3, 350);
+                        return timestamp;
+                    }
                 } else {
                     const path = `marimbondos/shared/${safeDataKey}`;
-                    const savePromise = db.ref(path).set({
-                        data: data,
-                        timestamp
-                    });
 
-                    await withAsyncTimeout(savePromise, FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao salvar no Firebase');
-                    console.log(`✓ Dados salvos em Firebase: ${dataKey} (path: ${path})`);
+                    // Se o payload for grande, gravar em modo chunked por filhos para evitar "Write too large"
+                    try {
+                        const serialized = JSON.stringify(data || {});
+                        debugLogPayload(`saveToFirebase:${safeDataKey}`, serialized);
+                        if (serialized.length > FIREBASE_WRITE_LIMIT && data && typeof data === 'object') {
+                            console.log(`saveToFirebase: segmento grande (len=${serialized.length}), usando chunked save for ${safeDataKey}`);
+
+                            // marca o segmento como chunked
+                            await withRetry(() => withAsyncTimeout(db.ref(path).set({ _chunked: true, timestamp }), FIREBASE_SAVE_TIMEOUT_MS), 3, 350);
+
+                            // dividir por chaves filhas
+                            const childKeys = Array.isArray(data) ? data.map((_, i) => String(i)) : Object.keys(data || {});
+                            const BATCH_KEYS = 40;
+                            for (let i = 0; i < childKeys.length; i += BATCH_KEYS) {
+                                const batch = childKeys.slice(i, i + BATCH_KEYS);
+                                const updates = {};
+                                for (const k of batch) {
+                                    const value = data[k];
+                                    updates[`marimbondos/shared/${safeDataKey}/data/${k}`] = value;
+                                }
+                                const serializedUpdates = JSON.stringify(updates);
+                                debugLogPayload(`saveToFirebase:batch:${safeDataKey}:${i / BATCH_KEYS + 1}`, updates);
+                                if (serializedUpdates.length > FIREBASE_WRITE_LIMIT) {
+                                    // batch too large - fallback: upload entire segment and reference it
+                                    console.warn(`saveToFirebase: batch exceeds FIREBASE_WRITE_LIMIT (${serializedUpdates.length}). Using Storage fallback for segment ${safeDataKey}`);
+                                    const segStr = JSON.stringify(data);
+                                    const storageKey = `segments/${safeDataKey}-${Date.now()}.json`;
+                                    const uploaded = await uploadLargePayloadToStorage(storageKey, segStr);
+                                    await withRetry(() => withAsyncTimeout(db.ref(path).set({ _storageRef: uploaded.path, _storageUrl: uploaded.url, timestamp }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                                    console.log(`saveToFirebase: used Storage fallback for ${safeDataKey}`);
+                                    break;
+                                }
+                                await updateInChunks(updates, FIREBASE_WRITE_LIMIT, FIREBASE_SAVE_TIMEOUT_MS);
+                                console.log(`saveToFirebase: wrote chunked batch ${i / BATCH_KEYS + 1} for ${safeDataKey}`);
+                            }
+
+                            // pequeno meta para indicar versão
+                            await withRetry(() => withAsyncTimeout(db.ref(path + '/_meta').set({ timestamp }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                            console.log(`✓ Segmento ${safeDataKey} gravado em modo chunked`);
+                            return timestamp;
+                        }
+                    } catch (chunkErr) {
+                        console.warn('saveToFirebase: chunked save attempt failed, trying Storage fallback', chunkErr && chunkErr.message ? chunkErr.message : chunkErr);
+                        // tentar fallback para Storage
+                        try {
+                            const storageKey = `backups/segments/${safeDataKey}-${Date.now()}.json`;
+                            const segStr = JSON.stringify(data || {});
+                            const uploaded = await uploadLargePayloadToStorage(storageKey, segStr);
+                            // gravar referência no RTDB
+                            await withRetry(() => withAsyncTimeout(db.ref(path).set({ _storageRef: uploaded.path, _storageUrl: uploaded.url, timestamp }), FIREBASE_SAVE_TIMEOUT_MS), 3, 300);
+                            console.log(`saveToFirebase: segmento salvo no Storage e referenciado em RTDB: ${uploaded.path}`);
+                            return timestamp;
+                        } catch (storageErr) {
+                            console.warn('saveToFirebase: Storage fallback falhou, tentando set simples', storageErr && storageErr.message ? storageErr.message : storageErr);
+                        }
+                    }
+
+                    // final attempt: simple set with retry
+                    // use safeDbSet to avoid atomic large writes
+                    await safeDbSet(path, { data: data, timestamp }, 'segments');
+                    console.log(`✓ Dados salvos em Firebase (safe): ${dataKey} (path: ${path})`);
                     return timestamp;
                 }
             } catch (err) {
@@ -759,16 +1241,55 @@
                     const loadPromise = db.ref(path).once('value');
                     const snapshot = await withAsyncTimeout(loadPromise, 5000, 'Timeout ao carregar do Firebase');
 
-                    if (snapshot.exists()) {
+                    if (!snapshot.exists()) return null;
+
+                    const node = snapshot.val();
+                    // Caso padrão: objeto com { data: ..., timestamp }
+                    if (node && node.data !== undefined) {
                         console.log(`✓ Dados carregados do Firebase: ${dataKey} (path: ${path})`);
-                        return snapshot.val().data;
+                        return node.data;
                     }
+
+                    // Suporte para payloads muito grandes que foram enviados para Storage
+                    if (node && node._storageRef) {
+                        try {
+                            const storageContent = await fetchJsonFromStorage(node._storageRef);
+                            console.log(`✓ Dados carregados do Firebase Storage para ${dataKey} (ref: ${node._storageRef})`);
+                            return storageContent;
+                        } catch (e) {
+                            console.warn('loadFromFirebase: falha ao baixar do Storage:', e && e.message ? e.message : e);
+                        }
+                    }
+
+                    // Suporte para segmentos grandes gravados em modo chunked sob /<segment>/data
+                    if (node && node._chunked) {
+                        const chunkSnap = await db.ref(`${path}/data`).once('value');
+                        const chunkObj = chunkSnap.val() || null;
+                        const normalized = normalizeLoadedChunkedData(chunkObj);
+                        console.log(`✓ Dados chunked carregados do Firebase: ${dataKey} (path: ${path}/data)`);
+                        return normalized;
+                    }
+
+                    // fallback: tentar ler valor direto caso esteja em formato antigo
+                    if (node && typeof node === 'object') return node;
                     return null;
                 }
             } catch (err) {
                 console.error('Erro ao carregar dados do Firebase:', err.message);
                 return null;
             }
+        }
+
+        // Converte objeto com índices numéricos em array quando apropriado
+        function normalizeLoadedChunkedData(obj) {
+            if (!obj || typeof obj !== 'object') return obj;
+            const keys = Object.keys(obj);
+            if (!keys.length) return obj;
+            const allNumeric = keys.every(k => /^\d+$/.test(k));
+            if (allNumeric) {
+                return keys.sort((a, b) => Number(a) - Number(b)).map(k => obj[k]);
+            }
+            return obj;
         }
 
         // Carregar dados do Firebase ao inicializar
@@ -2324,7 +2845,21 @@
         }
 
         function normalizeAllStudents() {
-            MOCK_STUDENTS = (MOCK_STUDENTS || []).map(normalizeStudentRecord);
+            try {
+                let studentsArr = [];
+                if (Array.isArray(MOCK_STUDENTS)) {
+                    studentsArr = MOCK_STUDENTS;
+                } else if (MOCK_STUDENTS && typeof MOCK_STUDENTS === 'object') {
+                    // objeto mapeado por id: converter para array
+                    studentsArr = Object.keys(MOCK_STUDENTS).map(k => MOCK_STUDENTS[k]);
+                } else {
+                    studentsArr = [];
+                }
+                MOCK_STUDENTS = studentsArr.map(normalizeStudentRecord);
+            } catch (e) {
+                console.warn('normalizeAllStudents: falha ao normalizar, resetando para array vazio', e && e.message ? e.message : e);
+                MOCK_STUDENTS = [];
+            }
         }
 
         function normalizeStoreItemRecord(item) {
@@ -9310,7 +9845,12 @@
                 let content = '';
                 switch(tabId) {
                 case 'transactions':
-                    const sortedStudents = [...MOCK_STUDENTS].sort((a,b) => a.name.localeCompare(b.name));
+                    // Coerce MOCK_STUDENTS to array, filter invalid entries and normalize names
+                    const studentsArr = Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS.slice() : (MOCK_STUDENTS && typeof MOCK_STUDENTS === 'object' ? Object.values(MOCK_STUDENTS) : []);
+                    const sortedStudents = (studentsArr || [])
+                        .filter(s => s && (s.name !== undefined && s.name !== null))
+                        .map(s => Object.assign({}, s, { name: String(s.name || '').trim() }))
+                        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
                     
                     const classFilters = ['Todos', ...FIXED_CLASSES].map(c => `
                         <button onclick="setTransactionClassFilter('${c}')" class="filter-chip whitespace-nowrap px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all ${transactionClassFilter === c ? 'bg-amber-500 text-slate-900 border-amber-500' : 'transaction-chip'}">
