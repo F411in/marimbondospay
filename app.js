@@ -5,7 +5,15 @@
                 this.dbName = 'MarimbondosDB';
                 this.storeName = 'appData';
                 this.db = null;
-                this.dbInitPromise = this.initIndexedDB();
+                this.dbInitPromise = null; // inicialização adiada para melhorar tempo de boot
+            }
+
+            // Garante inicialização lazy do IndexedDB quando necessário
+            ensureInit() {
+                if (!this.dbInitPromise) {
+                    this.dbInitPromise = this.initIndexedDB();
+                }
+                return this.dbInitPromise;
             }
 
             initIndexedDB() {
@@ -52,7 +60,7 @@
                     return;
                 }
 
-                this.dbInitPromise?.then(db => {
+                this.ensureInit()?.then(db => {
                     if (!db) return;
                     try {
                         const transaction = db.transaction([this.storeName], 'readwrite');
@@ -101,7 +109,7 @@
                         }
                     });
                 } else {
-                    return this.dbInitPromise.then(db => {
+                    return this.ensureInit().then(db => {
                         if (!db) {
                             return this.loadFromLocalStorage();
                         }
@@ -170,6 +178,36 @@
         }
 
         const persistence = new DataPersistence();
+
+        // Atualiza a UI da splash com progresso (step: 1-10)
+        function updateSplashProgress(step = 0, message = '') {
+            try {
+                const pct = Math.min(100, Math.round((Number(step) || 0) / 10 * 100));
+                const bar = document.getElementById('splash-progress-bar');
+                const text = document.getElementById('splash-progress');
+                const splash = document.getElementById('splash-screen');
+                if (bar) {
+                    bar.style.width = pct + '%';
+                    bar.setAttribute('aria-valuenow', String(pct));
+                }
+                const percentEl = document.getElementById('splash-percent');
+                if (percentEl) percentEl.textContent = pct + '%';
+                if (text) {
+                    text.textContent = message || (pct >= 100 ? 'Pronto' : `Inicializando — ${pct}%`);
+                }
+                // Ajuste de tema da splash
+                if (splash) {
+                    const mode = typeof getCurrentThemeMode === 'function' ? getCurrentThemeMode() : (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                    if (mode === 'dark') {
+                        splash.classList.add('splash-dark');
+                    } else {
+                        splash.classList.remove('splash-dark');
+                    }
+                }
+            } catch (e) {
+                console.warn('updateSplashProgress falhou', e);
+            }
+        }
 
         // --- CONFIGURAÇÃO FIREBASE ---
         // ⚠️ IMPORTANTE: Você precisa configurar suas credenciais do Firebase
@@ -264,6 +302,344 @@
             showToast('Sincronizacao em nuvem restabelecida. As alteracoes pendentes foram enviadas.', 'success');
         }
 
+        // Backups: Listar, criar manualmente e deletar (usa Cloud Functions HTTP)
+        async function loadBackups() {
+            try {
+                if (!firebaseInitialized || !db) return renderBackups([]);
+                const snap = await db.ref('marimbondos/backups').once('value');
+                const raw = snap.val() || {};
+                    const list = Object.keys(raw).map(k => {
+                        const item = raw[k] || {};
+                        // prefer top-level createdAt, then meta.createdAt
+                        const createdAtIso = item.createdAtIso || (item.meta && item.meta.createdAtIso) || null;
+                        const createdAt = item.createdAt || (item.meta && item.meta.createdAt) || (createdAtIso ? new Date(createdAtIso).toLocaleString() : null);
+                        const chunked = !!(item.meta && item.meta.partsCount) || !!item.parts;
+                        return Object.assign({ key: k, createdAtIso, createdAt, chunked }, item);
+                    });
+                // ordenar por createdAtIso desc
+                    list.sort((a, b) => (b.createdAtIso || b.createdAt || '').localeCompare(a.createdAtIso || a.createdAt || ''));
+                renderBackups(list.slice(0, 4));
+            } catch (err) {
+                console.error('Erro ao carregar backups:', err);
+                renderBackups([]);
+            }
+        }
+
+        function renderBackups(list) {
+            const container = document.getElementById('backups-list');
+            if (!container) return;
+            if (!list || !list.length) {
+                container.innerHTML = '<div class="text-[10px] text-slate-500">Nenhum backup encontrado</div>';
+                return;
+            }
+            container.innerHTML = list.map(entry => {
+                const when = escapeHtml(entry.createdAt || entry.createdAtIso || '—');
+                const key = escapeHtml(entry.key);
+                return `
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-black text-slate-800">${when}</div>
+                            <div class="text-[10px] text-slate-500 mt-1 break-all">${key}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="copyToClipboard('${key}')" class="py-1 px-3 bg-white border rounded-xl text-xs">Copiar chave</button>
+                            <button onclick="restoreBackup('${key}')" class="py-1 px-3 bg-amber-500 text-white rounded-xl text-xs">Restaurar</button>
+                            <button onclick="deleteBackup('${key}')" class="py-1 px-3 bg-rose-500 text-white rounded-xl text-xs">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function triggerManualBackup() {
+            try {
+                if (!firebaseInitialized) return showToast('Firebase não configurado', 'error');
+                showToast('Iniciando backup manual (RTDB)...', 'info');
+                // Usar fallback RTDB local diretamente (evita dependência de Cloud Functions)
+                await localCreateBackup();
+                await loadBackups();
+                return;
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao criar backup', 'error');
+            }
+        }
+
+        async function deleteBackup(key) {
+            try {
+                const okConfirm = await showConfirmModal('Excluir backup ' + key + '?', 'Excluir backup');
+                if (!okConfirm) return;
+                // Usar remoção via RTDB local
+                const ok = await localDeleteBackup(key);
+                if (ok) await loadBackups();
+                return;
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao excluir backup', 'error');
+            }
+        }
+
+        function copyToClipboard(text) {
+            try {
+                if (!text) return;
+                navigator.clipboard?.writeText(text);
+                showToast('Chave copiada', 'success');
+            } catch (err) {
+                console.error('Erro copy:', err);
+                showToast('Não foi possível copiar', 'error');
+            }
+        }
+
+        // Operações locais usando Realtime Database (fallback sem Cloud Functions)
+        async function localCreateBackup() {
+            if (!firebaseInitialized || !db) return showToast('Firebase não configurado', 'error');
+            try {
+                const rootSnap = await db.ref('marimbondos/shared').once('value');
+                const data = rootSnap.val() || {};
+                const now = new Date();
+                const iso = now.toISOString();
+                const key = iso.replace(/[:.]/g, '-');
+                // serializar e decidir entre gravação direta ou chunked
+                const json = JSON.stringify(data);
+                const CHUNK_THRESHOLD = 500000; // se maior que isso, escrever em partes (500KB)
+                if (json.length > CHUNK_THRESHOLD) {
+                    console.log('localCreateBackup: payload grande (len=' + json.length + '), usando chunked (<=10 partes)');
+                    // Garantir no máximo 10 partes: calcular parts desejadas e ajustar chunkSize
+                    let parts = Math.ceil(json.length / 500000) || 1;
+                    parts = Math.min(10, parts);
+                    const chunkSize = Math.ceil(json.length / parts);
+                    // write metadata first
+                    await db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts });
+                    for (let i = 0; i < parts; i++) {
+                        const part = json.slice(i * chunkSize, (i + 1) * chunkSize);
+                        await db.ref(`marimbondos/backups/${key}/parts/${i}`).set(part);
+                        console.log('localCreateBackup: wrote part', i, 'for', key);
+                        const pct = Math.round(((i + 1) / parts) * 100);
+                        showToast(`Backup ${pct}% concluído`, 'info');
+                    }
+                    await db.ref(`marimbondos/backups/${key}/_notified`).set(true);
+                    const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado (chunked): ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true, chunked: true } });
+                    console.log('localCreateBackup: chunked history entry pushed', histRef.key);
+                    try { addHistory('Backup manual criado', `Backup criado (chunked): ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true, chunked: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
+                    showToast('Backup concluído: ' + key, 'success');
+                    return key;
+                } else {
+                    // gravação direta para payloads menores
+                    await db.ref(`marimbondos/backups/${key}`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), data, _notified: true });
+                    console.log('localCreateBackup: backup saved to /marimbondos/backups/', key);
+                    // escrever histórico
+                    const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado: ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true } });
+                    console.log('localCreateBackup: history entry pushed', histRef.key);
+                    try { addHistory('Backup manual criado', `Backup criado: ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
+                    showToast('Backup criado (RTDB): ' + key, 'success');
+                    return key;
+                }
+            } catch (err) {
+                console.warn('localCreateBackup: initial set failed, attempting chunked backup', err && err.message ? err.message : err);
+                const msg = String(err && err.message || err || '').toLowerCase();
+                // If the failure is due to write size, try chunking the JSON and saving parts
+                if (msg.includes('write too large') || msg.includes('write failed') || msg.includes('request entity too large') || msg.includes('payload too large')) {
+                    try {
+                        const json = JSON.stringify(data);
+                        // fallback: ensure max 10 parts and show progress
+                        let parts = Math.ceil(json.length / 500000) || 1;
+                        parts = Math.min(10, parts);
+                        const chunkSize = Math.ceil(json.length / parts);
+                        console.log('localCreateBackup: chunking backup into', parts, 'parts (fallback)');
+                        // write metadata first
+                        await db.ref(`marimbondos/backups/${key}/meta`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), partsCount: parts });
+                        for (let i = 0; i < parts; i++) {
+                            const part = json.slice(i * chunkSize, (i + 1) * chunkSize);
+                            await db.ref(`marimbondos/backups/${key}/parts/${i}`).set(part);
+                            console.log('localCreateBackup: wrote part', i, 'for', key);
+                            const pct = Math.round(((i + 1) / parts) * 100);
+                            showToast(`Backup ${pct}% concluído`, 'info');
+                        }
+                        await db.ref(`marimbondos/backups/${key}/_notified`).set(true);
+                        const histRef2 = await db.ref('marimbondos/shared/history/data').push({ title: 'Backup manual criado', desc: `Backup criado (chunked): ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualBackup: true, chunked: true } });
+                        console.log('localCreateBackup: chunked history entry pushed', histRef2.key);
+                        try { addHistory('Backup manual criado', `Backup criado (chunked): ${key}`, 'creation', null, 'student', { backupKey: key, manualBackup: true, chunked: true }); } catch (e) { console.warn('localCreateBackup: addHistory failed', e); }
+                        showToast('Backup concluído: ' + key, 'success');
+                        return key;
+                    } catch (e2) {
+                        console.error('localCreateBackup: chunked backup failed', e2 && e2.message ? e2.message : e2);
+                        showToast('Falha ao criar backup (chunking)', 'error');
+                        return null;
+                    }
+                }
+                console.error('Erro localCreateBackup:', err);
+                showToast('Falha ao criar backup localmente', 'error');
+            }
+        }
+
+        async function localDeleteBackup(key) {
+            if (!firebaseInitialized || !db) return showToast('Firebase não configurado', 'error');
+            try {
+                await db.ref(`marimbondos/backups/${key}`).remove();
+                showToast('Backup excluído (RTDB)', 'success');
+                try { await loadBackups(); } catch (e) { /* ignore */ }
+                return true;
+            } catch (err) {
+                console.error('Erro localDeleteBackup:', err);
+                showToast('Falha ao excluir backup localmente', 'error');
+                return false;
+            }
+        }
+        async function localRestoreBackup(key) {
+            if (!firebaseInitialized || !db) return showToast('Firebase não configurado', 'error');
+            try {
+                const snap = await db.ref(`marimbondos/backups/${key}`).once('value');
+                const entry = snap.val();
+                if (!entry) return showToast('Backup não encontrado', 'error');
+
+                // Reconstruir backup chunked se necessário
+                let backupData = entry.data;
+                if ((!backupData || Object.keys(backupData).length === 0) && entry.meta && entry.meta.partsCount) {
+                    const partsSnap = await db.ref(`marimbondos/backups/${key}/parts`).once('value');
+                    const partsObj = partsSnap.val() || {};
+                    const ordered = Object.keys(partsObj).sort((a, b) => Number(a) - Number(b)).map(i => partsObj[i]).join('');
+                    try {
+                        backupData = JSON.parse(ordered);
+                    } catch (pe) {
+                        console.error('localRestoreBackup: falha ao montar backup chunked', pe);
+                        return showToast('Falha ao ler backup chunked', 'error');
+                    }
+                }
+
+                const now = new Date();
+                const iso = now.toISOString();
+                const preKey = `pre-restore-${iso.replace(/[:.]/g, '-')}`;
+                const currentSnap = await db.ref('marimbondos/shared').once('value');
+                await db.ref(`marimbondos/backups/${preKey}`).set({ createdAtIso: iso, createdAt: now.toLocaleString(), data: currentSnap.val() || {} });
+
+                // aplicar restauração
+                await db.ref('marimbondos/shared').set(backupData);
+
+                // histórico
+                const histRef = await db.ref('marimbondos/shared/history/data').push({ title: 'Restauração de backup aplicada', desc: `Restaurado a partir do backup ${key}`, createdAtIso: iso, createdAt: now.toLocaleString(), metadata: { manualRestore: true } });
+                console.log('localRestoreBackup: history entry pushed', histRef.key);
+                try { addHistory('Restauração de backup aplicada', `Restaurado a partir do backup ${key}`, 'edit', null, 'student', { backupKey: key, manualRestore: true }); } catch (e) { console.warn('localRestoreBackup: addHistory failed', e); }
+                showToast('Restauração aplicada (RTDB): ' + key, 'success');
+                return true;
+            } catch (err) {
+                console.error('Erro localRestoreBackup:', err);
+                showToast('Falha ao restaurar localmente', 'error');
+                return false;
+            }
+        }
+
+        // Garantir que backups existentes no DB tenham uma entrada no histórico.
+        // Usa transações em `/marimbondos/backups/<key>/_notified` para evitar duplicatas entre clientes.
+        async function ensureBackupsHaveHistory() {
+            if (!firebaseInitialized || !db) return;
+            try {
+                const snap = await db.ref('marimbondos/backups').once('value');
+                const list = snap.val() || {};
+                const keys = Object.keys(list || {});
+                console.log('ensureBackupsHaveHistory: found backups count=', keys.length);
+                for (const key of keys) {
+                    if (!key) continue;
+                    if (key.startsWith('pre-restore-')) {
+                        console.log('ensureBackupsHaveHistory: skipping pre-restore backup', key);
+                        continue; // ignorar pre-restore
+                    }
+                    const entry = list[key] || {};
+                    if (entry._notified) {
+                        console.log('ensureBackupsHaveHistory: already notified, skipping', key);
+                        continue;
+                    }
+                    const notifiedRef = db.ref(`marimbondos/backups/${key}/_notified`);
+                    try {
+                        const txResult = await notifiedRef.transaction(current => {
+                            if (current) return; // já notificado, abortar
+                            return true; // marcar como notificado
+                        }, undefined, false);
+                        console.log('ensureBackupsHaveHistory: transaction result for', key, txResult && txResult.committed);
+                        if (txResult && txResult.committed) {
+                            const now = new Date();
+                            const histRef = await db.ref('marimbondos/shared/history/data').push({
+                                title: 'Backup criado',
+                                desc: `Backup criado: ${key}`,
+                                createdAtIso: now.toISOString(),
+                                createdAt: now.toLocaleString()
+                            });
+                            console.log('ensureBackupsHaveHistory: history entry pushed for', key, histRef.key);
+                            try { addHistory('Backup criado', `Backup criado: ${key}`, 'creation', null, 'student', { backupKey: key }); } catch (e) { console.warn('ensureBackupsHaveHistory: addHistory failed', e); }
+                        }
+                    } catch (e) {
+                        console.warn('Erro ao tentar notificar backup', key, e && e.message ? e.message : e);
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro em ensureBackupsHaveHistory:', e && e.message ? e.message : e);
+            }
+        }
+
+        // Escuta novas entradas em /marimbondos/backups e garante criação de histórico
+        let _backupsListenerAttached = false;
+        function watchBackupsRealtimeListeners() {
+            if (!firebaseInitialized || !db || _backupsListenerAttached) return;
+            try {
+                const backupsRef = db.ref('marimbondos/backups');
+                backupsRef.on('child_added', async (snap) => {
+                    const key = snap.key;
+                    if (!key) return;
+                    console.log('watchBackupsRealtimeListeners: child_added detected', key);
+                    if (key.startsWith('pre-restore-')) {
+                        console.log('watchBackupsRealtimeListeners: ignoring pre-restore key', key);
+                        return;
+                    }
+                    const val = snap.val() || {};
+                    // If already notified, nothing to do
+                    if (val._notified) {
+                        console.log('watchBackupsRealtimeListeners: already notified, skipping', key);
+                        return;
+                    }
+                    const notifiedRef = db.ref(`marimbondos/backups/${key}/_notified`);
+                    try {
+                        console.log('watchBackupsRealtimeListeners: attempting _notified transaction for', key);
+                        const tx = await notifiedRef.transaction(current => {
+                            if (current) return; // already true -> abort
+                            return true; // mark notified
+                        }, undefined, false);
+                        console.log('watchBackupsRealtimeListeners: transaction committed?', tx && tx.committed, key);
+                        if (tx && tx.committed) {
+                            const now = new Date();
+                            const histRef = await db.ref('marimbondos/shared/history/data').push({
+                                title: 'Backup criado',
+                                desc: `Backup criado: ${key}`,
+                                createdAtIso: now.toISOString(),
+                                createdAt: now.toLocaleString(),
+                                metadata: { autoDetected: true }
+                            });
+                            console.log('watchBackupsRealtimeListeners: pushed history for', key, histRef.key);
+                            try { addHistory('Backup criado', `Backup criado: ${key}`, 'creation', null, 'student', { backupKey: key, autoDetected: true }); } catch (e) { console.warn('watchBackupsRealtimeListeners: addHistory failed', e); }
+                        }
+                    } catch (e) {
+                        console.warn('Erro ao processar child_added backups:', key, e && e.message ? e.message : e);
+                    }
+                });
+                _backupsListenerAttached = true;
+            } catch (e) {
+                console.warn('Erro ao anexar listener de backups:', e && e.message ? e.message : e);
+            }
+        }
+
+        async function restoreBackup(key) {
+            try {
+                const okConfirm = await showConfirmModal('Restaurar backup ' + key + '? Isso substituirá o estado compartilhado.', 'Restaurar backup');
+                if (!okConfirm) return;
+                showToast('Iniciando restauração (RTDB)...', 'info');
+                await localRestoreBackup(key);
+                await loadBackups();
+                return;
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao restaurar backup', 'error');
+            }
+        }
+
+
         // Aguardar Firebase estar disponível
         function waitForFirebase(callback, maxAttempts = 20) {
             let attempts = 0;
@@ -324,21 +700,36 @@
         }
 
         // Salvar dados no Firebase (escopo compartilhado entre contas)
+        function isListSegment(segment) {
+            // Segments que representam listas/coleções e devem usar /data + push()
+            const listSegments = ['history', 'studentHistoryArchive', 'loginActivity', 'storeItems', 'notices'];
+            return listSegments.includes(segment);
+        }
+
         async function saveToFirebase(dataKey, data, timestamp = new Date().toISOString()) {
             if (!firebaseInitialized || !db) return;
 
             try {
                 const safeDataKey = normalizeFirebasePathSegment(dataKey);
-                const path = `marimbondos/shared/${safeDataKey}`;
 
-                const savePromise = db.ref(path).set({
-                    data: data,
-                    timestamp
-                });
+                if (isListSegment(safeDataKey)) {
+                    // Para segmentos do tipo lista, gravamos em .../segment/data usando push()
+                    const path = `marimbondos/shared/${safeDataKey}/data`;
+                    const pushPromise = db.ref(path).push(Object.assign({}, data, { createdAt: timestamp }));
+                    await withAsyncTimeout(pushPromise, FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao salvar no Firebase (push)');
+                    console.log(`✓ Item adicionado em Firebase: ${dataKey} (path: ${path})`);
+                    return timestamp;
+                } else {
+                    const path = `marimbondos/shared/${safeDataKey}`;
+                    const savePromise = db.ref(path).set({
+                        data: data,
+                        timestamp
+                    });
 
-                await withAsyncTimeout(savePromise, FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao salvar no Firebase');
-                console.log(`✓ Dados salvos em Firebase: ${dataKey} (path: ${path})`);
-                return timestamp;
+                    await withAsyncTimeout(savePromise, FIREBASE_SAVE_TIMEOUT_MS, 'Timeout ao salvar no Firebase');
+                    console.log(`✓ Dados salvos em Firebase: ${dataKey} (path: ${path})`);
+                    return timestamp;
+                }
             } catch (err) {
                 console.error('Erro ao salvar dados em Firebase:', err.message);
                 console.warn('⚠️ Dados salvos apenas localmente');
@@ -346,21 +737,34 @@
                 throw err;
             }
         }
+
         async function loadFromFirebase(dataKey) {
             if (!firebaseInitialized || !db) return null;
 
             try {
                 const safeDataKey = normalizeFirebasePathSegment(dataKey);
-                const path = `marimbondos/shared/${safeDataKey}`;
 
-                const loadPromise = db.ref(path).once('value');
-                const snapshot = await withAsyncTimeout(loadPromise, 5000, 'Timeout ao carregar do Firebase');
+                if (isListSegment(safeDataKey)) {
+                    const path = `marimbondos/shared/${safeDataKey}/data`;
+                    const loadPromise = db.ref(path).once('value');
+                    const snapshot = await withAsyncTimeout(loadPromise, 5000, 'Timeout ao carregar do Firebase');
 
-                if (snapshot.exists()) {
-                    console.log(`✓ Dados carregados do Firebase: ${dataKey} (path: ${path})`);
-                    return snapshot.val().data;
+                    if (snapshot.exists()) {
+                        console.log(`✓ Lista carregada do Firebase: ${dataKey} (path: ${path})`);
+                        return snapshot.val(); // retorna objeto com filhos
+                    }
+                    return null;
+                } else {
+                    const path = `marimbondos/shared/${safeDataKey}`;
+                    const loadPromise = db.ref(path).once('value');
+                    const snapshot = await withAsyncTimeout(loadPromise, 5000, 'Timeout ao carregar do Firebase');
+
+                    if (snapshot.exists()) {
+                        console.log(`✓ Dados carregados do Firebase: ${dataKey} (path: ${path})`);
+                        return snapshot.val().data;
+                    }
+                    return null;
                 }
-                return null;
             } catch (err) {
                 console.error('Erro ao carregar dados do Firebase:', err.message);
                 return null;
@@ -2131,6 +2535,28 @@
             const desc = String(entry?.desc || '');
             const noticeEntry = /aviso|notifica|comunicado/i.test(title) || /aviso|notifica|comunicado/i.test(desc);
 
+            // Backup entries: automatic backups created by scheduled server task
+            if (/backup automático|backup automatico|backup diário|backup diario/i.test(title) || /backup automático|backup automatico|backup diário|backup diario/i.test(desc) || entry?.metadata?.autoBackup) {
+                return {
+                    title,
+                    badgeLabel: 'Backup Auto',
+                    badgeClass: 'bg-violet-100 text-violet-800 border border-violet-200',
+                    borderClass: 'border-violet-500',
+                    cardClass: 'bg-violet-50/40'
+                };
+            }
+
+            // Manual backup entries (created via UI or manual trigger)
+            if (/backup manual|backup criado|backup criado manualmente/i.test(title) || /backup manual|backup criado|backup criado manualmente/i.test(desc) || entry?.metadata?.manualBackup) {
+                return {
+                    title,
+                    badgeLabel: 'Backup',
+                    badgeClass: 'bg-purple-100 text-purple-800 border border-purple-200',
+                    borderClass: 'border-purple-400',
+                    cardClass: 'bg-purple-50/30'
+                };
+            }
+
             if (/banimento de aluno/i.test(title)) {
                 return {
                     title,
@@ -3179,6 +3605,7 @@
                 try {
                     resetWeeklyCredits();
                     console.log('✓ [1/10] Créditos semanais verificados');
+                    updateSplashProgress(1, 'Verificando créditos semanais...');
                 } catch (e) {
                     console.error('❌ [1/10] Erro ao resetar créditos semanais:', e);
                 }
@@ -3188,6 +3615,7 @@
                 }
 
                 console.log('✓ [2/10] Classe android-runtime definida');
+                updateSplashProgress(2, 'Detectando ambiente...');
 
                 applyAdaptivePerformanceMode();
                 console.log('✓ [2.1/10] Performance adaptativa aplicada');
@@ -3223,11 +3651,13 @@
                 });
                 
                 console.log('✓ [3/10] Event listeners registrados');
+                updateSplashProgress(3, 'Registrando listeners...');
 
                 // Verificar disponibilidade de storage
                 const localStorageAvailable = checkStorageAvailability();
                 const indexedDBAvailable = await checkIndexedDBAvailability();
                 console.log('✓ [4/10] Disponibilidade de storage verificada:', { localStorageAvailable, indexedDBAvailable });
+                updateSplashProgress(4, 'Verificando armazenamento...');
                 
                 if (!localStorageAvailable && !indexedDBAvailable) {
                     console.error('❌ Nenhum método de armazenamento disponível. O aplicativo pode não funcionar corretamente.');
@@ -3242,34 +3672,65 @@
 
                 initTheme();
                 console.log('✓ [6/10] Tema inicializado');
+                updateSplashProgress(6, 'Aplicando tema...');
                 installKnownExternalNoiseFilters();
                 console.log('✓ [6.1/10] Filtros de ruído externos instalados');
 
                 // Inicializar Firebase com waitForFirebase para garantir SDK carregado
                 console.log('✓ [7/10] Iniciando verificação Firebase...');
                 await new Promise(resolve => {
-                    waitForFirebase(() => {
+                    waitForFirebase(async () => {
                         console.log('✓ [7.1/10] Firebase SDK verificado, inicializando...');
                         initFirebase();
                         console.log('✓ [7.2/10] Firebase inicializado');
+                        // Agendar verificações/listeners não-críticos para momento ocioso
+                        const scheduleNonCriticalFirebaseWork = () => {
+                            const runWork = async () => {
+                                try {
+                                    await ensureBackupsHaveHistory();
+                                    console.log('✓ Backups verificados e histórico notificado (deferred)');
+                                } catch (e) {
+                                    console.warn('Erro ao garantir histórico de backups (deferred):', e && e.message ? e.message : e);
+                                }
+
+                                try {
+                                    watchBackupsRealtimeListeners();
+                                    console.log('✓ Listener de backups anexado (deferred)');
+                                } catch (e) {
+                                    console.warn('Erro ao anexar listener de backups (deferred):', e && e.message ? e.message : e);
+                                }
+                            };
+
+                            if (typeof window.requestIdleCallback === 'function') {
+                                window.requestIdleCallback(() => runWork().catch(err => console.warn('Erro deferred backups:', err)), { timeout: 2000 });
+                            } else {
+                                setTimeout(() => runWork().catch(err => console.warn('Erro deferred backups:' , err)), 500);
+                            }
+                        };
+
+                        scheduleNonCriticalFirebaseWork();
                         resolve();
                     }, 20);
                 });
                 console.log('✓ [7.3/10] Firebase verificado');
+                updateSplashProgress(7, 'Conectando ao Firebase...');
 
                 console.log('✓ [8/10] Iniciando loadAllData...');
                 await loadAllData();
                 console.log('✓ [8.1/10] Dados carregados com sucesso');
+                updateSplashProgress(8, 'Carregando dados...');
                 
                 console.log('✓ [9/10] Aplicando processamentos pós-carga...');
                 applyLoginHolidayTheme(getCurrentThemeMode());
                 processFairDayTurnover();
                 processAEEWeeklyCredits();
                 console.log('✓ [9.1/10] Processamentos completados');
+                updateSplashProgress(9, 'Aplicando processamentos...');
                 
                 console.log('✓ [10/10] Inicializando ícones e elementos finais...');
                 initIcons();
                 console.log('✓ [10.1/10] Ícones inicializados');
+                updateSplashProgress(10, 'Finalizando inicialização...');
                 applyAutofillGuards(document);
                 console.log('✓ [10.2/10] Autofill guards aplicados');
                 enhanceInteractiveElements();
@@ -3281,7 +3742,18 @@
                 console.log('✅ [SUCESSO] Todas as inicializações completadas com sucesso!');
             } finally {
                 console.log('✓ [FINALLY] Removendo classe app-booting...');
+                updateSplashProgress(10, 'Pronto — carregando interface');
                 document.body.classList.remove('app-booting');
+                // Garantir remoção visual da splash após transição
+                try {
+                    const splash = document.getElementById('splash-screen');
+                    if (splash) {
+                        // permitir animação de saída antes de remover do fluxo
+                        setTimeout(() => {
+                            splash.style.display = 'none';
+                        }, 420);
+                    }
+                } catch (e) { /* noop */ }
                 console.log('✓ [FINALLY] Classe app-booting removida. Login screen deve estar visível agora.');
             }
         };
@@ -3431,6 +3903,8 @@
         function setupScrollNavigation() {
             const navContainer = document.getElementById('nav-container');
             const tabContent = document.getElementById('tab-content');
+            const appContent = document.getElementById('app-content');
+            const desktopMedia = window.matchMedia('(min-width: 1024px)');
             
             if (!navContainer || !tabContent) {
                 console.warn('⚠️ Nav container ou tab content não encontrados');
@@ -3439,37 +3913,86 @@
 
             let lastScrollTop = 0;
             let isNavHidden = false;
-            let scrollTimeout;
+            let accumulatedDelta = 0;
+            let isTicking = false;
 
-            const handleScroll = (e) => {
-                // Remove timeout anterior
-                if (scrollTimeout) clearTimeout(scrollTimeout);
-
-                // Pega o scroll position de tab-content
-                const currentScroll = tabContent.scrollTop || 0;
-                const scrollDifference = currentScroll - lastScrollTop;
-
-                // AUMENTAR SENSIBILIDADE: Detecta scroll para baixo (mais de 10px)
-                if (scrollDifference > 10 && !isNavHidden) {
-                    console.log('📖 Scroll para baixo → Escondendo nav');
-                    navContainer.classList.add('hidden-nav');
-                    isNavHidden = true;
-                }
-
-                // AUMENTAR SENSIBILIDADE: Detecta scroll para cima (qualquer movimento > -3px)
-                if (scrollDifference < -3 && isNavHidden) {
-                    console.log('📖 Scroll para cima → Mostrando nav');
+            const setNavVisibility = (shouldHide) => {
+                if (desktopMedia.matches) {
                     navContainer.classList.remove('hidden-nav');
+                    appContent?.classList.remove('nav-collapsed');
                     isNavHidden = false;
+                    return;
                 }
 
-                lastScrollTop = currentScroll;
+                if (shouldHide === isNavHidden) {
+                    return;
+                }
+
+                isNavHidden = shouldHide;
+                navContainer.classList.toggle('hidden-nav', shouldHide);
+                appContent?.classList.toggle('nav-collapsed', shouldHide);
             };
 
-            // Escuta SCROLL em tab-content (aqui o scroll acontece)
+            const enforceCurrentLayout = () => {
+                setNavVisibility(false);
+                lastScrollTop = tabContent.scrollTop || 0;
+                accumulatedDelta = 0;
+            };
+
+            const evaluateScrollDirection = () => {
+                const currentScroll = tabContent.scrollTop || 0;
+                const scrollDifference = currentScroll - lastScrollTop;
+                lastScrollTop = currentScroll;
+
+                if (desktopMedia.matches) {
+                    setNavVisibility(false);
+                    accumulatedDelta = 0;
+                    return;
+                }
+
+                if (currentScroll <= 6) {
+                    setNavVisibility(false);
+                    accumulatedDelta = 0;
+                    return;
+                }
+
+                accumulatedDelta += scrollDifference;
+
+                if (accumulatedDelta > 18) {
+                    setNavVisibility(true);
+                    accumulatedDelta = 0;
+                    return;
+                }
+
+                if (accumulatedDelta < -12) {
+                    setNavVisibility(false);
+                    accumulatedDelta = 0;
+                }
+            };
+
+            const handleScroll = () => {
+                if (isTicking) return;
+                isTicking = true;
+                requestAnimationFrame(() => {
+                    evaluateScrollDirection();
+                    isTicking = false;
+                });
+            };
+
+            const handleMediaChange = () => {
+                enforceCurrentLayout();
+            };
+
+            if (typeof desktopMedia.addEventListener === 'function') {
+                desktopMedia.addEventListener('change', handleMediaChange);
+            } else if (typeof desktopMedia.addListener === 'function') {
+                desktopMedia.addListener(handleMediaChange);
+            }
+
             tabContent.addEventListener('scroll', handleScroll, { passive: true });
+            enforceCurrentLayout();
             
-            console.log('✓ Scroll navigation ativado com sensibilidade melhorada (10px down, 3px up)');
+            console.log('✓ Scroll navigation ativado (mobile-first, suave e com navbar fixa no desktop)');
         }
 
         function setupLoginEnterKey() {
@@ -3562,9 +4085,8 @@
             }
             firebaseUser = normalizeFirebasePathSegment(rawUserKey);
 
-            // Atualizar listeners e dados do Firebase assim que o usuário fizer login
-            setupRealtimeSync();
-            loadFromFirebaseOnStartup().catch(err => console.warn('Falha ao recarregar Firebase após login:', err));
+            // Atualizar listeners e dados do Firebase: DEFERIDO até a UI estar visível
+            // (evita bloquear a renderização da tela de login)
             THEME_SETTINGS.current = getUserThemePreference();
             applyTheme();
 
@@ -3586,6 +4108,26 @@
             appScreenReady = true;
             syncCurrentUserPresence(true);
             setTimeout(showActiveNotices, 600);
+
+            // Agendar sincronização do Firebase em idle para não bloquear a UI
+            const scheduleFirebaseSync = () => {
+                const runSync = () => {
+                    try {
+                        setupRealtimeSync();
+                        loadFromFirebaseOnStartup().catch(err => console.warn('Falha ao recarregar Firebase após login (deferred):', err));
+                    } catch (e) {
+                        console.warn('Erro ao iniciar sync Firebase deferred:', e);
+                    }
+                };
+
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(runSync, { timeout: 1000 });
+                } else {
+                    setTimeout(runSync, 200);
+                }
+            };
+
+            scheduleFirebaseSync();
         }
 
         function logout() {
@@ -4779,6 +5321,7 @@
 
             // Controle de permissão para saldo
             const canEditBalance = MOCK_USER.roleType === 'dev' || MOCK_USER.roleType === 'admin';
+            const canEditBanCount = MOCK_USER.roleType === 'dev';
 
             openModal(`
                 <div class="modal-form-shell">
@@ -4803,6 +5346,13 @@
                             <input type="number" id="edit-std-balance" value="${student.balance}" class="w-full p-4 bg-amber-50 border border-amber-200 rounded-2xl outline-none focus:border-amber-500 transition font-bold text-amber-700">
                         </div>
                         ` : ''}
+                        ${canEditBanCount ? `
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 tracking-wider">Contagem de Banimentos</label>
+                            <input type="number" id="edit-std-ban-count" value="${Number(student.banCount) || 0}" min="0" class="w-full p-4 bg-amber-50 border border-amber-200 rounded-2xl outline-none focus:border-amber-500 transition font-bold text-amber-700">
+                            <p class="text-[10px] text-slate-500 mt-1">Ajuste manual da contagem de banimentos. Visível apenas para DEV.</p>
+                        </div>
+                        ` : ''}
                         <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atendimento Especial (AEE)</span>
                             <input type="checkbox" id="edit-std-aee" ${student.aee ? 'checked' : ''} class="w-5 h-5 accent-amber-500">
@@ -4822,6 +5372,7 @@
             const newClass = document.getElementById('edit-std-class').value;
             const newAee = document.getElementById('edit-std-aee').checked;
             const balanceInput = document.getElementById('edit-std-balance');
+            const banCountInput = document.getElementById('edit-std-ban-count');
 
             if (!newName) { showToast("O nome não pode estar vazio.", "error"); return; }
 
@@ -4835,6 +5386,15 @@
             
             if(balanceInput) {
                 student.balance = parseFloat(balanceInput.value) || 0;
+            }
+
+            if (banCountInput) {
+                const newBanCount = parseInt(banCountInput.value) || 0;
+                if (newBanCount !== student.banCount) {
+                    const oldBanCount = Number(student.banCount) || 0;
+                    student.banCount = newBanCount;
+                    addHistory('Contagem de banimentos ajustada', `Contagem de banimentos alterada de ${oldBanCount} para ${newBanCount} por ${MOCK_USER.name}`, 'edit', student.id);
+                }
             }
 
             addHistory("Aluno Editado", `${oldName} (${oldClass}) atualizado.`, 'edit', student.id);
@@ -5826,6 +6386,29 @@
             }
 
             closeModal();
+        }
+
+        // Modal de confirmação reutilizável
+        function showConfirmModal(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                window.__confirmResolve = resolve;
+                const content = `
+                    <div class="p-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="font-black text-slate-800 text-lg">${escapeHtml(title)}</h3>
+                                <p class="text-[12px] text-slate-500 mt-2">${escapeHtml(message)}</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex gap-3 justify-end">
+                            <button type="button" onclick="window.__confirmResolve(false); closeModal();" class="py-3 px-4 bg-slate-100 text-slate-700 rounded-2xl">Cancelar</button>
+                            <button type="button" onclick="window.__confirmResolve(true); closeModal();" class="py-3 px-4 bg-rose-600 text-white rounded-2xl">Confirmar</button>
+                        </div>
+                    </div>
+                `;
+                setModalBackdropHandler(() => { closeModal(); resolve(false); });
+                openModal(content);
+            });
         }
 
         function openModal(contentHtml) {
@@ -8608,6 +9191,10 @@
                 requestAnimationFrame(() => {
                     if (container.dataset.tabTransitionToken !== transitionToken || !nextShell) return;
                     nextShell.classList.add('is-visible');
+                    if (tabId === 'settings') {
+                        // carregar backups quando abrir Configurações
+                        try { setTimeout(() => { if (typeof loadBackups === 'function') loadBackups(); }, 50); } catch (e) { console.warn(e); }
+                    }
                 });
             };
 
@@ -9231,18 +9818,82 @@
                     const posBalance = MOCK_STUDENTS.filter(s => s.balance > 0).length;
                     const negBalance = MOCK_STUDENTS.filter(s => s.balance < 0).length;
                     const zeroBalance = MOCK_STUDENTS.filter(s => s.balance === 0).length;
-                    const loginActivityHtml = MOCK_LOGIN_ACTIVITY.slice(0, 1).map(entry => `
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-start justify-between gap-3">
-                            <div>
-                                <p class="text-sm font-black text-slate-800 uppercase tracking-tight">${escapeHtml(entry.teacherName)}</p>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">${escapeHtml(entry.role)} • ${escapeHtml(entry.teacherEmail)}</p>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Entrou</p>
-                                <p class="text-xs font-bold text-slate-700">${escapeHtml(entry.loggedInAt)}</p>
-                            </div>
-                        </div>
-                    `).join('');
+                    function buildSettingsLoginActivityHtml() {
+                        const entries = Array.isArray(MOCK_LOGIN_ACTIVITY) ? MOCK_LOGIN_ACTIVITY : [];
+
+                        // Mapear último login por e-mail
+                        const lastByEmail = {};
+                        entries.forEach(e => {
+                            const email = String(e.teacherEmail || '').trim().toLowerCase();
+                            if (!email) return;
+                            const iso = String(e.loggedInAtIso || '').trim();
+                            const existing = lastByEmail[email];
+                            if (!existing || (iso && Date.parse(iso) > (Date.parse(existing.iso || '') || 0))) {
+                                lastByEmail[email] = {
+                                    name: e.teacherName || email,
+                                    role: e.role || 'Professor',
+                                    email,
+                                    iso,
+                                    loggedInAt: e.loggedInAt || (iso ? new Date(iso).toLocaleString('pt-BR') : 'agora')
+                                };
+                            }
+                        });
+
+                        // Completar com informações dos cadastros de professores (se houver últimos logins nos registros deles)
+                        (Array.isArray(MOCK_TEACHERS) ? MOCK_TEACHERS : []).forEach(t => {
+                            const email = normalizeEmailAddress(t.email || '').toLowerCase();
+                            if (!email) return;
+                            const iso = String(t.lastLoginAtIso || t.lastActiveAtIso || t.onlineSessionStartedAtIso || '').trim();
+                            if (!iso) return;
+                            const existing = lastByEmail[email];
+                            if (!existing || Date.parse(iso) > (Date.parse(existing.iso || '') || 0)) {
+                                lastByEmail[email] = {
+                                    name: t.name || email,
+                                    role: t.role || 'Professor',
+                                    email,
+                                    iso,
+                                    loggedInAt: t.lastLoginAt || new Date(iso).toLocaleString('pt-BR')
+                                };
+                            }
+                        });
+
+                        // Agrupar por papel desejado: Professor, Admin, Dev
+                        const groups = { Professor: [], Admin: [], Dev: [] };
+                        Object.values(lastByEmail).forEach(item => {
+                            const roleNorm = String(item.role || '').toLowerCase();
+                            if (roleNorm.includes('dev') || roleNorm.includes('desenvolv')) {
+                                groups.Dev.push(item);
+                            } else if (roleNorm.includes('admin') || roleNorm.includes('diret') || roleNorm.includes('coord')) {
+                                groups.Admin.push(item);
+                            } else {
+                                groups.Professor.push(item);
+                            }
+                        });
+
+                        const renderList = (arr) => arr
+                            .sort((a, b) => (Date.parse(b.iso || '') || 0) - (Date.parse(a.iso || '') || 0))
+                            .map(entry => `
+                                <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="text-sm font-black text-slate-800 uppercase tracking-tight">${escapeHtml(entry.name)}</p>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">${escapeHtml(entry.role)} • ${escapeHtml(entry.email)}</p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Entrou</p>
+                                        <p class="text-xs font-bold text-slate-700">${escapeHtml(entry.loggedInAt)}</p>
+                                    </div>
+                                </div>
+                            `).join('');
+
+                        let html = '';
+                        html += `<h5 class="font-bold text-slate-700 uppercase text-xs mb-2">Professores</h5>${renderList(groups.Professor) || '<div class="text-[10px] text-slate-400">Nenhum registro</div>'}`;
+                        html += `<div class="mt-4"><h5 class="font-bold text-slate-700 uppercase text-xs mb-2">Administradores</h5>${renderList(groups.Admin) || '<div class="text-[10px] text-slate-400">Nenhum registro</div>'}</div>`;
+                        html += `<div class="mt-4"><h5 class="font-bold text-slate-700 uppercase text-xs mb-2">DEV</h5>${renderList(groups.Dev) || '<div class="text-[10px] text-slate-400">Nenhum registro</div>'}</div>`;
+
+                        return html;
+                    }
+
+                    const loginActivityHtml = buildSettingsLoginActivityHtml();
 
                     content = `
                         <div class="space-y-4">
@@ -9454,6 +10105,28 @@
                                     </div>
                                 </div>
                             </div>
+
+                            ${canManageSystemSettings ? `
+                            <!-- Backups do Sistema -->
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mt-4">
+                                <div class="flex items-center justify-between gap-3 mb-4">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                            <i data-lucide="database" class="w-4 h-4 text-indigo-500"></i> Backups do Sistema
+                                        </h4>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lista os 4 backups mais recentes e permite criar/excluir backups manuais</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input id="backup-secret-input" placeholder="Segredo (opcional)" class="p-2 border border-slate-200 rounded-xl text-sm" />
+                                        <button onclick="triggerManualBackup()" class="py-2 px-4 bg-emerald-500 text-white rounded-xl font-bold">Fazer backup agora</button>
+                                    </div>
+                                </div>
+
+                                <div id="backups-list" class="space-y-3 max-h-48 overflow-y-auto pr-1">
+                                    <div class="text-[10px] text-slate-500">Carregando backups...</div>
+                                </div>
+                            </div>
+                            ` : ''}
 
                             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mt-4">
                                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">

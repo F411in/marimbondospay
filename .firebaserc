@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "banco-dos-marimbondos",
+    "barimbondospay": "banco-dos-marimbondos",
+    "cd \"C:\\Users\\victo\\OneDrive\\Documentos\\Code\\Banco dos Marimbondos\\Versão web\"; firebase functions:list --project=banco-dos-marimbondos": "banco-dos-marimbondos"
+  },
+  "targets": {},
+  "etags": {}
+}

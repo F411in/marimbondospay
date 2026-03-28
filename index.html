@@ -29,19 +29,35 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="vendor/xlsx.min.js"></script>
-    <script src="vendor/mammoth.browser.min.js"></script>
-    <script src="vendor/pdf.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <!-- Firebase (Compat para manter firebase.database() estilo legado) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js" defer></script>
 
     <link rel="stylesheet" href="styles.css">
 
 </head>
 <body class="min-h-screen app-booting">
+    <!-- SPLASH / LOADING ANIMATED SCREEN (exibida enquanto app-booting estiver presente) -->
+    <div id="splash-screen" class="fixed inset-0 z-[999] flex items-center justify-center bg-gradient-to-br from-amber-50 to-white">
+        <div class="text-center">
+            <div class="splash-badge mb-6">
+                <div class="marimbondo-logo marimbondo-logo-xl animate-splash-rotate"></div>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Marimbondos Pay</h2>
+            <p class="text-sm text-slate-500 mb-4">Carregando o sistema — aguarde</p>
+            <div class="splash-loader inline-flex items-center gap-3 flex-col items-center">
+                <div class="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-3 mb-2 shadow-sm">
+                    <div id="splash-progress-bar" class="h-2 transition-all duration-300" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+                </div>
+                <div class="flex items-center gap-3 mt-1">
+                    <div id="splash-percent" class="text-sm font-bold text-slate-700">0%</div>
+                </div>
+                <div id="splash-progress" class="text-[11px] text-slate-400 mt-2">Inicializando...</div>
+            </div>
+        </div>
+    </div>
 
     <!-- NOTIFICAÇÕES TOAST -->
     <div id="toast-container" class="fixed bottom-24 left-1/2 -translate-x-1/2 md:bottom-5 md:left-auto md:right-5 md:translate-x-0 z-[140] flex flex-col gap-3 items-center md:items-end w-full max-w-[90%] md:w-auto"></div>
